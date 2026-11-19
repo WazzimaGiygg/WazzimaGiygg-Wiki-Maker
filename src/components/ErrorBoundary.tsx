@@ -18,7 +18,7 @@ export class ErrorBoundary extends React.Component<
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return {
       hasError: true,
-      message: error.message || 'Ocorreu um erro inesperado na aplicação.',
+      message: error.message || 'An unexpected error occurred in the application.',
     };
   }
 
@@ -40,7 +40,7 @@ export class ErrorBoundary extends React.Component<
           path?: string;
         };
         if (parsed.error) {
-          friendlyMessage = `Erro no banco de dados (${parsed.operationType ?? 'operação'} em ${parsed.path ?? 'recurso'}): ${parsed.error}`;
+          friendlyMessage = `Database error (${parsed.operationType ?? 'operation'} at ${parsed.path ?? 'resource'}): ${parsed.error}`;
         }
       } catch {
         // Keep original message if not JSON
@@ -52,7 +52,7 @@ export class ErrorBoundary extends React.Component<
             <div className="flex items-center gap-3 text-red-700 dark:text-red-400">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <h1 className="font-display text-lg font-semibold">
-                Não foi possível concluir a operação
+                Unable to complete the operation
               </h1>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed break-words">
@@ -65,14 +65,14 @@ export class ErrorBoundary extends React.Component<
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
-                Tentar novamente
+                Try again
               </button>
               <button
                 type="button"
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
-                Recarregar página
+                Reload page
               </button>
             </div>
           </div>

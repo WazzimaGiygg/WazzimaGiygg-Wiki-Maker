@@ -72,7 +72,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [slugTouched, setSlugTouched] = React.useState(mode === 'edit' || Boolean(initialSlug));
   const [title, setTitle] = React.useState(initialTitle);
   const [content, setContent] = React.useState(initialContent);
-  const [category, setCategory] = React.useState(initialCategory || 'geral');
+  const [category, setCategory] = React.useState(initialCategory || 'general');
   const [tagsText, setTagsText] = React.useState(initialTags.join(', '));
   const [visibility, setVisibility] = React.useState<PageVisibility>(initialVisibility);
   const [isLocked, setIsLocked] = React.useState(initialIsLocked);
@@ -87,7 +87,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setSlugTouched(mode === 'edit' || Boolean(initialSlug));
     setTitle(initialTitle);
     setContent(initialContent);
-    setCategory(initialCategory || 'geral');
+    setCategory(initialCategory || 'general');
     setTagsText(initialTags.join(', '));
     setVisibility(initialVisibility);
     setIsLocked(initialIsLocked);
@@ -111,7 +111,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
   };
 
-  const insertSnippet = (before: string, after = '', fallbackText = 'texto') => {
+  const insertSnippet = (before: string, after = '', fallbackText = 'text') => {
     const el = textareaRef.current;
     if (!el) {
       setContent((prev) => `${prev}${before}${fallbackText}${after}`);
@@ -136,11 +136,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setLocalError(null);
     const normalizedSlug = mode === 'create' ? toWikiSlug(slug) : initialSlug;
     if (!normalizedSlug) {
-      setLocalError('Informe um identificador (:slug) válido para a página.');
+      setLocalError('Please provide a valid page identifier (:slug).');
       return;
     }
     if (!title.trim()) {
-      setLocalError('Informe o título da página.');
+      setLocalError('Please enter a page title.');
       return;
     }
 
@@ -191,7 +191,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             htmlFor="wiki-title-input"
             className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
           >
-            Título da página
+            Page title
           </label>
           <input
             id="wiki-title-input"
@@ -199,7 +199,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             value={title}
             maxLength={VALIDATION_LIMITS.TITLE_MAX_LENGTH}
             onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="Ex: Arquitetura do Sistema"
+            placeholder="e.g., System Architecture"
             className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700"
           />
         </div>
@@ -209,7 +209,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             htmlFor="wiki-slug-input"
             className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
           >
-            Identificador (:slug)
+            Identifier (:slug)
           </label>
           <div className="flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0f1623] overflow-hidden">
             <span className="px-2.5 text-xs font-mono text-slate-500 dark:text-slate-400 select-none">
@@ -228,7 +228,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               onBlur={() => {
                 if (mode === 'create') setSlug(toWikiSlug(slug));
               }}
-              placeholder="arquitetura-sistema"
+              placeholder="system-architecture"
               className="w-full py-2 pr-3 text-sm font-mono bg-transparent text-slate-900 dark:text-slate-100 disabled:text-slate-500 focus:outline-none"
             />
           </div>
@@ -239,7 +239,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             htmlFor="wiki-category-select"
             className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
           >
-            Categoria
+            Category
           </label>
           <select
             id="wiki-category-select"
@@ -260,14 +260,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             htmlFor="wiki-tags-input"
             className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
           >
-            Tags (separadas por vírgula, máx. {VALIDATION_LIMITS.TAGS_MAX_COUNT})
+            Tags (comma-separated, max {VALIDATION_LIMITS.TAGS_MAX_COUNT})
           </label>
           <input
             id="wiki-tags-input"
             type="text"
             value={tagsText}
             onChange={(e) => setTagsText(e.target.value)}
-            placeholder="guia, backend, api"
+            placeholder="guide, backend, api"
             className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700"
           />
         </div>
@@ -280,7 +280,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   htmlFor="wiki-visibility-select"
                   className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
                 >
-                  Visibilidade
+                  Visibility
                 </label>
                 <select
                   id="wiki-visibility-select"
@@ -288,8 +288,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   onChange={(e) => setVisibility(e.target.value as PageVisibility)}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700"
                 >
-                  <option value="public">Pública (colaborativa)</option>
-                  <option value="private">Privada (somente você)</option>
+                  <option value="public">Public (collaborative)</option>
+                  <option value="private">Private (only you)</option>
                 </select>
               </div>
 
@@ -303,12 +303,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 }`}
               >
                 {isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                {isLocked ? 'Edição bloqueada' : 'Edição aberta'}
+                {isLocked ? 'Editing locked' : 'Open editing'}
               </button>
             </>
           ) : (
             <div className="text-xs text-slate-500 dark:text-slate-400 py-2">
-              Editando como colaborador em página pública aberta.
+              Editing as collaborator on an open public page.
             </div>
           )}
         </div>
@@ -319,32 +319,32 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         <div className="flex flex-wrap items-center gap-1">
           <button
             type="button"
-            title="Subtítulo (H2)"
-            onClick={() => insertSnippet('## ', '', 'Subtítulo')}
+            title="Heading (H2)"
+            onClick={() => insertSnippet('## ', '', 'Section Heading')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <Heading2 className="w-4 h-4" />
           </button>
           <button
             type="button"
-            title="Negrito"
-            onClick={() => insertSnippet('**', '**', 'negrito')}
+            title="Bold"
+            onClick={() => insertSnippet('**', '**', 'bold')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <Bold className="w-4 h-4" />
           </button>
           <button
             type="button"
-            title="Itálico"
-            onClick={() => insertSnippet('*', '*', 'itálico')}
+            title="Italic"
+            onClick={() => insertSnippet('*', '*', 'italic')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <Italic className="w-4 h-4" />
           </button>
           <button
             type="button"
-            title="Link interno Wikidot [[slug]]"
-            onClick={() => insertSnippet('[[', ']]', 'nome-da-pagina|Texto do Link')}
+            title="Wikidot internal link [[slug]]"
+            onClick={() => insertSnippet('[[', ']]', 'page-slug|Link Label')}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
           >
             <Link2 className="w-3.5 h-3.5" />
@@ -352,8 +352,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
           <button
             type="button"
-            title="Lista"
-            onClick={() => insertSnippet('\n- ', '', 'Item da lista')}
+            title="Bullet list"
+            onClick={() => insertSnippet('\n- ', '', 'List item')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <List className="w-4 h-4" />
@@ -361,14 +361,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           <button
             type="button"
             title="Checklist"
-            onClick={() => insertSnippet('\n- [ ] ', '', 'Tarefa pendente')}
+            onClick={() => insertSnippet('\n- [ ] ', '', 'Pending task')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <ListChecks className="w-4 h-4" />
           </button>
           <button
             type="button"
-            title="Bloco de código"
+            title="Code block"
             onClick={() => insertSnippet('\n```ts\n', '\n```\n', 'const hello = "wiki";')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -376,12 +376,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
           <button
             type="button"
-            title="Tabela Markdown"
+            title="Markdown table"
             onClick={() =>
               insertSnippet(
-                '\n| Coluna A | Coluna B |\n| --- | --- |\n| ',
-                ' | Valor B |\n',
-                'Valor A'
+                '\n| Column A | Column B |\n| --- | --- |\n| ',
+                ' | Value B |\n',
+                'Value A'
               )
             }
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -400,7 +400,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
-            Código
+            Write
           </button>
           <button
             type="button"
@@ -412,7 +412,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             }`}
           >
             <SplitSquareHorizontal className="w-3.5 h-3.5" />
-            Dividido
+            Split
           </button>
           <button
             type="button"
@@ -424,7 +424,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
-            Prévia
+            Preview
           </button>
         </div>
       </div>
@@ -442,14 +442,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               value={content}
               maxLength={VALIDATION_LIMITS.CONTENT_MAX_LENGTH}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Escreva em Markdown... Use [[slug]] para criar links internos entre páginas."
+              placeholder="Write in Markdown... Use [[slug]] to create internal links between wiki pages."
               className="w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y"
             />
             <div className="flex items-center justify-between mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
-              <span>Suporta GitHub Flavored Markdown e [[links-internos]]</span>
+              <span>Supports GitHub Flavored Markdown &amp; [[internal-links]]</span>
               <span>
-                {content.length.toLocaleString('pt-BR')} /{' '}
-                {VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('pt-BR')}
+                {content.length.toLocaleString('en-US')} /{' '}
+                {VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('en-US')}
               </span>
             </div>
           </div>
@@ -458,7 +458,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         {paneMode !== 'write' && (
           <div className="min-h-[420px] p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0d131f] overflow-y-auto">
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
-              Pré-visualização em tempo real
+              Live preview
             </div>
             <MarkdownRenderer
               content={content}
@@ -479,8 +479,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onChange={(e) => setSummary(e.target.value)}
             placeholder={
               mode === 'create'
-                ? 'Nota da criação (opcional)...'
-                : 'Resumo da alteração para o histórico (ex: Atualiza exemplos de código)...'
+                ? 'Initial creation note (optional)...'
+                : 'Change summary for history (e.g., Update code examples)...'
             }
             className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700"
           />
@@ -493,7 +493,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             disabled={isSaving}
             className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             type="button"
@@ -502,7 +502,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-60"
           >
             <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Salvando...' : mode === 'create' ? 'Publicar Página' : 'Salvar Revisão'}</span>
+            <span>{isSaving ? 'Saving...' : mode === 'create' ? 'Publish Page' : 'Save Revision'}</span>
           </button>
         </div>
       </div>

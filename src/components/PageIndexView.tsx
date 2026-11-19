@@ -41,7 +41,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
       });
     }
 
-    return [...filtered].sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+    return [...filtered].sort((a, b) => a.title.localeCompare(b.title, 'en-US'));
   }, [pages, search, categoryFilter, mode]);
 
   return (
@@ -49,15 +49,15 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
       <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800">
         <div>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            wiki / {mode === 'recent' ? 'alterações-recentes' : 'índice-geral'}
+            wiki / {mode === 'recent' ? 'recent-changes' : 'page-index'}
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-100 mt-1">
-            {mode === 'recent' ? 'Alterações Recentes' : 'Índice de Páginas'}
+            {mode === 'recent' ? 'Recent Changes' : 'Page Index'}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             {mode === 'recent'
-              ? 'Últimas revisões e criações colaborativas registradas no Firestore.'
-              : 'Catálogo completo de páginas disponíveis neste espaço wiki.'}
+              ? 'Latest collaborative edits and page creations stored in Firestore.'
+              : 'Complete catalog of wiki pages available in this workspace.'}
           </p>
         </div>
 
@@ -68,7 +68,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>Nova Página</span>
+            <span>New Page</span>
           </button>
         )}
       </div>
@@ -85,7 +85,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
-            Todas ({pages.length})
+            All ({pages.length})
           </button>
           {WIKI_CATEGORIES.map((cat) => (
             <button
@@ -109,7 +109,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar título, :slug ou autor..."
+            placeholder="Search title, :slug, or author..."
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
           />
         </div>
@@ -119,7 +119,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
       {sortedAndFiltered.length === 0 ? (
         <div className="py-12 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#0f1623]">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Nenhuma página encontrada para os filtros selecionados.
+            No pages found for the selected filters.
           </p>
         </div>
       ) : (
@@ -128,11 +128,11 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0b0f17] text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  <th className="py-2.5 px-4">Página</th>
-                  <th className="py-2.5 px-4">Categoria</th>
-                  <th className="py-2.5 px-4">Última edição</th>
-                  <th className="py-2.5 px-4 text-right">Versão</th>
-                  <th className="py-2.5 px-4 text-right">Atualizado</th>
+                  <th className="py-2.5 px-4">Page</th>
+                  <th className="py-2.5 px-4">Category</th>
+                  <th className="py-2.5 px-4">Last editor</th>
+                  <th className="py-2.5 px-4 text-right">Version</th>
+                  <th className="py-2.5 px-4 text-right">Updated</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
@@ -156,7 +156,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                         </div>
                         <div className="text-xs font-mono text-slate-500 dark:text-slate-400">
                           :{page.slug}
-                          {page.visibility === 'private' ? ' · Privada' : ''}
+                          {page.visibility === 'private' ? ' · Private' : ''}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-300">

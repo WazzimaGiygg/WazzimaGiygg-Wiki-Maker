@@ -49,11 +49,15 @@ import {
 
 function parseHashRoute(): { view: WorkspaceView; slug: string } {
   const hash = window.location.hash.replace(/^#\/?/, '');
-  if (hash === 'paginas') return { view: 'index', slug: 'start' };
-  if (hash === 'recentes') return { view: 'recent', slug: 'start' };
-  if (hash.startsWith('nova')) {
+  if (hash === 'pages' || hash === 'paginas') return { view: 'index', slug: 'start' };
+  if (hash === 'recent' || hash === 'recentes') return { view: 'recent', slug: 'start' };
+  if (hash.startsWith('new') || hash.startsWith('nova')) {
     const [, rawSlug] = hash.split('/');
     return { view: 'create', slug: rawSlug ? toWikiSlug(rawSlug) : '' };
+  }
+  if (hash.startsWith('page/')) {
+    const slug = toWikiSlug(hash.slice('page/'.length)) || 'start';
+    return { view: 'page', slug };
   }
   if (hash.startsWith('pagina/')) {
     const slug = toWikiSlug(hash.slice('pagina/'.length)) || 'start';
@@ -183,7 +187,7 @@ function WikiWorkspace() {
     const bySlug = new Map<string, WikiPage>();
     for (const p of publicPages) bySlug.set(p.slug, p);
     for (const p of privatePages) bySlug.set(p.slug, p);
-    return Array.from(bySlug.values()).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+    return Array.from(bySlug.values()).sort((a, b) => a.title.localeCompare(b.title, 'en-US'));
   }, [publicPages, privatePages]);
 
   const existingSlugs = React.useMemo(() => new Set(allPages.map((p) => p.slug)), [allPages]);
@@ -246,7 +250,7 @@ function WikiWorkspace() {
     setActiveTab('read');
     setSaveError(null);
     setConfirmDeleteOpen(false);
-    window.location.hash = `#/pagina/${normalized}`;
+    window.location.hash = `#/page/${normalized}`;
   };
 
   const navigateToCreate = (presetSlug = '') => {
@@ -259,21 +263,21 @@ function WikiWorkspace() {
     setView('create');
     setSaveError(null);
     setConfirmDeleteOpen(false);
-    window.location.hash = normalized ? `#/nova/${normalized}` : '#/nova';
+    window.location.hash = normalized ? `#/new/${normalized}` : '#/new';
   };
 
   const navigateToIndex = (mode: 'index' | 'recent') => {
     setView(mode);
     setSaveError(null);
     setConfirmDeleteOpen(false);
-    window.location.hash = mode === 'recent' ? '#/recentes' : '#/paginas';
+    window.location.hash = mode === 'recent' ? '#/recent' : '#/pages';
   };
 
   const handleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
-      console.error('Erro ao autenticar com Google:', error);
+      console.error('Google sign-in error:', error);
     }
   };
 
@@ -311,7 +315,7 @@ function WikiWorkspace() {
       const createdSlug = await createWikiPage(data, user);
       navigateToPage(createdSlug);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Erro ao criar página.');
+      setSaveError(err instanceof Error ? err.message : 'Failed to create page.');
     } finally {
       setIsSaving(false);
     }
@@ -334,7 +338,7 @@ function WikiWorkspace() {
       await updateWikiPage(activePage, data, user, canManageActiveMeta);
       setActiveTab('read');
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Erro ao atualizar página.');
+      setSaveError(err instanceof Error ? err.message : 'Failed to update page.');
     } finally {
       setIsSaving(false);
     }
@@ -413,13 +417,13 @@ function WikiWorkspace() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              aria-label="Abrir navegação da wiki"
+              aria-label="Open wiki navigation"
               className="lg:hidden p-1.5 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <Menu className="w-5 h-5" />
             </button>
             <a
-              href="#/pagina/start"
+              href="#/page/start"
               onClick={(e) => {
                 e.preventDefault();
                 navigateToPage('start');
@@ -432,11 +436,11 @@ function WikiWorkspace() {
 
           {/* Zone 2: 4 Clean Single-Line Nav Links */}
           <nav
-            aria-label="Navegação principal"
+            aria-label="Primary navigation"
             className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-300"
           >
             <a
-              href="#/pagina/start"
+              href="#/page/start"
               onClick={(e) => {
                 e.preventDefault();
                 navigateToPage('start');
@@ -447,10 +451,10 @@ function WikiWorkspace() {
                   : ''
               }`}
             >
-              Início
+              Home
             </a>
             <a
-              href="#/paginas"
+              href="#/pages"
               onClick={(e) => {
                 e.preventDefault();
                 navigateToIndex('index');
@@ -459,10 +463,10 @@ function WikiWorkspace() {
                 view === 'index' ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8' : ''
               }`}
             >
-              Páginas
+              Pages
             </a>
             <a
-              href="#/recentes"
+              href="#/recent"
               onClick={(e) => {
                 e.preventDefault();
                 navigateToIndex('recent');
@@ -473,21 +477,21 @@ function WikiWorkspace() {
                   : ''
               }`}
             >
-              Recentes
+              Recent
             </a>
             <a
-              href="#/pagina/guia-markdown"
+              href="#/page/markdown-guide"
               onClick={(e) => {
                 e.preventDefault();
-                navigateToPage('guia-markdown');
+                navigateToPage('markdown-guide');
               }}
               className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
-                view === 'page' && activeSlug === 'guia-markdown'
+                view === 'page' && activeSlug === 'markdown-guide'
                   ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
                   : ''
               }`}
             >
-              Guia Markdown
+              Markdown Guide
             </a>
           </nav>
 
@@ -500,7 +504,7 @@ function WikiWorkspace() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Nova Página</span>
+                <span>New Page</span>
               </button>
             ) : (
               <button
@@ -508,7 +512,7 @@ function WikiWorkspace() {
                 onClick={() => void handleSignIn()}
                 className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white transition-colors whitespace-nowrap shrink-0"
               >
-                Entrar com Google
+                Sign in with Google
               </button>
             )}
           </div>
@@ -544,10 +548,10 @@ function WikiWorkspace() {
             <div className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6">
               <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
                 <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                  wiki / nova-pagina{createPresetSlug ? ` / :${createPresetSlug}` : ''}
+                  wiki / new-page{createPresetSlug ? ` / :${createPresetSlug}` : ''}
                 </p>
                 <h1 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-100 mt-1">
-                  Criar Nova Página Colaborativa
+                  Create New Collaborative Page
                 </h1>
               </div>
 
@@ -557,7 +561,7 @@ function WikiWorkspace() {
                   initialSlug={createPresetSlug}
                   initialTitle={createPresetSlug ? slugToTitle(createPresetSlug) : ''}
                   initialContent=""
-                  initialCategory="geral"
+                  initialCategory="general"
                   initialTags={[]}
                   initialVisibility="public"
                   initialIsLocked={false}
@@ -572,15 +576,15 @@ function WikiWorkspace() {
               ) : (
                 <div className="py-8 space-y-4">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Para criar e publicar novas páginas no WazzimaGiygg Maker, faça login com sua
-                    conta Google.
+                    Sign in with your Google account to create and publish pages on WazzimaGiygg
+                    Maker.
                   </p>
                   <button
                     type="button"
                     onClick={() => void handleSignIn()}
                     className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors"
                   >
-                    Entrar com Google
+                    Sign in with Google
                   </button>
                 </div>
               )}
@@ -604,13 +608,13 @@ function WikiWorkspace() {
                 </p>
                 <h1 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-100">
                   {allPages.length === 0 && activeSlug === 'start'
-                    ? 'WazzimaGiygg Maker está pronto para começar'
-                    : `A página ":${activeSlug}" ainda não existe`}
+                    ? 'WazzimaGiygg Maker is ready to begin'
+                    : `The page ":${activeSlug}" does not exist yet`}
                 </h1>
                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
                   {allPages.length === 0 && activeSlug === 'start'
-                    ? 'Este espaço wiki no Firebase ainda não possui páginas publicadas. Você pode inicializar automaticamente com páginas de exemplo em Markdown ou criar a primeira página do zero.'
-                    : 'No estilo clássico do Wikidot, qualquer identificador inexistente pode ser transformado em uma página colaborativa com um clique.'}
+                    ? 'This Firebase wiki workspace does not have any published pages yet. You can initialize it with starter Markdown pages or create your first page from scratch.'
+                    : 'In classic Wikidot fashion, any missing page identifier can be turned into a collaborative Markdown page with one click.'}
                 </p>
               </div>
 
@@ -623,7 +627,7 @@ function WikiWorkspace() {
                       className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
                     >
                       <FilePlus2 className="w-4 h-4" />
-                      <span>Criar página :{activeSlug}</span>
+                      <span>Create page :{activeSlug}</span>
                     </button>
 
                     {allPages.length === 0 && (
@@ -635,7 +639,7 @@ function WikiWorkspace() {
                       >
                         <Sparkles className="w-4 h-4" />
                         <span>
-                          {seeding ? 'Criando páginas modelo...' : 'Inicializar com páginas modelo'}
+                          {seeding ? 'Creating starter pages...' : 'Initialize with starter pages'}
                         </span>
                       </button>
                     )}
@@ -646,7 +650,7 @@ function WikiWorkspace() {
                     onClick={() => void handleSignIn()}
                     className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors"
                   >
-                    Entrar com Google para criar :{activeSlug}
+                    Sign in with Google to create :{activeSlug}
                   </button>
                 )}
 
@@ -656,7 +660,7 @@ function WikiWorkspace() {
                     onClick={() => navigateToIndex('index')}
                     className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
-                    Ver todas as páginas
+                    Browse all pages
                   </button>
                 )}
               </div>
@@ -672,8 +676,8 @@ function WikiWorkspace() {
                   </div>
                   <div className="font-mono tabular-nums">
                     v{activePage.version} ·{' '}
-                    {activePage.visibility === 'private' ? 'Privada' : 'Pública'}
-                    {activePage.isLocked ? ' · Bloqueada' : ''}
+                    {activePage.visibility === 'private' ? 'Private' : 'Public'}
+                    {activePage.isLocked ? ' · Locked' : ''}
                   </div>
                 </div>
 
@@ -684,9 +688,9 @@ function WikiWorkspace() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  <span>Criado por {activePage.authorName}</span>
+                  <span>Created by {activePage.authorName}</span>
                   <span aria-hidden="true">·</span>
-                  <span>Última edição por {activePage.lastEditorName}</span>
+                  <span>Last edited by {activePage.lastEditorName}</span>
                   <span aria-hidden="true">·</span>
                   <span className="tabular-nums">{formatRelativeTime(activePage.updatedAt)}</span>
                   {activePage.tags.length > 0 && (
@@ -712,7 +716,7 @@ function WikiWorkspace() {
                       }`}
                     >
                       <BookOpen className="w-3.5 h-3.5" />
-                      <span>Ler</span>
+                      <span>Read</span>
                     </button>
 
                     <button
@@ -730,10 +734,10 @@ function WikiWorkspace() {
                       disabled={Boolean(user && !canEditActivePage)}
                       title={
                         !user
-                          ? 'Entre com Google para editar'
+                          ? 'Sign in with Google to edit'
                           : !canEditActivePage
-                          ? 'Esta página está bloqueada pelo autor'
-                          : 'Editar conteúdo Markdown'
+                          ? 'This page is locked by the author'
+                          : 'Edit Markdown content'
                       }
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 disabled:opacity-45 disabled:cursor-not-allowed ${
                         activeTab === 'edit'
@@ -746,7 +750,7 @@ function WikiWorkspace() {
                       ) : (
                         <Edit3 className="w-3.5 h-3.5" />
                       )}
-                      <span>Editar</span>
+                      <span>Edit</span>
                     </button>
 
                     <button
@@ -759,7 +763,7 @@ function WikiWorkspace() {
                       }`}
                     >
                       <History className="w-3.5 h-3.5" />
-                      <span>Histórico</span>
+                      <span>History</span>
                     </button>
 
                     <button
@@ -772,7 +776,7 @@ function WikiWorkspace() {
                       }`}
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
-                      <span>Discussão ({comments.length})</span>
+                      <span>Discussion ({comments.length})</span>
                     </button>
 
                     <button
@@ -785,7 +789,7 @@ function WikiWorkspace() {
                       }`}
                     >
                       <Code2 className="w-3.5 h-3.5" />
-                      <span>Fonte</span>
+                      <span>Source</span>
                     </button>
                   </div>
 
@@ -798,12 +802,12 @@ function WikiWorkspace() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors whitespace-nowrap shrink-0"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          <span>Excluir</span>
+                          <span>Delete</span>
                         </button>
                       ) : (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-red-700 dark:text-red-400 font-medium">
-                            Confirmar exclusão?
+                            Confirm delete?
                           </span>
                           <button
                             type="button"
@@ -811,14 +815,14 @@ function WikiWorkspace() {
                             onClick={() => void handleDeletePage()}
                             className="px-3 py-1 text-xs font-medium rounded-md bg-red-700 text-white hover:bg-red-800 transition-colors disabled:opacity-50"
                           >
-                            {isDeleting ? 'Excluindo...' : 'Sim, excluir'}
+                            {isDeleting ? 'Deleting...' : 'Yes, delete'}
                           </button>
                           <button
                             type="button"
                             onClick={() => setConfirmDeleteOpen(false)}
                             className="px-3 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                           >
-                            Cancelar
+                            Cancel
                           </button>
                         </div>
                       )}
@@ -841,7 +845,7 @@ function WikiWorkspace() {
                   {toc.length > 0 && (
                     <aside className="xl:col-span-3 xl:sticky xl:top-20 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-800 pt-4 xl:pt-0 xl:pl-5 space-y-2.5">
                       <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        Nesta página
+                        On this page
                       </div>
                       <ul className="space-y-1.5 text-xs">
                         {toc.map((item, idx) => (
@@ -919,8 +923,8 @@ function WikiWorkspace() {
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                      {activePage.slug}.md · {activePage.content.length.toLocaleString('pt-BR')}{' '}
-                      caracteres
+                      {activePage.slug}.md · {activePage.content.length.toLocaleString('en-US')}{' '}
+                      characters
                     </span>
                     <div className="flex items-center gap-2">
                       <button
@@ -933,7 +937,7 @@ function WikiWorkspace() {
                         ) : (
                           <Copy className="w-3.5 h-3.5" />
                         )}
-                        <span>{copiedSource ? 'Copiado' : 'Copiar Markdown'}</span>
+                        <span>{copiedSource ? 'Copied' : 'Copy Markdown'}</span>
                       </button>
                       <button
                         type="button"
@@ -941,13 +945,13 @@ function WikiWorkspace() {
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        <span>Baixar .md</span>
+                        <span>Download .md</span>
                       </button>
                     </div>
                   </div>
 
                   <pre className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-xs font-mono leading-relaxed text-slate-800 dark:text-slate-200 overflow-x-auto whitespace-pre-wrap">
-                    {activePage.content || '(vazio)'}
+                    {activePage.content || '(empty)'}
                   </pre>
                 </div>
               )}

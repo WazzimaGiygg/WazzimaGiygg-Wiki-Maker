@@ -91,20 +91,20 @@ export function extractToc(markdown: string): TocItem[] {
 }
 
 export function formatRelativeTime(timestamp: Timestamp | null | undefined): string {
-  if (!timestamp) return 'agora mesmo';
+  if (!timestamp) return 'just now';
   const date = timestamp.toDate();
   const diffMs = Date.now() - date.getTime();
   const diffSec = Math.max(0, Math.floor(diffMs / 1000));
 
-  if (diffSec < 60) return 'agora mesmo';
+  if (diffSec < 60) return 'just now';
   const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `há ${diffMin} min`;
+  if (diffMin < 60) return `${diffMin}m ago`;
   const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `há ${diffHours}h`;
+  if (diffHours < 24) return `${diffHours}h ago`;
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return `há ${diffDays}d`;
+  if (diffDays < 30) return `${diffDays}d ago`;
 
-  return date.toLocaleDateString('pt-BR', {
+  return date.toLocaleDateString('en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -113,7 +113,7 @@ export function formatRelativeTime(timestamp: Timestamp | null | undefined): str
 
 export function formatAbsoluteTime(timestamp: Timestamp | null | undefined): string {
   if (!timestamp) return '—';
-  return timestamp.toDate().toLocaleString('pt-BR', {
+  return timestamp.toDate().toLocaleString('en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

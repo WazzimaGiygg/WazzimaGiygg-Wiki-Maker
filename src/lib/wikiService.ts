@@ -36,7 +36,7 @@ function sanitizeCategory(category: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, VALIDATION_LIMITS.CATEGORY_MAX_LENGTH);
 
-  return VALIDATION_LIMITS.CATEGORY_PATTERN.test(normalized) ? normalized : 'geral';
+  return VALIDATION_LIMITS.CATEGORY_PATTERN.test(normalized) ? normalized : 'general';
 }
 
 function sanitizeTags(tags: string[]): string[] {
@@ -47,8 +47,8 @@ function sanitizeTags(tags: string[]): string[] {
 }
 
 function getUserDisplayName(user: User): string {
-  const raw = user.displayName || user.email?.split('@')[0] || 'Colaborador';
-  return sanitizeString(raw, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH) || 'Colaborador';
+  const raw = user.displayName || user.email?.split('@')[0] || 'Collaborator';
+  return sanitizeString(raw, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH) || 'Collaborator';
 }
 
 export async function syncUserDocuments(user: User): Promise<void> {
@@ -119,12 +119,12 @@ export interface SavePageInput {
 export async function createWikiPage(input: SavePageInput, user: User): Promise<string> {
   const slug = toWikiSlug(input.slug);
   if (!isValidWikiSlug(slug)) {
-    throw new Error('Identificador (:slug) inválido. Use apenas letras, números e hífens.');
+    throw new Error('Invalid identifier (:slug). Use only letters, numbers, underscores, and hyphens.');
   }
 
   const title = sanitizeString(input.title, VALIDATION_LIMITS.TITLE_MAX_LENGTH);
   if (!title) {
-    throw new Error('O título da página é obrigatório.');
+    throw new Error('Page title is required.');
   }
 
   const content = input.content.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH);
@@ -133,7 +133,7 @@ export async function createWikiPage(input: SavePageInput, user: User): Promise<
   const authorName = getUserDisplayName(user);
   const summary =
     sanitizeString(input.summary, VALIDATION_LIMITS.SUMMARY_MAX_LENGTH) ||
-    'Criação inicial da página';
+    'Initial page creation';
 
   const pagePath = `pages/${slug}`;
   const pageRef = doc(db, 'pages', slug);
@@ -141,10 +141,10 @@ export async function createWikiPage(input: SavePageInput, user: User): Promise<
   try {
     const existingSnap = await getDoc(pageRef);
     if (existingSnap.exists()) {
-      throw new Error(`Já existe uma página com o identificador ":${slug}".`);
+      throw new Error(`A page with identifier ":${slug}" already exists.`);
     }
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('Já existe')) {
+    if (error instanceof Error && error.message.startsWith('A page with identifier')) {
       throw error;
     }
     handleFirestoreError(error, OperationType.GET, pagePath);
@@ -199,7 +199,7 @@ export async function updateWikiPage(
 ): Promise<void> {
   const title = sanitizeString(input.title, VALIDATION_LIMITS.TITLE_MAX_LENGTH);
   if (!title) {
-    throw new Error('O título da página é obrigatório.');
+    throw new Error('Page title is required.');
   }
 
   const content = input.content.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH);
@@ -211,7 +211,7 @@ export async function updateWikiPage(
   const nextLocked = canManageMeta ? input.isLocked : existing.isLocked;
   const summary =
     sanitizeString(input.summary, VALIDATION_LIMITS.SUMMARY_MAX_LENGTH) ||
-    `Revisão v${nextVersion}`;
+    `Revision v${nextVersion}`;
 
   const pagePath = `pages/${existing.slug}`;
   const pageRef = doc(db, 'pages', existing.slug);
@@ -300,7 +300,7 @@ export async function restorePageRevision(
       tags: page.tags,
       visibility: page.visibility,
       isLocked: page.isLocked,
-      summary: `Restaurada a versão v${revision.version}`,
+      summary: `Restored version v${revision.version}`,
     },
     user,
     canManageMeta
@@ -363,7 +363,7 @@ export async function fetchPageRevisions(page: WikiPage): Promise<PageRevision[]
 export async function addPageComment(page: WikiPage, body: string, user: User): Promise<void> {
   const cleanedBody = sanitizeString(body, VALIDATION_LIMITS.COMMENT_BODY_MAX_LENGTH);
   if (!cleanedBody) {
-    throw new Error('O comentário não pode estar vazio.');
+    throw new Error('Comment cannot be empty.');
   }
 
   const commentRef = doc(collection(db, 'pages', page.slug, 'comments'));
@@ -407,104 +407,104 @@ export async function seedStarterWiki(user: User): Promise<void> {
   }[] = [
     {
       slug: 'start',
-      title: 'Bem-vindo ao WazzimaGiygg Maker',
-      category: 'geral',
-      tags: ['inicio', 'wiki', 'colaboracao'],
-      summary: 'Página inicial da wiki',
-      content: `O **WazzimaGiygg Maker** é uma wiki colaborativa minimalista inspirada no modelo clássico do Wikidot, construída em TypeScript com persistência em tempo real no Firebase Firestore.
+      title: 'Welcome to WazzimaGiygg Maker',
+      category: 'general',
+      tags: ['home', 'wiki', 'collaboration'],
+      summary: 'Initial wiki home page',
+      content: `**WazzimaGiygg Maker** is a minimalist collaborative wiki inspired by the classic Wikidot model, built in TypeScript with real-time persistence on Firebase Firestore.
 
-## Começando rápido
+## Quick Start
 
-- **Criação instantânea por slug**: digite qualquer identificador no campo **Criação rápida** na barra lateral (ex: \`meu-projeto\`) e pressione Enter.
-- **Links internos estilo Wikidot**: escreva \`[[guia-markdown]]\` ou \`[[boas-praticas|Boas Práticas]]\` para conectar páginas. Links para páginas que ainda não existem aparecem destacados e permitem criá-las com um único clique.
-- **Histórico versionado**: cada salvamento grava uma nova revisão imutável (\`v1\`, \`v2\`, \`v3\`) que pode ser inspecionada e restaurada a qualquer momento.
+- **Instant creation by slug**: type any identifier into the **Quick create by slug** box in the sidebar (e.g., \`my-project\`) and press Enter.
+- **Wikidot-style internal links**: write \`[[markdown-guide]]\` or \`[[best-practices|Best Practices]]\` to connect pages. Links to pages that do not exist yet appear highlighted so you can create them in one click.
+- **Versioned history**: every save records an immutable revision (\`v1\`, \`v2\`, \`v3\`) that can be inspected and restored at any time.
 
-> Dica: Experimente clicar em **Editar** acima para modificar esta página em tempo real, ou acesse [[guia-markdown|Guia Completo de Markdown]].
+> Tip: Try clicking **Edit** above to modify this page in real time, or open the [[markdown-guide|Complete Markdown Guide]].
 
-## Mapa rápido da documentação
+## Documentation Map
 
-| Página | Finalidade | Acesso |
+| Page | Purpose | Access |
 | --- | --- | --- |
-| [[start]] | Ponto de entrada principal da wiki | Pública |
-| [[guia-markdown]] | Referência de sintaxe Markdown e links internos | Pública |
-| [[boas-praticas]] | Convenções de organização e colaboração | Pública |
+| [[start]] | Main entry point of the wiki | Public |
+| [[markdown-guide]] | Markdown syntax and internal links reference | Public |
+| [[best-practices]] | Collaboration and organization conventions | Public |
 
-## Próximos passos
+## Next Steps
 
-- [x] Conectar conta Google para colaborar
-- [ ] Explorar o [[guia-markdown|Guia de Markdown]]
-- [ ] Criar sua primeira página personalizada como [[notas-da-equipe|Notas da Equipe]]`,
+- [x] Sign in with Google to collaborate
+- [ ] Explore the [[markdown-guide|Markdown Guide]]
+- [ ] Create your first custom page like [[team-notes|Team Notes]]`,
     },
     {
-      slug: 'guia-markdown',
-      title: 'Guia de Markdown & Links Internos',
-      category: 'guias',
-      tags: ['markdown', 'sintaxe', 'referencia'],
-      summary: 'Referência essencial de Markdown para colaboradores',
-      content: `Todas as páginas do **WazzimaGiygg Maker** são escritas em Markdown com suporte a tabelas, listas de tarefas, blocos de código e links internos no estilo Wikidot.
+      slug: 'markdown-guide',
+      title: 'Markdown & Internal Links Guide',
+      category: 'guides',
+      tags: ['markdown', 'syntax', 'reference'],
+      summary: 'Essential Markdown reference for collaborators',
+      content: `Every page in **WazzimaGiygg Maker** is authored in Markdown with support for tables, task lists, code blocks, and Wikidot-style internal links.
 
-## Links estilo Wikidot
+## Wikidot-Style Links
 
-Use colchetes duplos para referenciar outras páginas da wiki pelo identificador (\`:slug\`):
+Use double brackets to link to other wiki pages by their identifier (\`:slug\`):
 
 \`\`\`markdown
 [[start]]
-[[boas-praticas|Veja nossas Boas Práticas]]
-[[nova-pagina|Criar uma página ainda inexistente]]
+[[best-practices|Read our Best Practices]]
+[[new-page|Create a missing page]]
 \`\`\`
 
-Quando a página de destino ainda não existir no Firebase, o link será exibido em destaque tracejado — basta clicar para abrir o editor já pronto com aquele \`slug\`.
+When the target page does not exist in Firebase yet, the link renders with a dashed underline — clicking it opens the editor pre-filled with that \`slug\`.
 
-## Formatação de texto e cabeçalhos
+## Text Formatting & Headings
 
 \`\`\`markdown
-## Subtítulo de Seção
-### Subseção
+## Section Heading
+### Subsection
 
-Texto em **negrito**, *itálico*, ~~riscado~~ e \`código inline\`.
+Text in **bold**, *italic*, ~~strikethrough~~, and \`inline code\`.
 \`\`\`
 
-## Listas e Tarefas
+## Lists & Checklists
 
-- Item simples de lista
-- Outro item com [[start|link de retorno]]
+- Simple bullet item
+- Another item with a [[start|return link]]
 
-- [x] Tarefa concluída
-- [ ] Tarefa pendente
+- [x] Completed task
+- [ ] Pending task
 
-## Tabelas e Citações
+## Tables & Blockquotes
 
-> Blocos de citação são ótimos para destacar avisos editoriais ou decisões de arquitetura.
+> Blockquotes are great for highlighting editorial notes or architectural decisions.
 
-| Recurso | Sintaxe | Resultado |
+| Feature | Syntax | Result |
 | --- | --- | --- |
-| Negrito | \`**texto**\` | **texto** |
-| Link interno | \`[[slug]]\` | Navegação direta |
-| Código | \`\\\`const x = 1\\\`\` | \`const x = 1\` |`,
+| Bold | \`**text**\` | **text** |
+| Internal link | \`[[slug]]\` | Direct navigation |
+| Code | \`\\\`const x = 1\\\`\` | \`const x = 1\` |`,
     },
     {
-      slug: 'boas-praticas',
-      title: 'Boas Práticas de Colaboração',
-      category: 'referencia',
-      tags: ['organizacao', 'regras', 'equipe'],
-      summary: 'Diretrizes para manter a wiki organizada',
-      content: `Para manter o acervo claro conforme a equipe cresce, adote estas convenções simples:
+      slug: 'best-practices',
+      title: 'Collaboration Best Practices',
+      category: 'reference',
+      tags: ['organization', 'guidelines', 'team'],
+      summary: 'Guidelines to keep the wiki organized',
+      content: `To keep your knowledge base clear as your team grows, follow these simple conventions:
 
-## 1. Escolha slugs curtos e descritivos
+## 1. Choose short, descriptive slugs
 
-Prefira identificadores em letras minúsculas separados por hífen, como \`arquitetura-api\`, \`atas-reuniao\` ou \`glossario\`. Evite acentos ou espaços no identificador.
+Prefer lowercase identifiers separated by hyphens, such as \`api-architecture\`, \`meeting-notes\`, or \`glossary\`. Avoid spaces or special characters in page identifiers.
 
-## 2. Sempre escreva um resumo da revisão
+## 2. Always write a revision summary
 
-Antes de salvar em **Editar**, preencha o campo *Resumo da alteração* (por exemplo: \`Adiciona seção de autenticação\`). Isso torna a aba **Histórico** muito mais útil para toda a equipe.
+Before saving in **Edit**, fill in the *Change summary* field (for example: \`Add authentication section\`). This keeps the **History** tab readable for everyone.
 
-## 3. Visibilidade e Proteção
+## 3. Visibility & Locking
 
-- **Pública (Colaborativa)**: qualquer colaborador autenticado pode ler, comentar e editar.
-- **Privada (Rascunho)**: visível apenas para o autor original até estar pronta para publicação.
-- **Bloquear edição**: o autor pode trancar uma página estável para que apenas ele ou administradores façam alterações.
+- **Public (Collaborative)**: any verified collaborator can read, comment, and edit.
+- **Private (Draft)**: visible only to the original author until ready to publish.
+- **Lock editing**: the author can lock a stable page so only the author or admins can modify it.
 
-Voltar para [[start|Página Inicial]] ou consultar o [[guia-markdown|Guia de Markdown]].`,
+Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
     },
   ];
 

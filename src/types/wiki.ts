@@ -2,14 +2,14 @@ import type { Timestamp } from 'firebase/firestore';
 
 export type PageVisibility = 'public' | 'private';
 
-export type WikiCategory = 'geral' | 'guias' | 'referencia' | 'projetos' | 'rascunhos';
+export type WikiCategory = 'general' | 'guides' | 'reference' | 'projects' | 'drafts';
 
 export const WIKI_CATEGORIES: { id: WikiCategory; label: string }[] = [
-  { id: 'geral', label: 'Geral' },
-  { id: 'guias', label: 'Guias' },
-  { id: 'referencia', label: 'Referência' },
-  { id: 'projetos', label: 'Projetos' },
-  { id: 'rascunhos', label: 'Rascunhos' },
+  { id: 'general', label: 'General' },
+  { id: 'guides', label: 'Guides' },
+  { id: 'reference', label: 'Reference' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'drafts', label: 'Drafts' },
 ];
 
 /**

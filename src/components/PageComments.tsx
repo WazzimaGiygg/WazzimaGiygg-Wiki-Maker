@@ -36,7 +36,7 @@ export const PageComments: React.FC<PageCommentsProps> = ({
       await onAddComment(body.trim());
       setBody('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível enviar o comentário.');
+      setError(err instanceof Error ? err.message : 'Unable to post comment.');
     } finally {
       setSubmitting(false);
     }
@@ -50,7 +50,7 @@ export const PageComments: React.FC<PageCommentsProps> = ({
             htmlFor="comment-textarea"
             className="block text-sm font-medium text-slate-800 dark:text-slate-200"
           >
-            Adicionar nota na discussão
+            Add a discussion note
           </label>
           <textarea
             id="comment-textarea"
@@ -58,7 +58,7 @@ export const PageComments: React.FC<PageCommentsProps> = ({
             value={body}
             maxLength={VALIDATION_LIMITS.COMMENT_BODY_MAX_LENGTH}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="Deixe uma sugestão, dúvida ou observação sobre esta página..."
+            placeholder="Share feedback, questions, or notes about this page..."
             className="w-full p-3 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y"
           />
           {error && <p className="text-xs text-red-700 dark:text-red-400">{error}</p>}
@@ -72,7 +72,7 @@ export const PageComments: React.FC<PageCommentsProps> = ({
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{submitting ? 'Enviando...' : 'Publicar comentário'}</span>
+              <span>{submitting ? 'Posting...' : 'Post comment'}</span>
             </button>
           </div>
         </form>
@@ -80,14 +80,14 @@ export const PageComments: React.FC<PageCommentsProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
           <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
             <MessageSquare className="w-4 h-4 shrink-0" />
-            <span>Entre com sua conta Google para participar da discussão desta página.</span>
+            <span>Sign in with your Google account to join the discussion on this page.</span>
           </div>
           <button
             type="button"
             onClick={onSignIn}
             className="px-4 py-2 text-xs font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
           >
-            Entrar com Google
+            Sign in with Google
           </button>
         </div>
       )}
@@ -95,7 +95,7 @@ export const PageComments: React.FC<PageCommentsProps> = ({
       <div className="divide-y divide-slate-200 dark:divide-slate-800 border-t border-slate-200 dark:border-slate-800">
         {comments.length === 0 ? (
           <p className="py-6 text-sm text-slate-500 dark:text-slate-400">
-            Nenhum comentário publicado ainda. Seja o primeiro a iniciar a conversa.
+            No comments posted yet. Be the first to start the conversation.
           </p>
         ) : (
           comments.map((comment) => {
@@ -121,11 +121,11 @@ export const PageComments: React.FC<PageCommentsProps> = ({
                     <button
                       type="button"
                       onClick={() => void onDeleteComment(comment.id)}
-                      title="Excluir comentário"
+                      title="Delete comment"
                       className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Remover</span>
+                      <span>Remove</span>
                     </button>
                   )}
                 </div>

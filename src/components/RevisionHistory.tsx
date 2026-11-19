@@ -47,7 +47,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
   if (revisions.length === 0) {
     return (
       <p className="text-sm text-slate-500 dark:text-slate-400 py-6">
-        Nenhuma revisão registrada para esta página ainda.
+        No revisions recorded for this page yet.
       </p>
     );
   }
@@ -58,7 +58,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div className="lg:col-span-5 space-y-2">
         <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-2 border-b border-slate-200 dark:border-slate-800">
-          Revisões registradas ({revisions.length})
+          Recorded revisions ({revisions.length})
         </div>
         <div className="divide-y divide-slate-200 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-[#0b0f17]">
           {revisions.map((rev, index) => {
@@ -82,12 +82,12 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
                       v{rev.version}
                     </span>
                     <span className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                      {rev.summary || 'Sem descrição'}
+                      {rev.summary || 'No summary'}
                     </span>
                   </button>
                   {index === 0 && (
                     <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400 shrink-0">
-                      Atual
+                      Current
                     </span>
                   )}
                 </div>
@@ -107,7 +107,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
                       className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400"
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      <span>Ver</span>
+                      <span>View</span>
                     </button>
                     {canEdit && index > 0 && (
                       <button
@@ -118,7 +118,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>
-                          {restoringVersion === rev.version ? 'Restaurando...' : 'Restaurar'}
+                          {restoringVersion === rev.version ? 'Restoring...' : 'Restore'}
                         </span>
                       </button>
                     )}
@@ -135,7 +135,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
             <div>
               <div className="text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
-                Visualizando revisão v{selectedRevision.version} ·{' '}
+                Viewing revision v{selectedRevision.version} ·{' '}
                 {formatAbsoluteTime(selectedRevision.createdAt)}
               </div>
               <h3 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
@@ -150,7 +150,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Restaurar esta versão</span>
+                <span>Restore this version</span>
               </button>
             )}
           </div>

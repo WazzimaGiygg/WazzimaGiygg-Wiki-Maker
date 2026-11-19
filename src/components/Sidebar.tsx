@@ -56,14 +56,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [pages, searchQuery]);
 
   const groupedByCategory = React.useMemo(() => {
+    const legacyMap: Record<string, string> = {
+      geral: 'general',
+      guias: 'guides',
+      referencia: 'reference',
+      projetos: 'projects',
+      rascunhos: 'drafts',
+    };
     const map = new Map<string, WikiPage[]>();
     for (const cat of WIKI_CATEGORIES) {
       map.set(cat.id, []);
     }
     for (const page of filteredPages) {
-      const list = map.get(page.category) ?? [];
+      const catKey = legacyMap[page.category] ?? page.category;
+      const list = map.get(catKey) ?? map.get('general') ?? [];
       list.push(page);
-      map.set(page.category, list);
+      map.set(map.has(catKey) ? catKey : 'general', list);
     }
     return map;
   }, [filteredPages]);
@@ -82,12 +90,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 space-y-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between lg:hidden">
           <span className="font-display text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Navegação da Wiki
+            Wiki Navigation
           </span>
           <button
             type="button"
             onClick={onCloseMobile}
-            aria-label="Fechar menu lateral"
+            aria-label="Close sidebar"
             className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
           >
             <X className="w-4 h-4" />
@@ -100,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             htmlFor="quick-slug-creator"
             className="block text-xs font-medium text-slate-600 dark:text-slate-400"
           >
-            Criação rápida por slug
+            Quick create by slug
           </label>
           <div className="flex items-center gap-1.5">
             <div className="flex-1 flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] px-2.5">
@@ -110,13 +118,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="text"
                 value={quickSlugInput}
                 onChange={(e) => setQuickSlugInput(e.target.value)}
-                placeholder="nova-pagina"
+                placeholder="new-page"
                 className="w-full py-1.5 pl-1 text-xs font-mono bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
               />
             </div>
             <button
               type="submit"
-              title="Criar ou abrir página"
+              title="Create or open page"
               disabled={!toWikiSlug(quickSlugInput)}
               className="p-2 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white transition-colors disabled:opacity-40 shrink-0"
             >
@@ -132,19 +140,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filtrar páginas..."
+            placeholder="Filter pages..."
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
           />
         </div>
       </div>
 
       {/* Category Tree */}
-      <nav aria-label="Índice por categoria" className="flex-1 overflow-y-auto p-3 space-y-5">
+      <nav aria-label="Category index" className="flex-1 overflow-y-auto p-3 space-y-5">
         {filteredPages.length === 0 ? (
           <div className="px-2 py-4 text-xs text-slate-500 dark:text-slate-400">
             {pages.length === 0
-              ? 'Nenhuma página publicada ainda.'
-              : 'Nenhuma página corresponde ao filtro.'}
+              ? 'No pages published yet.'
+              : 'No pages match your filter.'}
           </div>
         ) : (
           WIKI_CATEGORIES.map((cat) => {
@@ -186,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <Lock
                               className="w-3 h-3 shrink-0 text-slate-400"
                               aria-label={
-                                page.visibility === 'private' ? 'Página privada' : 'Edição bloqueada'
+                                page.visibility === 'private' ? 'Private page' : 'Editing locked'
                               }
                             />
                           )}
@@ -209,7 +217,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {user.photoURL ? (
                 <img
                   src={user.photoURL}
-                  alt={user.displayName ?? 'Colaborador'}
+                  alt={user.displayName ?? 'Collaborator'}
                   referrerPolicy="no-referrer"
                   className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                 />
@@ -220,7 +228,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
               <div className="min-w-0">
                 <div className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
-                  {user.displayName || 'Colaborador'}
+                  {user.displayName || 'Collaborator'}
                 </div>
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                   {user.email}
@@ -230,7 +238,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={onSignOut}
-              title="Sair da conta"
+              title="Sign out"
               className="p-1.5 rounded-md text-slate-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors shrink-0"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -242,19 +250,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onSignIn}
             className="w-full py-1.5 px-3 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#111827] text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            Entrar para colaborar
+            Sign in to collaborate
           </button>
         )}
 
         <div className="flex items-center justify-between pt-1">
-          <span className="text-[11px] text-slate-500 dark:text-slate-400">Aparência</span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">Theme</span>
           <button
             type="button"
             onClick={onToggleTheme}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
           >
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            <span>{isDark ? 'Modo claro' : 'Modo escuro'}</span>
+            <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
           </button>
         </div>
       </div>

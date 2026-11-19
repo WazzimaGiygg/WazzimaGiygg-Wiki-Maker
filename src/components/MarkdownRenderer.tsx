@@ -30,7 +30,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   if (!content.trim()) {
     return (
       <p className="text-sm text-slate-500 dark:text-slate-400 italic py-4">
-        Esta página ainda não possui conteúdo.
+        This page has no content yet.
       </p>
     );
   }
@@ -58,8 +58,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                   onClick={() => onNavigateSlug(targetSlug)}
                   title={
                     exists
-                      ? `Abrir página :${targetSlug}`
-                      : `Criar página inexistente :${targetSlug}`
+                      ? `Open page :${targetSlug}`
+                      : `Create missing page :${targetSlug}`
                   }
                   className={
                     exists
