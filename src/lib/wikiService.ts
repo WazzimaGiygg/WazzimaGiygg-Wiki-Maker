@@ -13,9 +13,11 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import {
+  type CollaboratorProfile,
   type PageComment,
   type PageRevision,
   type PageVisibility,
+  type UserEdit,
   VALIDATION_LIMITS,
   type WikiPage,
 } from '../types/wiki';
@@ -51,31 +53,231 @@ function getUserDisplayName(user: User): string {
   return sanitizeString(raw, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH) || 'Collaborator';
 }
 
-export async function syncUserDocuments(user: User): Promise<void> {
+export function buildPersonalSlugs(
+  displayName: string,
+  uid: string
+): { personalPageSlug: string; discussionPageSlug: string } {
+  const namePart = toWikiSlug(displayName).slice(0, 32) || 'member';
+  const uidPart = toWikiSlug(uid).slice(0, 6) || '000001';
+  const personalPageSlug = toWikiSlug(`user-${namePart}-${uidPart}`) || `user-${uidPart}`;
+  const discussionPageSlug = `${personalPageSlug}-discussion`;
+  return { personalPageSlug, discussionPageSlug };
+}
+
+function buildEditDocId(slug: string, version: number): string {
+  const suffix = `_v${version}`;
+  const maxSlugLen = Math.max(1, VALIDATION_LIMITS.SLUG_MAX_LENGTH - suffix.length);
+  return `${slug.slice(0, maxSlugLen)}${suffix}`;
+}
+
+function buildPersonalPageContent(
+  displayName: string,
+  personalPageSlug: string,
+  discussionPageSlug: string
+): string {
+  return `Welcome to **${displayName}**'s personal collaborator page on WazzimaGiygg Maker.
+
+## Workspace Links
+
+- **Personal Page**: [[${personalPageSlug}|${displayName}]] (\`:${personalPageSlug}\`)
+- **Discussion Page**: [[${discussionPageSlug}|${displayName}'s Discussion Page]]
+- **Wiki Home**: [[start|Welcome to WazzimaGiygg Maker]]
+
+## About Me
+
+This personal page was created automatically when **${displayName}** joined the wiki. Click **Edit** above to customize your bio, showcase notes, or pin collaborative links.
+
+> Every edit **${displayName}** makes across the wiki is listed in the **Edit History** section below. Visit [[${discussionPageSlug}|the discussion page]] to start a conversation.`;
+}
+
+function buildDiscussionPageContent(
+  displayName: string,
+  personalPageSlug: string
+): string {
+  return `This is the dedicated discussion page for **${displayName}**.
+
+Return to [[${personalPageSlug}|${displayName}'s Personal Page]] or post a message directly in the discussion thread below.
+
+## Topics
+
+- Feedback on collaborative pages and documentation
+- Questions or suggestions for **${displayName}**
+- Links back to shared wiki pages like [[start|Home]]`;
+}
+
+export interface SyncUserResult {
+  profile: CollaboratorProfile;
+  isNewUser: boolean;
+}
+
+export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
   const displayName = getUserDisplayName(user);
   const photoURL = (user.photoURL ?? '').slice(0, VALIDATION_LIMITS.PHOTO_URL_MAX_LENGTH);
   const collabPath = `collaborators/${user.uid}`;
   const collabRef = doc(db, 'collaborators', user.uid);
 
+  let isNewUser = false;
+  let resolvedPersonalSlug = '';
+  let resolvedDiscussionSlug = '';
+  let existingProfile: Partial<CollaboratorProfile> | null = null;
+
   try {
     const snap = await getDoc(collabRef);
+    const fallbackSlugs = buildPersonalSlugs(displayName, user.uid);
+
     if (!snap.exists()) {
-      await setDoc(collabRef, {
-        uid: user.uid,
-        displayName,
-        photoURL,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
+      isNewUser = true;
+      resolvedPersonalSlug = fallbackSlugs.personalPageSlug;
+      resolvedDiscussionSlug = fallbackSlugs.discussionPageSlug;
     } else {
-      const existing = snap.data();
-      if (existing.displayName !== displayName || existing.photoURL !== photoURL) {
-        await updateDoc(collabRef, {
+      const existing = snap.data() as Partial<CollaboratorProfile>;
+      existingProfile = existing;
+      resolvedPersonalSlug = existing.personalPageSlug || fallbackSlugs.personalPageSlug;
+      resolvedDiscussionSlug = existing.discussionPageSlug || fallbackSlugs.discussionPageSlug;
+    }
+
+    const needsPersonalSetup =
+      !snap.exists() || !existingProfile?.personalPageSlug || !existingProfile?.discussionPageSlug;
+    const needsProfileRefresh =
+      snap.exists() &&
+      !needsPersonalSetup &&
+      (existingProfile?.displayName !== displayName || existingProfile?.photoURL !== photoURL);
+
+    if (needsPersonalSetup) {
+      const personalRef = doc(db, 'pages', resolvedPersonalSlug);
+      const discussionRef = doc(db, 'pages', resolvedDiscussionSlug);
+      const [personalSnap, discussionSnap] = await Promise.all([
+        getDoc(personalRef),
+        getDoc(discussionRef),
+      ]);
+
+      const batch = writeBatch(db);
+
+      if (!snap.exists()) {
+        batch.set(collabRef, {
+          uid: user.uid,
           displayName,
           photoURL,
+          personalPageSlug: resolvedPersonalSlug,
+          discussionPageSlug: resolvedDiscussionSlug,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        batch.update(collabRef, {
+          displayName,
+          photoURL,
+          personalPageSlug: resolvedPersonalSlug,
+          discussionPageSlug: resolvedDiscussionSlug,
           updatedAt: serverTimestamp(),
         });
       }
+
+      if (!personalSnap.exists()) {
+        const personalContent = buildPersonalPageContent(
+          displayName,
+          resolvedPersonalSlug,
+          resolvedDiscussionSlug
+        );
+        const personalSummary = 'Created personal collaborator page';
+        batch.set(personalRef, {
+          slug: resolvedPersonalSlug,
+          title: displayName,
+          content: personalContent,
+          category: 'general',
+          tags: ['personal', 'profile'],
+          visibility: 'public',
+          isLocked: false,
+          authorId: user.uid,
+          authorName: displayName,
+          lastEditorId: user.uid,
+          lastEditorName: displayName,
+          version: 1,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        batch.set(doc(db, 'pages', resolvedPersonalSlug, 'revisions', 'v_1'), {
+          pageSlug: resolvedPersonalSlug,
+          pageVisibility: 'public',
+          pageAuthorId: user.uid,
+          title: displayName,
+          content: personalContent,
+          editorId: user.uid,
+          editorName: displayName,
+          summary: personalSummary,
+          version: 1,
+          createdAt: serverTimestamp(),
+        });
+        batch.set(
+          doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(resolvedPersonalSlug, 1)),
+          {
+            editorId: user.uid,
+            pageSlug: resolvedPersonalSlug,
+            pageTitle: displayName,
+            pageVisibility: 'public',
+            summary: personalSummary,
+            version: 1,
+            createdAt: serverTimestamp(),
+          }
+        );
+      }
+
+      if (!discussionSnap.exists()) {
+        const discussionTitle = sanitizeString(
+          `Discussion: ${displayName}`,
+          VALIDATION_LIMITS.TITLE_MAX_LENGTH
+        );
+        const discussionContent = buildDiscussionPageContent(displayName, resolvedPersonalSlug);
+        const discussionSummary = 'Created personal discussion page';
+        batch.set(discussionRef, {
+          slug: resolvedDiscussionSlug,
+          title: discussionTitle,
+          content: discussionContent,
+          category: 'general',
+          tags: ['personal', 'discussion'],
+          visibility: 'public',
+          isLocked: false,
+          authorId: user.uid,
+          authorName: displayName,
+          lastEditorId: user.uid,
+          lastEditorName: displayName,
+          version: 1,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        batch.set(doc(db, 'pages', resolvedDiscussionSlug, 'revisions', 'v_1'), {
+          pageSlug: resolvedDiscussionSlug,
+          pageVisibility: 'public',
+          pageAuthorId: user.uid,
+          title: discussionTitle,
+          content: discussionContent,
+          editorId: user.uid,
+          editorName: displayName,
+          summary: discussionSummary,
+          version: 1,
+          createdAt: serverTimestamp(),
+        });
+        batch.set(
+          doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(resolvedDiscussionSlug, 1)),
+          {
+            editorId: user.uid,
+            pageSlug: resolvedDiscussionSlug,
+            pageTitle: discussionTitle,
+            pageVisibility: 'public',
+            summary: discussionSummary,
+            version: 1,
+            createdAt: serverTimestamp(),
+          }
+        );
+      }
+
+      await batch.commit();
+    } else if (needsProfileRefresh) {
+      await updateDoc(collabRef, {
+        displayName,
+        photoURL,
+        updatedAt: serverTimestamp(),
+      });
     }
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, collabPath);
@@ -103,6 +305,19 @@ export async function syncUserDocuments(user: User): Promise<void> {
       handleFirestoreError(error, OperationType.WRITE, privatePath);
     }
   }
+
+  return {
+    isNewUser,
+    profile: {
+      uid: user.uid,
+      displayName,
+      photoURL,
+      personalPageSlug: resolvedPersonalSlug,
+      discussionPageSlug: resolvedDiscussionSlug,
+      createdAt: existingProfile?.createdAt ?? null,
+      updatedAt: existingProfile?.updatedAt ?? null,
+    },
+  };
 }
 
 export interface SavePageInput {
@@ -182,6 +397,17 @@ export async function createWikiPage(input: SavePageInput, user: User): Promise<
     createdAt: serverTimestamp(),
   });
 
+  const editRef = doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(slug, 1));
+  batch.set(editRef, {
+    editorId: user.uid,
+    pageSlug: slug,
+    pageTitle: title,
+    pageVisibility: input.visibility,
+    summary,
+    version: 1,
+    createdAt: serverTimestamp(),
+  });
+
   try {
     await batch.commit();
   } catch (error) {
@@ -249,10 +475,27 @@ export async function updateWikiPage(
     createdAt: serverTimestamp(),
   });
 
+  const editRef = doc(
+    db,
+    'collaborators',
+    user.uid,
+    'edits',
+    buildEditDocId(existing.slug, nextVersion)
+  );
+  batch.set(editRef, {
+    editorId: user.uid,
+    pageSlug: existing.slug,
+    pageTitle: title,
+    pageVisibility: nextVisibility,
+    summary,
+    version: nextVersion,
+    createdAt: serverTimestamp(),
+  });
+
   // Keep denormalized pageVisibility in sync if the author/admin changed visibility
   if (canManageMeta && nextVisibility !== existing.visibility) {
     try {
-      const [revsSnap, commentsSnap] = await Promise.all([
+      const [revsSnap, commentsSnap, ownerEditsSnap] = await Promise.all([
         getDocs(
           query(
             collection(db, 'pages', existing.slug, 'revisions'),
@@ -265,12 +508,25 @@ export async function updateWikiPage(
             where('pageVisibility', '==', existing.visibility)
           )
         ),
+        existing.authorId === user.uid
+          ? getDocs(
+              query(
+                collection(db, 'collaborators', user.uid, 'edits'),
+                where('editorId', '==', user.uid)
+              )
+            )
+          : Promise.resolve(null),
       ]);
       revsSnap.forEach((d) => {
         batch.update(d.ref, { pageVisibility: nextVisibility });
       });
       commentsSnap.forEach((d) => {
         batch.update(d.ref, { pageVisibility: nextVisibility });
+      });
+      ownerEditsSnap?.forEach((d) => {
+        if (d.data().pageSlug === existing.slug) {
+          batch.update(d.ref, { pageVisibility: nextVisibility });
+        }
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.LIST, pagePath);
@@ -391,6 +647,50 @@ export async function deletePageComment(slug: string, commentId: string): Promis
     await deleteDoc(doc(db, 'pages', slug, 'comments', commentId));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, commentPath);
+  }
+}
+
+export async function fetchCollaboratorProfile(
+  userId: string
+): Promise<CollaboratorProfile | null> {
+  if (!isValidWikiSlug(userId)) return null;
+  const collabPath = `collaborators/${userId}`;
+  try {
+    const snap = await getDoc(doc(db, 'collaborators', userId));
+    return snap.exists() ? (snap.data() as CollaboratorProfile) : null;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, collabPath);
+  }
+}
+
+export async function fetchUserEdits(
+  targetUserId: string,
+  viewerUid: string | null
+): Promise<UserEdit[]> {
+  if (!isValidWikiSlug(targetUserId)) return [];
+  const editsPath = `collaborators/${targetUserId}/edits`;
+  const isViewingOwn = viewerUid === targetUserId;
+
+  try {
+    const q = query(
+      collection(db, 'collaborators', targetUserId, 'edits'),
+      isViewingOwn
+        ? where('editorId', '==', targetUserId)
+        : where('pageVisibility', '==', 'public')
+    );
+    const snap = await getDocs(q);
+    const list = snap.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<UserEdit, 'id'>),
+    }));
+    return list.sort((a, b) => {
+      const ta = a.createdAt?.toMillis() ?? 0;
+      const tb = b.createdAt?.toMillis() ?? 0;
+      if (tb !== ta) return tb - ta;
+      return b.version - a.version;
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, editsPath);
   }
 }
 
@@ -546,6 +846,19 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
           version: 1,
           createdAt: serverTimestamp(),
         });
+
+        batch.set(
+          doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(item.slug, 1)),
+          {
+            editorId: user.uid,
+            pageSlug: item.slug,
+            pageTitle: item.title,
+            pageVisibility: 'public',
+            summary: item.summary,
+            version: 1,
+            createdAt: serverTimestamp(),
+          }
+        );
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.GET, `pages/${item.slug}`);

@@ -16,6 +16,7 @@ import {
   Plus,
   Sparkles,
   Trash2,
+  User as UserIcon,
 } from 'lucide-react';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MarkdownEditor } from './components/MarkdownEditor';
@@ -24,6 +25,7 @@ import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
 import { RevisionHistory } from './components/RevisionHistory';
 import { Sidebar } from './components/Sidebar';
+import { UserEditsPanel } from './components/UserEditsPanel';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
 import { extractToc, formatRelativeTime, slugToTitle, toWikiSlug } from './lib/markdownUtils';
 import {
@@ -31,17 +33,21 @@ import {
   createWikiPage,
   deletePageComment,
   deleteWikiPage,
+  fetchCollaboratorProfile,
   fetchPageRevisions,
+  fetchUserEdits,
   restorePageRevision,
   seedStarterWiki,
   syncUserDocuments,
   updateWikiPage,
 } from './lib/wikiService';
 import {
+  type CollaboratorProfile,
   type PageComment,
   type PageRevision,
   type PageTab,
   type PageVisibility,
+  type UserEdit,
   WIKI_CATEGORIES,
   type WikiPage,
   type WorkspaceView,
@@ -71,6 +77,7 @@ function WikiWorkspace() {
 
   const [user, setUser] = React.useState<User | null>(null);
   const [authReady, setAuthReady] = React.useState(false);
+  const [currentCollaborator, setCurrentCollaborator] = React.useState<CollaboratorProfile | null>(null);
 
   const [publicPages, setPublicPages] = React.useState<WikiPage[]>([]);
   const [privatePages, setPrivatePages] = React.useState<WikiPage[]>([]);
@@ -86,6 +93,9 @@ function WikiWorkspace() {
   const [revisions, setRevisions] = React.useState<PageRevision[]>([]);
   const [revisionsLoading, setRevisionsLoading] = React.useState(false);
   const [comments, setComments] = React.useState<PageComment[]>([]);
+  const [personalAuthorProfile, setPersonalAuthorProfile] = React.useState<CollaboratorProfile | null>(null);
+  const [personalUserEdits, setPersonalUserEdits] = React.useState<UserEdit[]>([]);
+  const [personalEditsLoading, setPersonalEditsLoading] = React.useState(false);
 
   const [isSaving, setIsSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
@@ -130,17 +140,37 @@ function WikiWorkspace() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  const navigateToPage = React.useCallback((slug: string) => {
+    const normalized = toWikiSlug(slug) || 'start';
+    setActiveSlug(normalized);
+    setView('page');
+    setActiveTab('read');
+    setSaveError(null);
+    setConfirmDeleteOpen(false);
+    window.location.hash = `#/page/${normalized}`;
+  }, []);
+
   // Auth listener
   React.useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthReady(true);
       if (currentUser) {
-        void syncUserDocuments(currentUser);
+        void syncUserDocuments(currentUser).then((result) => {
+          setCurrentCollaborator(result.profile);
+          const currentHash = window.location.hash;
+          const isOnDefaultEntry =
+            !currentHash || currentHash === '#/' || currentHash === '#/page/start';
+          if (result.isNewUser && isOnDefaultEntry) {
+            navigateToPage(result.profile.personalPageSlug);
+          }
+        });
+      } else {
+        setCurrentCollaborator(null);
       }
     });
     return unsub;
-  }, []);
+  }, [navigateToPage]);
 
   // Subscribe to public pages (always allowed by rules)
   React.useEffect(() => {
@@ -243,15 +273,61 @@ function WikiWorkspace() {
     };
   }, [view, activeTab, activePage?.slug, activePage?.version, activePage?.visibility]);
 
-  const navigateToPage = (slug: string) => {
-    const normalized = toWikiSlug(slug) || 'start';
-    setActiveSlug(normalized);
-    setView('page');
-    setActiveTab('read');
-    setSaveError(null);
-    setConfirmDeleteOpen(false);
-    window.location.hash = `#/page/${normalized}`;
-  };
+  const isPersonalProfilePage = Boolean(
+    activePage &&
+      activePage.tags.includes('personal') &&
+      !activePage.slug.endsWith('-discussion') &&
+      !activePage.tags.includes('discussion')
+  );
+  const isPersonalDiscussionPage = Boolean(
+    activePage &&
+      activePage.tags.includes('personal') &&
+      (activePage.slug.endsWith('-discussion') || activePage.tags.includes('discussion'))
+  );
+
+  // Load personal collaborator profile & edit log when viewing a personal or personal-discussion page
+  React.useEffect(() => {
+    if (!authReady || view !== 'page' || !activePage || (!isPersonalProfilePage && !isPersonalDiscussionPage)) {
+      setPersonalAuthorProfile(null);
+      setPersonalUserEdits([]);
+      return;
+    }
+
+    let cancelled = false;
+    setPersonalEditsLoading(isPersonalProfilePage);
+
+    const profilePromise = fetchCollaboratorProfile(activePage.authorId);
+    const editsPromise = isPersonalProfilePage
+      ? fetchUserEdits(activePage.authorId, user?.uid ?? null)
+      : Promise.resolve<UserEdit[]>([]);
+
+    Promise.all([profilePromise, editsPromise])
+      .then(([profile, edits]) => {
+        if (!cancelled) {
+          setPersonalAuthorProfile(profile);
+          setPersonalUserEdits(edits);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setPersonalEditsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authReady,
+    view,
+    activePage?.slug,
+    activePage?.authorId,
+    activePage?.version,
+    isPersonalProfilePage,
+    isPersonalDiscussionPage,
+    user?.uid,
+    allPages.length,
+  ]);
 
   const navigateToCreate = (presetSlug = '') => {
     const normalized = presetSlug ? toWikiSlug(presetSlug) : '';
@@ -526,6 +602,8 @@ function WikiWorkspace() {
           activeSlug={view === 'page' ? activeSlug : null}
           isOpenMobile={mobileMenuOpen}
           user={user}
+          personalPageSlug={currentCollaborator?.personalPageSlug}
+          discussionPageSlug={currentCollaborator?.discussionPageSlug}
           isDark={isDark}
           onCloseMobile={() => setMobileMenuOpen(false)}
           onSelectPage={navigateToPage}
@@ -835,11 +913,98 @@ function WikiWorkspace() {
               {activeTab === 'read' && (
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
                   <article className={toc.length > 0 ? 'xl:col-span-9' : 'xl:col-span-12'}>
+                    {(isPersonalProfilePage || isPersonalDiscussionPage) && (
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+                        <div className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                          {isPersonalDiscussionPage ? (
+                            <MessageSquare className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                          ) : (
+                            <UserIcon className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                          )}
+                          <span>
+                            {isPersonalDiscussionPage
+                              ? `Personal Discussion Page for ${activePage.authorName}`
+                              : `Personal Collaborator Page for ${activePage.authorName}`}
+                          </span>
+                        </div>
+
+                        {isPersonalProfilePage && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigateToPage(
+                                personalAuthorProfile?.discussionPageSlug ??
+                                  `${activePage.slug}-discussion`
+                              )
+                            }
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline whitespace-nowrap shrink-0"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Go to Discussion Page</span>
+                          </button>
+                        )}
+
+                        {isPersonalDiscussionPage && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigateToPage(
+                                personalAuthorProfile?.personalPageSlug ??
+                                  activePage.slug.replace(/-discussion$/, '')
+                              )
+                            }
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline whitespace-nowrap shrink-0"
+                          >
+                            <UserIcon className="w-3.5 h-3.5" />
+                            <span>Back to Personal Page</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <MarkdownRenderer
                       content={activePage.content}
                       existingSlugs={existingSlugs}
                       onNavigateSlug={navigateToPage}
                     />
+
+                    {isPersonalProfilePage && (
+                      <UserEditsPanel
+                        authorName={activePage.authorName}
+                        edits={personalUserEdits}
+                        loading={personalEditsLoading}
+                        discussionPageSlug={
+                          personalAuthorProfile?.discussionPageSlug ??
+                          `${activePage.slug}-discussion`
+                        }
+                        onSelectPage={navigateToPage}
+                      />
+                    )}
+
+                    {isPersonalDiscussionPage && (
+                      <section
+                        aria-label="Personal discussion thread"
+                        className="pt-6 mt-8 border-t border-slate-200 dark:border-slate-800 space-y-4"
+                      >
+                        <h2 className="font-display text-xl font-semibold text-slate-900 dark:text-slate-100">
+                          Discussion Thread
+                        </h2>
+                        <PageComments
+                          comments={comments}
+                          currentUserId={user?.uid ?? null}
+                          canModerate={canManageActiveMeta}
+                          isSignedIn={Boolean(user)}
+                          onAddComment={async (body) => {
+                            if (!user) return;
+                            await addPageComment(activePage, body, user);
+                          }}
+                          onDeleteComment={async (commentId) => {
+                            await deletePageComment(activePage.slug, commentId);
+                          }}
+                          onSignIn={() => void handleSignIn()}
+                        />
+                      </section>
+                    )}
                   </article>
 
                   {toc.length > 0 && (

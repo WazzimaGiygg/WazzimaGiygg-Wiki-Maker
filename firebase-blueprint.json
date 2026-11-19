@@ -243,6 +243,18 @@
           "minLength": 0,
           "maxLength": 500
         },
+        "personalPageSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "discussionPageSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -252,7 +264,64 @@
           "format": "date-time"
         }
       },
-      "required": ["uid", "displayName", "photoURL", "createdAt", "updatedAt"]
+      "required": [
+        "uid",
+        "displayName",
+        "photoURL",
+        "personalPageSlug",
+        "discussionPageSlug",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserEdit": {
+      "title": "UserEdit",
+      "description": "Record of a single wiki edit made by a collaborator, displayed on their personal page.",
+      "type": "object",
+      "properties": {
+        "editorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pageSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pageTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "pageVisibility": {
+          "type": "string",
+          "enum": ["public", "private"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "version": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "editorId",
+        "pageSlug",
+        "pageTitle",
+        "pageVisibility",
+        "summary",
+        "version",
+        "createdAt"
+      ]
     },
     "UserPrivateInfo": {
       "title": "UserPrivateInfo",
@@ -312,6 +381,10 @@
     "/collaborators/{userId}": {
       "schema": { "$ref": "#/entities/CollaboratorProfile" },
       "description": "Public collaborator profiles without PII."
+    },
+    "/collaborators/{userId}/edits/{editId}": {
+      "schema": { "$ref": "#/entities/UserEdit" },
+      "description": "Activity log of wiki edits authored by the collaborator."
     },
     "/users/{userId}/private/{docId}": {
       "schema": { "$ref": "#/entities/UserPrivateInfo" },

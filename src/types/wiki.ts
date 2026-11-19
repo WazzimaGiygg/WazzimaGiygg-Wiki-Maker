@@ -77,8 +77,21 @@ export interface CollaboratorProfile {
   uid: string;
   displayName: string;
   photoURL: string;
+  personalPageSlug: string;
+  discussionPageSlug: string;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
+}
+
+export interface UserEdit {
+  id: string;
+  editorId: string;
+  pageSlug: string;
+  pageTitle: string;
+  pageVisibility: PageVisibility;
+  summary: string;
+  version: number;
+  createdAt: Timestamp | null;
 }
 
 export type PageTab = 'read' | 'edit' | 'history' | 'comments' | 'source';

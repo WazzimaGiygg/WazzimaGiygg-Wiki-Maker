@@ -4,10 +4,12 @@ import {
   FolderOpen,
   Lock,
   LogOut,
+  MessageSquare,
   Moon,
   Plus,
   Search,
   Sun,
+  User as UserIcon,
   X,
 } from 'lucide-react';
 import type { User } from 'firebase/auth';
@@ -19,6 +21,8 @@ interface SidebarProps {
   activeSlug: string | null;
   isOpenMobile: boolean;
   user: User | null;
+  personalPageSlug?: string | null;
+  discussionPageSlug?: string | null;
   isDark: boolean;
   onCloseMobile: () => void;
   onSelectPage: (slug: string) => void;
@@ -33,6 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeSlug,
   isOpenMobile,
   user,
+  personalPageSlug,
+  discussionPageSlug,
   isDark,
   onCloseMobile,
   onSelectPage,
@@ -212,37 +218,74 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Account & Theme Footer */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5 bg-slate-50/70 dark:bg-[#0b0f17]/70">
         {user ? (
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              {user.photoURL ? (
-                <img
-                  src={user.photoURL}
-                  alt={user.displayName ?? 'Collaborator'}
-                  referrerPolicy="no-referrer"
-                  className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-                />
-              ) : (
-                <div className="w-7 h-7 rounded-full bg-blue-700 text-white text-xs font-semibold flex items-center justify-center shrink-0">
-                  {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="min-w-0">
-                <div className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
-                  {user.displayName || 'Collaborator'}
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                  {user.email}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.displayName ?? 'Collaborator'}
+                    referrerPolicy="no-referrer"
+                    className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-blue-700 text-white text-xs font-semibold flex items-center justify-center shrink-0">
+                    {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
+                    {user.displayName || 'Collaborator'}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    {user.email}
+                  </div>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={onSignOut}
+                title="Sign out"
+                className="p-1.5 rounded-md text-slate-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors shrink-0"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={onSignOut}
-              title="Sign out"
-              className="p-1.5 rounded-md text-slate-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors shrink-0"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
+
+            {personalPageSlug && discussionPageSlug && (
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectPage(personalPageSlug);
+                    onCloseMobile();
+                  }}
+                  className={`inline-flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
+                    activeSlug === personalPageSlug
+                      ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <UserIcon className="w-3 h-3 shrink-0" />
+                  <span>My Page</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectPage(discussionPageSlug);
+                    onCloseMobile();
+                  }}
+                  className={`inline-flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
+                    activeSlug === discussionPageSlug
+                      ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <MessageSquare className="w-3 h-3 shrink-0" />
+                  <span>Discussion</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <button
