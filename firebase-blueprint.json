@@ -1,0 +1,325 @@
+{
+  "entities": {
+    "WikiPage": {
+      "title": "WikiPage",
+      "description": "A collaborative Markdown wiki page identified by a URL-safe slug.",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "URL-safe page identifier matching document ID."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Display title of the wiki page."
+        },
+        "content": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200000,
+          "description": "Markdown source content of the page."
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[a-z0-9\\-]+$",
+          "description": "Category slug for organizing the page."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Bounded list of up to 8 short tags."
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["public", "private"],
+          "description": "Whether the page is public collaborative or private to the author."
+        },
+        "isLocked": {
+          "type": "boolean",
+          "description": "When true, only the original author or an admin can edit or delete."
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the user who created the page (immutable)."
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Display name of the original author."
+        },
+        "lastEditorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the user who made the latest edit."
+        },
+        "lastEditorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Display name of the most recent editor."
+        },
+        "version": {
+          "type": "integer",
+          "description": "Monotonically increasing revision number starting at 1."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the latest revision."
+        }
+      },
+      "required": [
+        "slug",
+        "title",
+        "content",
+        "category",
+        "tags",
+        "visibility",
+        "isLocked",
+        "authorId",
+        "authorName",
+        "lastEditorId",
+        "lastEditorName",
+        "version",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PageRevision": {
+      "title": "PageRevision",
+      "description": "Immutable historical snapshot of a wiki page edit.",
+      "type": "object",
+      "properties": {
+        "pageSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pageVisibility": {
+          "type": "string",
+          "enum": ["public", "private"]
+        },
+        "pageAuthorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "content": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200000
+        },
+        "editorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "editorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "version": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "pageSlug",
+        "pageVisibility",
+        "pageAuthorId",
+        "title",
+        "content",
+        "editorId",
+        "editorName",
+        "summary",
+        "version",
+        "createdAt"
+      ]
+    },
+    "PageComment": {
+      "title": "PageComment",
+      "description": "Collaborative discussion comment attached to a wiki page.",
+      "type": "object",
+      "properties": {
+        "pageSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pageVisibility": {
+          "type": "string",
+          "enum": ["public", "private"]
+        },
+        "pageAuthorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "pageSlug",
+        "pageVisibility",
+        "pageAuthorId",
+        "authorId",
+        "authorName",
+        "body",
+        "createdAt"
+      ]
+    },
+    "CollaboratorProfile": {
+      "title": "CollaboratorProfile",
+      "description": "Public display profile for wiki collaborators without PII.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "photoURL": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "displayName", "photoURL", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Strictly private user PII isolated from public collaborator profiles.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted admin marker document.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/pages/{slug}": {
+      "schema": { "$ref": "#/entities/WikiPage" },
+      "description": "Wiki pages keyed by URL-safe slug."
+    },
+    "/pages/{slug}/revisions/{revisionId}": {
+      "schema": { "$ref": "#/entities/PageRevision" },
+      "description": "Revision history snapshots for each wiki page."
+    },
+    "/pages/{slug}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/PageComment" },
+      "description": "Discussion comments on each wiki page."
+    },
+    "/collaborators/{userId}": {
+      "schema": { "$ref": "#/entities/CollaboratorProfile" },
+      "description": "Public collaborator profiles without PII."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Owner-only PII document."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Admin role records."
+    }
+  }
+}

@@ -1,0 +1,338 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 4.1: Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Pillar 3: Global hardened primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'mafersao1100@gmail.com'
+      );
+    }
+
+    // Pillar 2: Validation Blueprints (never use existing() or diff() inside these helpers)
+    function isValidWikiPage(data, slug) {
+      return data.slug is string && data.slug == slug && isValidId(data.slug)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
+        && data.content is string && data.content.size() <= 200000
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 40 && data.category.matches('^[a-z0-9\\-]+$')
+        && data.tags is list && data.tags.size() <= 8
+        && (data.tags.size() == 0 || (data.tags[0] is string && data.tags[0].size() >= 1 && data.tags[0].size() <= 32))
+        && data.visibility in ['public', 'private']
+        && data.isLocked is bool
+        && data.authorId is string && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
+        && data.lastEditorId is string && data.lastEditorId == request.auth.uid && isValidId(data.lastEditorId)
+        && data.lastEditorName is string && data.lastEditorName.size() >= 1 && data.lastEditorName.size() <= 80
+        && data.version is int && data.version >= 1
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidRevision(data, slug) {
+      return data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
+        && data.pageVisibility in ['public', 'private']
+        && data.pageAuthorId is string && isValidId(data.pageAuthorId)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
+        && data.content is string && data.content.size() <= 200000
+        && data.editorId is string && isValidId(data.editorId)
+        && data.editorName is string && data.editorName.size() >= 1 && data.editorName.size() <= 80
+        && data.summary is string && data.summary.size() <= 200
+        && data.version is int && data.version >= 1
+        && data.createdAt is timestamp;
+    }
+
+    function isValidComment(data, slug) {
+      return data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
+        && data.pageVisibility in ['public', 'private']
+        && data.pageAuthorId is string && isValidId(data.pageAuthorId)
+        && data.authorId is string && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 2000
+        && data.createdAt is timestamp;
+    }
+
+    function isValidCollaborator(data, userId) {
+      return data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
+        && data.photoURL is string && data.photoURL.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivateInfo(data, userId) {
+      return data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 1 && data.email.size() <= 200
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminRecord(data, userId) {
+      return data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.createdAt is timestamp;
+    }
+
+    // Collection: /pages/{slug}
+    match /pages/{slug} {
+      allow get: if isValidId(slug) && (
+        existing().visibility == 'public' ||
+        (isSignedIn() && existing().authorId == request.auth.uid) ||
+        isAdmin()
+      );
+
+      allow list: if resource.data.visibility == 'public' ||
+        (isSignedIn() && resource.data.authorId == request.auth.uid) ||
+        isAdmin();
+
+      allow create: if isVerified()
+        && isValidId(slug)
+        && isValidWikiPage(incoming(), slug)
+        && incoming().keys().hasAll([
+          'slug', 'title', 'content', 'category', 'tags', 'visibility',
+          'isLocked', 'authorId', 'authorName', 'lastEditorId',
+          'lastEditorName', 'version', 'createdAt', 'updatedAt'
+        ])
+        && incoming().keys().hasOnly([
+          'slug', 'title', 'content', 'category', 'tags', 'visibility',
+          'isLocked', 'authorId', 'authorName', 'lastEditorId',
+          'lastEditorName', 'version', 'createdAt', 'updatedAt'
+        ])
+        && incoming().authorId == request.auth.uid
+        && incoming().version == 1
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerified()
+        && isValidId(slug)
+        && isValidWikiPage(incoming(), slug)
+        && incoming().slug == existing().slug
+        && incoming().authorId == existing().authorId
+        && incoming().authorName == existing().authorName
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().version == existing().version + 1
+        && (
+          // Tier 1: Page Author or Admin (full editorial + lock/visibility control)
+          (
+            (existing().authorId == request.auth.uid || isAdmin())
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'title', 'content', 'category', 'tags', 'visibility', 'isLocked',
+              'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
+            ])
+          ) ||
+          // Tier 2: Collaborator on public unlocked page (content/metadata edits only)
+          (
+            existing().visibility == 'public'
+            && existing().isLocked == false
+            && incoming().visibility == existing().visibility
+            && incoming().isLocked == existing().isLocked
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'title', 'content', 'category', 'tags',
+              'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
+            ])
+          )
+        );
+
+      allow delete: if isVerified()
+        && isValidId(slug)
+        && (existing().authorId == request.auth.uid || isAdmin());
+
+      // Subcollection: /pages/{slug}/revisions/{revisionId}
+      match /revisions/{revisionId} {
+        allow get: if isValidId(slug) && isValidId(revisionId) && (
+          existing().pageVisibility == 'public' ||
+          (isSignedIn() && existing().pageAuthorId == request.auth.uid) ||
+          isAdmin()
+        );
+
+        allow list: if resource.data.pageVisibility == 'public' ||
+          (isSignedIn() && resource.data.pageAuthorId == request.auth.uid) ||
+          isAdmin();
+
+        allow create: if isVerified()
+          && isValidId(slug)
+          && isValidId(revisionId)
+          && isValidRevision(incoming(), slug)
+          && incoming().editorId == request.auth.uid
+          && incoming().keys().hasAll([
+            'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
+            'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
+          ])
+          && incoming().keys().hasOnly([
+            'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
+            'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
+          ])
+          && incoming().createdAt == request.time
+          && existsAfter(/databases/$(database)/documents/pages/$(slug))
+          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
+          && incoming().pageAuthorId == getAfter(/databases/$(database)/documents/pages/$(slug)).data.authorId
+          && incoming().version == getAfter(/databases/$(database)/documents/pages/$(slug)).data.version
+          && (
+            (getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public'
+              && getAfter(/databases/$(database)/documents/pages/$(slug)).data.isLocked == false) ||
+            getAfter(/databases/$(database)/documents/pages/$(slug)).data.authorId == request.auth.uid ||
+            isAdmin()
+          );
+
+        allow update: if isVerified()
+          && isValidId(slug)
+          && isValidId(revisionId)
+          && isValidRevision(incoming(), slug)
+          && (existing().pageAuthorId == request.auth.uid || isAdmin())
+          && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
+          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility;
+
+        allow delete: if isVerified()
+          && isValidId(slug)
+          && isValidId(revisionId)
+          && (existing().pageAuthorId == request.auth.uid || isAdmin());
+      }
+
+      // Subcollection: /pages/{slug}/comments/{commentId}
+      match /comments/{commentId} {
+        allow get: if isValidId(slug) && isValidId(commentId) && (
+          existing().pageVisibility == 'public' ||
+          (isSignedIn() && existing().pageAuthorId == request.auth.uid) ||
+          isAdmin()
+        );
+
+        allow list: if resource.data.pageVisibility == 'public' ||
+          (isSignedIn() && resource.data.pageAuthorId == request.auth.uid) ||
+          isAdmin();
+
+        allow create: if isVerified()
+          && isValidId(slug)
+          && isValidId(commentId)
+          && isValidComment(incoming(), slug)
+          && incoming().authorId == request.auth.uid
+          && incoming().keys().hasAll([
+            'pageSlug', 'pageVisibility', 'pageAuthorId',
+            'authorId', 'authorName', 'body', 'createdAt'
+          ])
+          && incoming().keys().hasOnly([
+            'pageSlug', 'pageVisibility', 'pageAuthorId',
+            'authorId', 'authorName', 'body', 'createdAt'
+          ])
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/pages/$(slug))
+          && incoming().pageVisibility == get(/databases/$(database)/documents/pages/$(slug)).data.visibility
+          && incoming().pageAuthorId == get(/databases/$(database)/documents/pages/$(slug)).data.authorId
+          && (
+            get(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public' ||
+            get(/databases/$(database)/documents/pages/$(slug)).data.authorId == request.auth.uid ||
+            isAdmin()
+          );
+
+        allow update: if isVerified()
+          && isValidId(slug)
+          && isValidId(commentId)
+          && isValidComment(incoming(), slug)
+          && (existing().pageAuthorId == request.auth.uid || isAdmin())
+          && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
+          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility;
+
+        allow delete: if isVerified()
+          && isValidId(slug)
+          && isValidId(commentId)
+          && (
+            existing().authorId == request.auth.uid ||
+            existing().pageAuthorId == request.auth.uid ||
+            isAdmin()
+          );
+      }
+    }
+
+    // Collection: /collaborators/{userId} (Non-PII public profile)
+    match /collaborators/{userId} {
+      allow get: if isSignedIn() && isValidId(userId);
+      allow list: if isSignedIn() && resource.data.uid is string;
+
+      allow create: if isVerified()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidCollaborator(incoming(), userId)
+        && incoming().keys().hasAll(['uid', 'displayName', 'photoURL', 'createdAt', 'updatedAt'])
+        && incoming().keys().hasOnly(['uid', 'displayName', 'photoURL', 'createdAt', 'updatedAt'])
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerified()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidCollaborator(incoming(), userId)
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']);
+
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    // Collection: /users/{userId}/private/{docId} (Strict PII Isolation)
+    match /users/{userId}/private/{docId} {
+      allow get: if isValidId(userId) && isValidId(docId) && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+      allow create: if isVerified()
+        && isValidId(userId)
+        && isValidId(docId)
+        && isOwner(userId)
+        && isValidUserPrivateInfo(incoming(), userId)
+        && incoming().keys().hasAll(['uid', 'email', 'updatedAt'])
+        && incoming().keys().hasOnly(['uid', 'email', 'updatedAt'])
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerified()
+        && isValidId(userId)
+        && isValidId(docId)
+        && isOwner(userId)
+        && isValidUserPrivateInfo(incoming(), userId)
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt']);
+
+      allow delete: if isAdmin() && isValidId(userId) && isValidId(docId);
+    }
+
+    // Collection: /admins/{userId}
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if false;
+
+      allow create: if isAdmin()
+        && isValidId(userId)
+        && isValidAdminRecord(incoming(), userId)
+        && incoming().keys().hasAll(['uid', 'createdAt'])
+        && incoming().keys().hasOnly(['uid', 'createdAt'])
+        && incoming().createdAt == request.time;
+
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+  }
+}
