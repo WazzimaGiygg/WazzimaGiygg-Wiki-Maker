@@ -10,6 +10,7 @@ import {
   Scale,
   ShieldCheck,
 } from 'lucide-react';
+import { DOSSIER_PAGE_SLUG, DOSSIER_PAGE_TITLE } from '../lib/dossierArticle';
 import { db } from '../lib/firebase';
 import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
 import { fetchUserEdits } from '../lib/wikiService';
@@ -388,6 +389,14 @@ export const LegalComplianceView: React.FC<LegalComplianceViewProps> = ({
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>Return to Wiki Home</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onSelectPage(DOSSIER_PAGE_SLUG)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-blue-200 dark:border-blue-800/70 bg-blue-50/70 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors whitespace-nowrap shrink-0"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Read {DOSSIER_PAGE_TITLE}</span>
                 </button>
               </div>
             </div>

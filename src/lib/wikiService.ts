@@ -21,6 +21,14 @@ import {
   VALIDATION_LIMITS,
   type WikiPage,
 } from '../types/wiki';
+import {
+  DOSSIER_PAGE_CATEGORY,
+  DOSSIER_PAGE_CONTENT,
+  DOSSIER_PAGE_SLUG,
+  DOSSIER_PAGE_SUMMARY,
+  DOSSIER_PAGE_TAGS,
+  DOSSIER_PAGE_TITLE,
+} from './dossierArticle';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { isValidWikiSlug, serializeInfoboxBlock, toWikiSlug } from './markdownUtils';
 
@@ -755,6 +763,7 @@ export async function seedStarterWiki(user: User): Promise<void> {
 | [[start]] | Main entry point of the wiki | Public |
 | [[markdown-guide]] | Markdown syntax and internal links reference | Public |
 | [[best-practices]] | Collaboration and organization conventions | Public |
+| [[${DOSSIER_PAGE_SLUG}|${DOSSIER_PAGE_TITLE}]] | Regulatory dossier on LGPD & Marco Civil compliance | Public |
 
 ## Next Steps
 
@@ -853,6 +862,14 @@ Before saving in **Edit**, fill in the *Change summary* field (for example: \`Ad
 
 Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
     },
+    {
+      slug: DOSSIER_PAGE_SLUG,
+      title: DOSSIER_PAGE_TITLE,
+      category: DOSSIER_PAGE_CATEGORY,
+      tags: DOSSIER_PAGE_TAGS,
+      summary: DOSSIER_PAGE_SUMMARY,
+      content: DOSSIER_PAGE_CONTENT,
+    },
   ];
 
   const batch = writeBatch(db);
@@ -918,6 +935,82 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'pages');
     }
+  }
+}
+
+const DOSSIER_SEED_FLAG = 'wazzimagiygg-dossier-seeded-v1';
+
+/**
+ * Ensures the regulatory dossier article exists in Firestore for active workspaces
+ * when an administrator or bureaucrat signs in, without respawning deleted pages.
+ */
+export async function ensureDossierArticlePublished(user: User): Promise<void> {
+  if (typeof window !== 'undefined' && localStorage.getItem(DOSSIER_SEED_FLAG) === '1') {
+    return;
+  }
+
+  const pageRef = doc(db, 'pages', DOSSIER_PAGE_SLUG);
+  try {
+    const snap = await getDoc(pageRef);
+    if (snap.exists()) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(DOSSIER_SEED_FLAG, '1');
+      }
+      return;
+    }
+
+    const authorName = getUserDisplayName(user);
+    const batch = writeBatch(db);
+
+    batch.set(pageRef, {
+      slug: DOSSIER_PAGE_SLUG,
+      title: DOSSIER_PAGE_TITLE,
+      content: DOSSIER_PAGE_CONTENT,
+      category: DOSSIER_PAGE_CATEGORY,
+      tags: DOSSIER_PAGE_TAGS,
+      visibility: 'public',
+      isLocked: false,
+      authorId: user.uid,
+      authorName,
+      lastEditorId: user.uid,
+      lastEditorName: authorName,
+      version: 1,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    batch.set(doc(db, 'pages', DOSSIER_PAGE_SLUG, 'revisions', 'v_1'), {
+      pageSlug: DOSSIER_PAGE_SLUG,
+      pageVisibility: 'public',
+      pageAuthorId: user.uid,
+      title: DOSSIER_PAGE_TITLE,
+      content: DOSSIER_PAGE_CONTENT,
+      editorId: user.uid,
+      editorName: authorName,
+      summary: DOSSIER_PAGE_SUMMARY,
+      version: 1,
+      createdAt: serverTimestamp(),
+    });
+
+    batch.set(
+      doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(DOSSIER_PAGE_SLUG, 1)),
+      {
+        editorId: user.uid,
+        pageSlug: DOSSIER_PAGE_SLUG,
+        pageTitle: DOSSIER_PAGE_TITLE,
+        pageVisibility: 'public',
+        summary: DOSSIER_PAGE_SUMMARY,
+        version: 1,
+        createdAt: serverTimestamp(),
+      }
+    );
+
+    await batch.commit();
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(DOSSIER_SEED_FLAG, '1');
+    }
+  } catch (error) {
+    console.warn('Could not auto-publish dossier article:', error);
   }
 }
 

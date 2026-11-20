@@ -34,6 +34,13 @@ import { UserEditsPanel } from './components/UserEditsPanel';
 import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance } from './lib/adminService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
+import {
+  DOSSIER_PAGE_CATEGORY,
+  DOSSIER_PAGE_CONTENT,
+  DOSSIER_PAGE_SLUG,
+  DOSSIER_PAGE_TAGS,
+  DOSSIER_PAGE_TITLE,
+} from './lib/dossierArticle';
 import { LEGAL_GOVERNANCE } from './lib/legalConfig';
 import {
   extractToc,
@@ -49,6 +56,7 @@ import {
   createWikiPage,
   deletePageComment,
   deleteWikiPage,
+  ensureDossierArticlePublished,
   fetchCollaboratorProfile,
   fetchPageRevisions,
   fetchUserEdits,
@@ -212,6 +220,13 @@ function WikiWorkspace() {
           if (!gov.blocked) {
             const result = await syncUserDocuments(currentUser);
             setCurrentCollaborator(result.profile);
+            const isElevatedAdmin =
+              (currentUser.email && currentUser.email === ADMIN_EMAIL && currentUser.emailVerified) ||
+              gov.role === 'bureaucrat' ||
+              gov.role === 'admin';
+            if (isElevatedAdmin) {
+              void ensureDossierArticlePublished(currentUser);
+            }
             const currentHash = window.location.hash;
             const isOnDefaultEntry =
               !currentHash || currentHash === '#/' || currentHash === '#/page/start';
@@ -269,13 +284,31 @@ function WikiWorkspace() {
     return unsub;
   }, [authReady, user]);
 
-  // Merge public & user's private pages cleanly
+  // Merge public & user's private pages cleanly, ensuring built-in dossier fallback is always readable
   const allPages = React.useMemo(() => {
     const bySlug = new Map<string, WikiPage>();
     for (const p of publicPages) bySlug.set(p.slug, p);
     for (const p of privatePages) bySlug.set(p.slug, p);
+    if (pagesLoaded && !bySlug.has(DOSSIER_PAGE_SLUG)) {
+      bySlug.set(DOSSIER_PAGE_SLUG, {
+        slug: DOSSIER_PAGE_SLUG,
+        title: DOSSIER_PAGE_TITLE,
+        content: DOSSIER_PAGE_CONTENT,
+        category: DOSSIER_PAGE_CATEGORY,
+        tags: DOSSIER_PAGE_TAGS,
+        visibility: 'public',
+        isLocked: false,
+        authorId: 'builtin-editorial',
+        authorName: LEGAL_GOVERNANCE.controllerName,
+        lastEditorId: 'builtin-editorial',
+        lastEditorName: LEGAL_GOVERNANCE.controllerName,
+        version: 1,
+        createdAt: null,
+        updatedAt: null,
+      });
+    }
     return Array.from(bySlug.values()).sort((a, b) => a.title.localeCompare(b.title, 'en-US'));
-  }, [publicPages, privatePages]);
+  }, [publicPages, privatePages, pagesLoaded]);
 
   const existingSlugs = React.useMemo(() => new Set(allPages.map((p) => p.slug)), [allPages]);
   const activePage = React.useMemo(
@@ -451,7 +484,7 @@ function WikiWorkspace() {
         activePage.authorId === user.uid ||
         isAdmin)
   );
-  const canDeleteActivePage = canManageActiveMeta;
+  const canDeleteActivePage = canManageActiveMeta && activePage?.authorId !== 'builtin-editorial';
 
   // Global keyboard shortcuts (Ctrl+E Read->Edit, Ctrl+K Search, Alt+N New Page, ? Help, Esc Cancel)
   React.useEffect(() => {
@@ -584,7 +617,11 @@ function WikiWorkspace() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      await updateWikiPage(activePage, data, user, canManageActiveMeta);
+      if (activePage.authorId === 'builtin-editorial') {
+        await createWikiPage({ ...data, slug: activePage.slug }, user);
+      } else {
+        await updateWikiPage(activePage, data, user, canManageActiveMeta);
+      }
       setActiveTab('read');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to update page.');
@@ -1352,20 +1389,26 @@ function WikiWorkspace() {
                             {formatAbsoluteTime(activePage.updatedAt)}
                           </span>{' '}
                           by{' '}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigateToPage(
-                                buildPersonalSlugs(
-                                  activePage.lastEditorName,
-                                  activePage.lastEditorId
-                                ).personalPageSlug
-                              )
-                            }
-                            className="font-medium text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
-                          >
-                            {activePage.lastEditorName}
-                          </button>
+                          {activePage.lastEditorId === 'builtin-editorial' ? (
+                            <span className="font-medium text-slate-700 dark:text-slate-200">
+                              {activePage.lastEditorName}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigateToPage(
+                                  buildPersonalSlugs(
+                                    activePage.lastEditorName,
+                                    activePage.lastEditorId
+                                  ).personalPageSlug
+                                )
+                              }
+                              className="font-medium text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
+                            >
+                              {activePage.lastEditorName}
+                            </button>
+                          )}
                           .
                         </div>
                         <div className="font-mono tabular-nums text-[10px]">
