@@ -37,6 +37,7 @@ import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationT
 import { LEGAL_GOVERNANCE } from './lib/legalConfig';
 import {
   extractToc,
+  formatAbsoluteTime,
   formatRelativeTime,
   parseMarkdownWithInfoboxes,
   slugToTitle,
@@ -44,6 +45,7 @@ import {
 } from './lib/markdownUtils';
 import {
   addPageComment,
+  buildPersonalSlugs,
   createWikiPage,
   deletePageComment,
   deleteWikiPage,
@@ -1340,6 +1342,49 @@ function WikiWorkspace() {
                         />
                       </section>
                     )}
+
+                    {/* WikiWazzimaGiygg Article Footer */}
+                    <footer className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          This page was last edited on{' '}
+                          <span className="font-medium tabular-nums">
+                            {formatAbsoluteTime(activePage.updatedAt)}
+                          </span>{' '}
+                          by{' '}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigateToPage(
+                                buildPersonalSlugs(
+                                  activePage.lastEditorName,
+                                  activePage.lastEditorId
+                                ).personalPageSlug
+                              )
+                            }
+                            className="font-medium text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
+                          >
+                            {activePage.lastEditorName}
+                          </button>
+                          .
+                        </div>
+                        <div className="font-mono tabular-nums text-[10px]">
+                          Revision #{activePage.version} (:{activePage.slug})
+                        </div>
+                      </div>
+                      <div>
+                        Content is available under{' '}
+                        <a
+                          href="https://creativecommons.org/licenses/by-sa/4.0/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-700 dark:text-blue-400 hover:underline"
+                        >
+                          Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+                        </a>{' '}
+                        and the GNU General Public License v2+.
+                      </div>
+                    </footer>
                   </article>
 
                   {toc.length > 0 && (
@@ -1460,15 +1505,25 @@ function WikiWorkspace() {
         </main>
       </div>
 
-      {/* Compliance Footer (LGPD & Marco Civil da Internet) */}
+      {/* Global WikiWazzimaGiygg + LGPD / Marco Civil Compliance Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f1623]/80">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <div>
               <strong className="font-medium text-slate-700 dark:text-slate-200">
                 {LEGAL_GOVERNANCE.siteName}
               </strong>{' '}
-              · Aligned with {LEGAL_GOVERNANCE.lgpdLaw} &amp; {LEGAL_GOVERNANCE.marcoCivilLaw}
+              · Content under{' '}
+              <a
+                href="https://creativecommons.org/licenses/by-sa/4.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-700 dark:text-blue-400 hover:underline"
+              >
+                CC BY-SA 4.0
+              </a>{' '}
+              &amp; GNU GPL v2+ · Aligned with {LEGAL_GOVERNANCE.lgpdLaw} &amp;{' '}
+              {LEGAL_GOVERNANCE.marcoCivilLaw}
             </div>
             <div>
               Controller &amp; DPO (PDO):{' '}
