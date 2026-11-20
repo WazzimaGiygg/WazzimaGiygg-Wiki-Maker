@@ -4,7 +4,7 @@ import { VALIDATION_LIMITS } from '../types/wiki';
 export interface TocItem {
   id: string;
   text: string;
-  level: 2 | 3;
+  level: 1 | 2 | 3;
 }
 
 /**
@@ -355,18 +355,47 @@ export function serializeInfoboxBlock(block: InfoboxBlock): string {
 }
 
 /**
- * Extracts H2 and H3 headings from Markdown (ignoring fenced code blocks and :::infobox blocks)
- * for the page Table of Contents.
+ * Strips inline Markdown / Wikidot syntax from a heading line so TOC labels and
+ * heading slugification match rendered heading text cleanly.
+ */
+function cleanHeadingDisplayText(raw: string): string {
+  return raw
+    .replace(/\[\[([^\]|]+?)\|([^\]]+?)\]\]/g, '$2')
+    .replace(/\[\[([^\]]+?)\]\]/g, '$1')
+    .replace(/\[([^\]]+?)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`~]/g, '')
+    .replace(/\s+#+\s*$/, '')
+    .trim();
+}
+
+/**
+ * Allocates deterministic, collision-free anchor IDs in document order
+ * (e.g., "overview", "overview-2", "overview-3").
+ */
+export function createHeadingIdAllocator(): (rawText: string) => string {
+  const counts = new Map<string, number>();
+  return (rawText: string) => {
+    const base = toWikiSlug(rawText) || 'section';
+    const nextCount = (counts.get(base) ?? 0) + 1;
+    counts.set(base, nextCount);
+    return nextCount === 1 ? base : `${base}-${nextCount}`;
+  };
+}
+
+/**
+ * Extracts H1-H3 headings from Markdown (ignoring fenced code blocks and :::infobox blocks)
+ * with deduplicated anchor IDs for Table of Contents navigation.
  */
 export function extractToc(markdown: string): TocItem[] {
-  const lines = markdown.split('\n');
+  const lines = markdown.split(/\r?\n/);
   const items: TocItem[] = [];
+  const allocateId = createHeadingIdAllocator();
   let inCodeFence = false;
   let inInfobox = false;
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed.startsWith('```')) {
+    if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
       inCodeFence = !inCodeFence;
       continue;
     }
@@ -383,11 +412,12 @@ export function extractToc(markdown: string): TocItem[] {
       continue;
     }
 
-    const match = /^(#{2,3})\s+(.+)$/.exec(trimmed);
+    const match = /^(#{1,3})\s+(.+)$/.exec(trimmed);
     if (match) {
-      const level = match[1].length as 2 | 3;
-      const text = match[2].replace(/[*_`[\]]/g, '').trim();
-      const id = toWikiSlug(text) || `sec-${items.length + 1}`;
+      const level = match[1].length as 1 | 2 | 3;
+      const text = cleanHeadingDisplayText(match[2]);
+      if (!text) continue;
+      const id = allocateId(text);
       items.push({ id, text, level });
     }
   }

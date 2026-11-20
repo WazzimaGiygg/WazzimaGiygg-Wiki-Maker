@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { FooterBadges } from './components/FooterBadges';
 import { LegalComplianceView, type LegalSectionTab } from './components/LegalComplianceView';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
@@ -1436,14 +1437,24 @@ function WikiWorkspace() {
                         On this page
                       </div>
                       <ul className="space-y-1.5 text-xs">
-                        {toc.map((item, idx) => (
-                          <li key={`${item.id}-${idx}`} className={item.level === 3 ? 'pl-3' : ''}>
+                        {toc.map((item) => (
+                          <li
+                            key={item.id}
+                            className={
+                              item.level === 1
+                                ? 'pl-0 font-medium'
+                                : item.level === 2
+                                ? 'pl-2'
+                                : 'pl-4'
+                            }
+                          >
                             <a
                               href={`#${item.id}`}
                               onClick={(e) => {
                                 e.preventDefault();
                                 document.getElementById(item.id)?.scrollIntoView({
                                   behavior: 'smooth',
+                                  block: 'start',
                                 });
                               }}
                               className="block text-slate-600 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors truncate"
@@ -1550,60 +1561,83 @@ function WikiWorkspace() {
 
       {/* Global WikiWazzimaGiygg + LGPD / Marco Civil Compliance Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f1623]/80">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <div className="space-y-1">
-            <div>
-              <strong className="font-medium text-slate-700 dark:text-slate-200">
-                {LEGAL_GOVERNANCE.siteName}
-              </strong>{' '}
-              · Content under{' '}
-              <a
-                href="https://creativecommons.org/licenses/by-sa/4.0/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-700 dark:text-blue-400 hover:underline"
-              >
-                CC BY-SA 4.0
-              </a>{' '}
-              &amp; GNU GPL v2+ · Aligned with {LEGAL_GOVERNANCE.lgpdLaw} &amp;{' '}
-              {LEGAL_GOVERNANCE.marcoCivilLaw}
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-5 space-y-4 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div>
+                <strong className="font-medium text-slate-700 dark:text-slate-200">
+                  {LEGAL_GOVERNANCE.siteName}
+                </strong>{' '}
+                · Content under{' '}
+                <a
+                  href="https://creativecommons.org/licenses/by-sa/4.0/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 dark:text-blue-400 hover:underline"
+                >
+                  CC BY-SA 4.0
+                </a>{' '}
+                &amp; GNU GPL v2+ · Aligned with {LEGAL_GOVERNANCE.lgpdLaw} &amp;{' '}
+                {LEGAL_GOVERNANCE.marcoCivilLaw}
+              </div>
+              <div>
+                Controller &amp; DPO (PDO):{' '}
+                <span className="text-slate-700 dark:text-slate-200 font-medium">
+                  {LEGAL_GOVERNANCE.dpoName}
+                </span>{' '}
+                ·{' '}
+                <a
+                  href={`mailto:${LEGAL_GOVERNANCE.dpoEmail}`}
+                  className="font-mono text-blue-700 dark:text-blue-400 hover:underline"
+                >
+                  {LEGAL_GOVERNANCE.dpoEmail}
+                </a>
+              </div>
             </div>
-            <div>
-              Controller &amp; DPO (PDO):{' '}
-              <span className="text-slate-700 dark:text-slate-200 font-medium">
-                {LEGAL_GOVERNANCE.dpoName}
-              </span>{' '}
-              ·{' '}
+
+            <div className="flex flex-wrap items-center gap-4 shrink-0">
               <a
-                href={`mailto:${LEGAL_GOVERNANCE.dpoEmail}`}
-                className="font-mono text-blue-700 dark:text-blue-400 hover:underline"
+                href={`#/page/${DOSSIER_PAGE_SLUG}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToPage(DOSSIER_PAGE_SLUG);
+                }}
+                className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
               >
-                {LEGAL_GOVERNANCE.dpoEmail}
+                LGPD &amp; MCI Dossier
+              </a>
+              <a
+                href="#/privacy"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToLegal('privacy');
+                }}
+                className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
+              >
+                Privacy &amp; LGPD
+              </a>
+              <a
+                href="#/terms"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToLegal('terms');
+                }}
+                className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
+              >
+                Terms &amp; Marco Civil
               </a>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 shrink-0">
-            <a
-              href="#/privacy"
-              onClick={(e) => {
-                e.preventDefault();
-                navigateToLegal('privacy');
-              }}
-              className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
-            >
-              Privacy &amp; LGPD
-            </a>
-            <a
-              href="#/terms"
-              onClick={(e) => {
-                e.preventDefault();
-                navigateToLegal('terms');
-              }}
-              className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
-            >
-              Terms &amp; Marco Civil
-            </a>
+          <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              WikiWazzimaGiygg Ecosystem · Infrastructure, Licensing &amp; Governance
+            </span>
+            <FooterBadges
+              onNavigateHome={() => navigateToPage('start')}
+              onNavigateLegal={() => navigateToLegal('privacy')}
+              onNavigateDossier={() => navigateToPage(DOSSIER_PAGE_SLUG)}
+            />
           </div>
         </div>
       </footer>
