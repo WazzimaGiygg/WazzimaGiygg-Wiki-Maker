@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Sitemap for canonical domain
+Sitemap: https://wikimaker.wazzimagiygg.com/sitemap.xml

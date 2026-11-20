@@ -65,6 +65,7 @@ export function preprocessWikiLinks(markdown: string): string {
 
 export type InfoboxType =
   | 'general'
+  | 'user'
   | 'character'
   | 'location'
   | 'item'
@@ -108,6 +109,20 @@ export const INFOBOX_TYPE_PRESETS: InfoboxPreset[] = [
       { key: 'Category', value: 'Core Documentation' },
       { key: 'Status', value: 'Active' },
       { key: 'Related', value: '[[start|Home]]' },
+    ],
+  },
+  {
+    type: 'user',
+    label: 'User / Collaborator',
+    description: 'Identification card for wiki collaborators and personal user pages.',
+    defaultTitle: 'Collaborator Name',
+    defaultSubtitle: 'Wiki Collaborator',
+    suggestedFields: [
+      { key: 'Handle', value: ':member-slug' },
+      { key: 'Member ID', value: '`uid-prefix`' },
+      { key: 'Discussion', value: '[[start|Talk Page]]' },
+      { key: 'Role', value: 'Collaborator' },
+      { key: 'Status', value: 'Active' },
     ],
   },
   {
@@ -184,6 +199,7 @@ export const INFOBOX_TYPE_PRESETS: InfoboxPreset[] = [
 
 const VALID_INFOBOX_TYPES = new Set<InfoboxType>([
   'general',
+  'user',
   'character',
   'location',
   'item',
@@ -308,24 +324,28 @@ export function parseMarkdownWithInfoboxes(markdown: string): MarkdownSegment[] 
   return segments;
 }
 
+function cleanInfoboxLineValue(value: string): string {
+  return value.replace(/[\r\n]+/g, ' ').trim();
+}
+
 export function serializeInfoboxBlock(block: InfoboxBlock): string {
   const lines: string[] = [`:::infobox ${block.type}`];
-  lines.push(`title: ${block.title.trim() || 'Untitled'}`);
+  lines.push(`title: ${cleanInfoboxLineValue(block.title) || 'Untitled'}`);
   if (block.subtitle?.trim()) {
-    lines.push(`subtitle: ${block.subtitle.trim()}`);
+    lines.push(`subtitle: ${cleanInfoboxLineValue(block.subtitle)}`);
   }
   if (block.image?.trim()) {
-    lines.push(`image: ${block.image.trim()}`);
+    lines.push(`image: ${cleanInfoboxLineValue(block.image)}`);
   }
   if (block.imageCaption?.trim()) {
-    lines.push(`imageCaption: ${block.imageCaption.trim()}`);
+    lines.push(`imageCaption: ${cleanInfoboxLineValue(block.imageCaption)}`);
   }
   if (block.layout && block.layout !== 'right') {
     lines.push(`layout: ${block.layout}`);
   }
   for (const field of block.fields) {
-    const key = field.key.replace(/:/g, '').trim();
-    const value = field.value.trim();
+    const key = cleanInfoboxLineValue(field.key).replace(/:/g, '').trim();
+    const value = cleanInfoboxLineValue(field.value);
     if (key && value) {
       lines.push(`${key}: ${value}`);
     }

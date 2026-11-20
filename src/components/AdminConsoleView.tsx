@@ -25,6 +25,7 @@ import {
   unblockUserAccount,
 } from '../lib/adminService';
 import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
+import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
 import { updateWikiPage } from '../lib/wikiService';
 import type { GovernanceRole, LgpdErasureMode, WikiPage } from '../types/wiki';
 
@@ -964,10 +965,23 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
           {/* TAB 4: LGPD AUDIT LOG */}
           {tab === 'lgpd' && (
             <div className="space-y-4">
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Immutable compliance log recording LGPD (Art. 18, VI) personal data erasure and
-                anonymization executions without storing deleted PII.
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0b0f17] text-xs">
+                <p className="text-slate-600 dark:text-slate-300 max-w-2xl">
+                  Immutable compliance log recording LGPD (Art. 18, VI) personal data erasure and
+                  anonymization executions without storing deleted PII, aligned with{' '}
+                  {LEGAL_GOVERNANCE.marcoCivilLaw}.
+                </p>
+                <div className="text-slate-600 dark:text-slate-300 shrink-0">
+                  DPO: <strong>{LEGAL_GOVERNANCE.dpoName}</strong> (
+                  <a
+                    href={`mailto:${LEGAL_GOVERNANCE.dpoEmail}`}
+                    className="font-mono text-blue-700 dark:text-blue-400 hover:underline"
+                  >
+                    {LEGAL_GOVERNANCE.dpoEmail}
+                  </a>
+                  )
+                </div>
+              </div>
 
               {(snapshot?.lgpdLogs.length ?? 0) === 0 ? (
                 <div className="py-12 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/40 dark:bg-[#0b0f17]">

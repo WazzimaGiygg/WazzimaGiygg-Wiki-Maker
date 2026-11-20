@@ -127,4 +127,4 @@ export interface UserEdit {
 }
 
 export type PageTab = 'read' | 'edit' | 'history' | 'comments' | 'source';
-export type WorkspaceView = 'page' | 'index' | 'recent' | 'create' | 'admin';
+export type WorkspaceView = 'page' | 'index' | 'recent' | 'create' | 'admin' | 'legal';

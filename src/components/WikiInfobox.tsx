@@ -11,6 +11,7 @@ import {
   MapPin,
   Package,
   User,
+  UserCheck,
 } from 'lucide-react';
 import {
   type InfoboxBlock,
@@ -40,6 +41,13 @@ const TYPE_STYLES: Record<
       'bg-slate-100 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700',
     labelClass: 'text-slate-600 dark:text-slate-300',
     icon: Info,
+  },
+  user: {
+    label: 'Collaborator',
+    headerClass:
+      'bg-sky-50 dark:bg-sky-950/45 border-b border-sky-200/80 dark:border-sky-900/70',
+    labelClass: 'text-sky-800 dark:text-sky-300',
+    icon: UserCheck,
   },
   character: {
     label: 'Character',

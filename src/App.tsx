@@ -2,6 +2,7 @@ import React from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import {
+  ArrowUp,
   BookOpen,
   Check,
   Code2,
@@ -20,17 +21,27 @@ import {
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { LegalComplianceView, type LegalSectionTab } from './components/LegalComplianceView';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
+import { PrivacyNoticeBanner } from './components/PrivacyNoticeBanner';
 import { RevisionHistory } from './components/RevisionHistory';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { Sidebar } from './components/Sidebar';
 import { UserEditsPanel } from './components/UserEditsPanel';
+import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance } from './lib/adminService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
-import { extractToc, formatRelativeTime, slugToTitle, toWikiSlug } from './lib/markdownUtils';
+import { LEGAL_GOVERNANCE } from './lib/legalConfig';
+import {
+  extractToc,
+  formatRelativeTime,
+  parseMarkdownWithInfoboxes,
+  slugToTitle,
+  toWikiSlug,
+} from './lib/markdownUtils';
 import {
   addPageComment,
   createWikiPage,
@@ -58,8 +69,18 @@ import {
   type WorkspaceView,
 } from './types/wiki';
 
-function parseHashRoute(): { view: WorkspaceView; slug: string } {
+function parseHashRoute(): {
+  view: WorkspaceView;
+  slug: string;
+  legalSection?: LegalSectionTab;
+} {
   const hash = window.location.hash.replace(/^#\/?/, '');
+  if (hash === 'privacy' || hash === 'lgpd') {
+    return { view: 'legal', slug: 'start', legalSection: 'privacy' };
+  }
+  if (hash === 'terms' || hash === 'marco-civil') {
+    return { view: 'legal', slug: 'start', legalSection: 'terms' };
+  }
   if (hash === 'admin') return { view: 'admin', slug: 'start' };
   if (hash === 'pages' || hash === 'paginas') return { view: 'index', slug: 'start' };
   if (hash === 'recent' || hash === 'recentes') return { view: 'recent', slug: 'start' };
@@ -92,6 +113,9 @@ function WikiWorkspace() {
   const [pagesLoaded, setPagesLoaded] = React.useState(false);
 
   const [view, setView] = React.useState<WorkspaceView>(initialRoute.view);
+  const [legalSection, setLegalSection] = React.useState<LegalSectionTab>(
+    initialRoute.legalSection ?? 'privacy'
+  );
   const [activeSlug, setActiveSlug] = React.useState<string>(initialRoute.slug || 'start');
   const [createPresetSlug, setCreatePresetSlug] = React.useState<string>(
     initialRoute.view === 'create' ? initialRoute.slug : ''
@@ -114,6 +138,7 @@ function WikiWorkspace() {
   const [copiedSource, setCopiedSource] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
+  const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [isDark, setIsDark] = React.useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('wazzimagiygg-theme') === 'dark';
@@ -131,11 +156,24 @@ function WikiWorkspace() {
     }
   }, [isDark]);
 
+  // Show floating Back to Top control after scrolling down long pages
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 360);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Listen for browser back/forward hash navigation
   React.useEffect(() => {
     const handleHashChange = () => {
       const next = parseHashRoute();
       setView(next.view);
+      if (next.legalSection) {
+        setLegalSection(next.legalSection);
+      }
       if (next.view === 'create') {
         setCreatePresetSlug(next.slug);
       } else if (next.slug) {
@@ -373,6 +411,14 @@ function WikiWorkspace() {
     window.location.hash = '#/admin';
   };
 
+  const navigateToLegal = (section: LegalSectionTab) => {
+    setLegalSection(section);
+    setView('legal');
+    setSaveError(null);
+    setConfirmDeleteOpen(false);
+    window.location.hash = section === 'terms' ? '#/terms' : '#/privacy';
+  };
+
   const handleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
@@ -608,6 +654,62 @@ function WikiWorkspace() {
     ? WIKI_CATEGORIES.find((c) => c.id === activePage.category)?.label ?? activePage.category
     : '';
 
+  // Sync per-page SEO title, meta description, OpenGraph, and robots indexing directive
+  React.useEffect(() => {
+    const defaultTitle = 'WazzimaGiygg Maker — Collaborative Markdown Wiki';
+    const defaultDesc =
+      'Create, edit, and organize collaborative Markdown wiki pages, infoboxes, and revision histories in real time with WazzimaGiygg Maker.';
+
+    let nextTitle = defaultTitle;
+    let nextDesc = defaultDesc;
+    let robotsValue = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+
+    if (view === 'admin') {
+      nextTitle = 'Administration Console — WazzimaGiygg Maker';
+      robotsValue = 'noindex, nofollow';
+    } else if (view === 'legal') {
+      nextTitle =
+        legalSection === 'terms'
+          ? 'Terms & Marco Civil Compliance — WazzimaGiygg Maker'
+          : 'Privacy Policy & LGPD — WazzimaGiygg Maker';
+      nextDesc = `LGPD (Law No. 13.709/2018) and Marco Civil da Internet compliance information. DPO: ${LEGAL_GOVERNANCE.dpoName}.`;
+    } else if (view === 'create') {
+      nextTitle = 'Create New Page — WazzimaGiygg Maker';
+      robotsValue = 'noindex, follow';
+    } else if (view === 'index') {
+      nextTitle = 'All Wiki Pages — WazzimaGiygg Maker';
+      nextDesc = 'Browse every collaborative Markdown page published on WazzimaGiygg Maker.';
+    } else if (view === 'recent') {
+      nextTitle = 'Recent Wiki Changes — WazzimaGiygg Maker';
+      nextDesc = 'Inspect recent collaborative edits and page updates on WazzimaGiygg Maker.';
+    } else if (view === 'page' && activePage) {
+      nextTitle = `${activePage.title} — WazzimaGiygg Maker`;
+      const plainExcerpt = activePage.content
+        .replace(/:::infobox[\s\S]*?:::/g, '')
+        .replace(/[#>*_`[\]()]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 155);
+      if (plainExcerpt) {
+        nextDesc = plainExcerpt;
+      }
+      if (activePage.visibility === 'private') {
+        robotsValue = 'noindex, nofollow';
+      }
+    }
+
+    document.title = nextTitle;
+    const setMeta = (selector: string, content: string) => {
+      document.querySelector(selector)?.setAttribute('content', content);
+    };
+    setMeta('meta[name="description"]', nextDesc);
+    setMeta('meta[property="og:title"]', nextTitle);
+    setMeta('meta[property="og:description"]', nextDesc);
+    setMeta('meta[name="twitter:title"]', nextTitle);
+    setMeta('meta[name="twitter:description"]', nextDesc);
+    setMeta('meta[name="robots"]', robotsValue);
+  }, [view, legalSection, activePage]);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100">
       {/* Strict 3-Zone Top Bar Contract */}
@@ -762,6 +864,18 @@ function WikiWorkspace() {
               <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-800 animate-pulse mt-6" />
               <div className="h-4 w-5/6 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
               <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            </div>
+          ) : view === 'legal' ? (
+            <div className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8">
+              <LegalComplianceView
+                section={legalSection}
+                user={user}
+                collaboratorProfile={currentCollaborator}
+                userPages={allPages.filter((p) => user && p.authorId === user.uid)}
+                onSwitchSection={navigateToLegal}
+                onSelectPage={navigateToPage}
+                onSignIn={() => void handleSignIn()}
+              />
             </div>
           ) : view === 'admin' ? (
             <div className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8">
@@ -1137,11 +1251,57 @@ function WikiWorkspace() {
                       </div>
                     )}
 
-                    <MarkdownRenderer
-                      content={activePage.content}
-                      existingSlugs={existingSlugs}
-                      onNavigateSlug={navigateToPage}
-                    />
+                    <div className="flow-root">
+                      {isPersonalProfilePage &&
+                        !parseMarkdownWithInfoboxes(activePage.content).some(
+                          (seg) => seg.kind === 'infobox'
+                        ) && (
+                          <WikiInfobox
+                            infobox={{
+                              type: 'user',
+                              title: personalAuthorProfile?.displayName || activePage.authorName,
+                              subtitle: 'WazzimaGiygg Maker Collaborator',
+                              image: personalAuthorProfile?.photoURL || undefined,
+                              layout: 'right',
+                              fields: [
+                                { key: 'Handle', value: `:${activePage.slug}` },
+                                {
+                                  key: 'Member ID',
+                                  value: `\`${activePage.authorId.slice(0, 8)}\``,
+                                },
+                                {
+                                  key: 'Discussion',
+                                  value: `[[${
+                                    personalAuthorProfile?.discussionPageSlug ??
+                                    `${activePage.slug}-discussion`
+                                  }|Talk Page]]`,
+                                },
+                                { key: 'Role', value: 'Collaborator' },
+                                ...(activePage.createdAt
+                                  ? [
+                                      {
+                                        key: 'Joined',
+                                        value: activePage.createdAt
+                                          .toDate()
+                                          .toISOString()
+                                          .slice(0, 10),
+                                      },
+                                    ]
+                                  : []),
+                                { key: 'Status', value: 'Active' },
+                              ],
+                            }}
+                            existingSlugs={existingSlugs}
+                            onNavigateSlug={navigateToPage}
+                          />
+                        )}
+
+                      <MarkdownRenderer
+                        content={activePage.content}
+                        existingSlugs={existingSlugs}
+                        onNavigateSlug={navigateToPage}
+                      />
+                    </div>
 
                     {isPersonalProfilePage && (
                       <UserEditsPanel
@@ -1300,7 +1460,71 @@ function WikiWorkspace() {
         </main>
       </div>
 
+      {/* Compliance Footer (LGPD & Marco Civil da Internet) */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f1623]/80">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <div className="space-y-0.5">
+            <div>
+              <strong className="font-medium text-slate-700 dark:text-slate-200">
+                {LEGAL_GOVERNANCE.siteName}
+              </strong>{' '}
+              · Aligned with {LEGAL_GOVERNANCE.lgpdLaw} &amp; {LEGAL_GOVERNANCE.marcoCivilLaw}
+            </div>
+            <div>
+              Controller &amp; DPO (PDO):{' '}
+              <span className="text-slate-700 dark:text-slate-200 font-medium">
+                {LEGAL_GOVERNANCE.dpoName}
+              </span>{' '}
+              ·{' '}
+              <a
+                href={`mailto:${LEGAL_GOVERNANCE.dpoEmail}`}
+                className="font-mono text-blue-700 dark:text-blue-400 hover:underline"
+              >
+                {LEGAL_GOVERNANCE.dpoEmail}
+              </a>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 shrink-0">
+            <a
+              href="#/privacy"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToLegal('privacy');
+              }}
+              className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
+            >
+              Privacy &amp; LGPD
+            </a>
+            <a
+              href="#/terms"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToLegal('terms');
+              }}
+              className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
+            >
+              Terms &amp; Marco Civil
+            </a>
+          </div>
+        </div>
+      </footer>
+
       <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <PrivacyNoticeBanner onOpenPrivacy={() => navigateToLegal('privacy')} />
+
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Back to top"
+          title="Back to top"
+          className="fixed bottom-6 right-6 z-30 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-sm text-slate-800 dark:text-slate-100 shadow-md hover:border-blue-700 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+        >
+          <ArrowUp className="w-3.5 h-3.5 shrink-0" />
+          <span>Back to Top</span>
+        </button>
+      )}
     </div>
   );
 }

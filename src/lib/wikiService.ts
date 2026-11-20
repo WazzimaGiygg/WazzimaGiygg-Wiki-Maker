@@ -22,7 +22,7 @@ import {
   type WikiPage,
 } from '../types/wiki';
 import { db, handleFirestoreError, OperationType } from './firebase';
-import { isValidWikiSlug, toWikiSlug } from './markdownUtils';
+import { isValidWikiSlug, serializeInfoboxBlock, toWikiSlug } from './markdownUtils';
 
 function sanitizeString(value: string, maxLen: number): string {
   return value.trim().slice(0, maxLen);
@@ -73,9 +73,34 @@ function buildEditDocId(slug: string, version: number): string {
 function buildPersonalPageContent(
   displayName: string,
   personalPageSlug: string,
-  discussionPageSlug: string
+  discussionPageSlug: string,
+  uid: string,
+  photoURL: string
 ): string {
-  return `Welcome to **${displayName}**'s personal collaborator page on WazzimaGiygg Maker.
+  const joinedDate = new Date().toISOString().slice(0, 10);
+  const shortUid = uid.slice(0, 8) || 'member';
+  const safeImage =
+    photoURL.startsWith('https://') || photoURL.startsWith('http://') ? photoURL : undefined;
+
+  const userInfobox = serializeInfoboxBlock({
+    type: 'user',
+    title: displayName,
+    subtitle: 'WazzimaGiygg Maker Collaborator',
+    image: safeImage,
+    layout: 'right',
+    fields: [
+      { key: 'Handle', value: `:${personalPageSlug}` },
+      { key: 'Member ID', value: `\`${shortUid}\`` },
+      { key: 'Discussion', value: `[[${discussionPageSlug}|Talk Page]]` },
+      { key: 'Role', value: 'Collaborator' },
+      { key: 'Joined', value: joinedDate },
+      { key: 'Status', value: 'Active' },
+    ],
+  });
+
+  return `${userInfobox}
+
+Welcome to **${displayName}**'s personal collaborator page on WazzimaGiygg Maker.
 
 ## Workspace Links
 
@@ -85,7 +110,7 @@ function buildPersonalPageContent(
 
 ## About Me
 
-This personal page was created automatically when **${displayName}** joined the wiki. Click **Edit** above to customize your bio, showcase notes, or pin collaborative links.
+This personal page and identification infobox were created automatically when **${displayName}** joined the wiki. Click **Edit** above to customize your bio, showcase notes, or pin collaborative links.
 
 > Every edit **${displayName}** makes across the wiki is listed in the **Edit History** section below. Visit [[${discussionPageSlug}|the discussion page]] to start a conversation.`;
 }
@@ -177,7 +202,9 @@ export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
         const personalContent = buildPersonalPageContent(
           displayName,
           resolvedPersonalSlug,
-          resolvedDiscussionSlug
+          resolvedDiscussionSlug,
+          user.uid,
+          photoURL
         );
         const personalSummary = 'Created personal collaborator page';
         batch.set(personalRef, {
