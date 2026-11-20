@@ -35,6 +35,7 @@ import { UserEditsPanel } from './components/UserEditsPanel';
 import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance } from './lib/adminService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
+import { evaluateFrameContext } from './lib/frameGuard';
 import {
   DOSSIER_PAGE_CATEGORY,
   DOSSIER_PAGE_CONTENT,
@@ -1661,7 +1662,55 @@ function WikiWorkspace() {
   );
 }
 
+const BlockedEmbedScreen: React.FC = () => {
+  const directUrl = typeof window !== 'undefined' ? window.location.href : 'https://wikimaker.wazzimagiygg.com/';
+
+  React.useEffect(() => {
+    try {
+      if (window.top && window.top !== window.self) {
+        window.top.location.replace(directUrl);
+      }
+    } catch {
+      // Cross-origin frame restricts top-level redirect; keep blocked fallback UI visible
+    }
+  }, [directUrl]);
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 flex items-center justify-center p-6">
+      <div className="max-w-md w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-6 space-y-4">
+        <div className="flex items-center gap-2.5 text-slate-900 dark:text-slate-100">
+          <Lock className="w-5 h-5 text-red-700 dark:text-red-400 shrink-0" />
+          <h1 className="font-display text-lg font-semibold">
+            Exibição em iframe não permitida
+          </h1>
+        </div>
+        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          Por diretriz de segurança e proteção contra clickjacking,{' '}
+          <strong>WazzimaGiygg Maker</strong> não pode ser incorporado em iframes de terceiros,
+          sendo permitido apenas acesso direto ou ambiente autorizado no Google AI Studio.
+        </p>
+        <div className="pt-1">
+          <a
+            href={directUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap"
+          >
+            Abrir site diretamente
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
+  const frameCheck = React.useMemo(() => evaluateFrameContext(), []);
+
+  if (!frameCheck.allowed) {
+    return <BlockedEmbedScreen />;
+  }
+
   return (
     <ErrorBoundary>
       <WikiWorkspace />
