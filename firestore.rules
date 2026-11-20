@@ -31,11 +31,22 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isAdmin() {
+    function isBureaucrat() {
       return isVerified() && (
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email == 'mafersao1100@gmail.com'
+        request.auth.token.email == 'mafersao1100@gmail.com' ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.get('role', 'admin') == 'bureaucrat')
       );
+    }
+
+    function isAdmin() {
+      return isBureaucrat() || (
+        isVerified() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isNotBlocked() {
+      return !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
     }
 
     // Pillar 2: Validation Blueprints (never use existing() or diff() inside these helpers)
@@ -50,7 +61,7 @@ service cloud.firestore {
         && data.isLocked is bool
         && data.authorId is string && isValidId(data.authorId)
         && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
-        && data.lastEditorId is string && data.lastEditorId == request.auth.uid && isValidId(data.lastEditorId)
+        && data.lastEditorId is string && isValidId(data.lastEditorId)
         && data.lastEditorName is string && data.lastEditorName.size() >= 1 && data.lastEditorName.size() <= 80
         && data.version is int && data.version >= 1
         && data.createdAt is timestamp
@@ -108,6 +119,27 @@ service cloud.firestore {
 
     function isValidAdminRecord(data, userId) {
       return data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.role in ['admin', 'bureaucrat']
+        && data.grantedBy is string && isValidId(data.grantedBy)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBlockedUser(data, userId) {
+      return data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
+        && data.reason is string && data.reason.size() >= 1 && data.reason.size() <= 300
+        && data.blockedBy is string && isValidId(data.blockedBy)
+        && data.blockedByName is string && data.blockedByName.size() >= 1 && data.blockedByName.size() <= 80
+        && data.createdAt is timestamp;
+    }
+
+    function isValidLgpdLog(data) {
+      return data.targetUid is string && isValidId(data.targetUid)
+        && data.mode in ['anonymize', 'purge']
+        && data.summary is string && data.summary.size() >= 1 && data.summary.size() <= 300
+        && data.executedBy is string && data.executedBy == request.auth.uid && isValidId(data.executedBy)
+        && data.executedByName is string && data.executedByName.size() >= 1 && data.executedByName.size() <= 80
         && data.createdAt is timestamp;
     }
 
@@ -127,6 +159,7 @@ service cloud.firestore {
         isAdmin();
 
       allow create: if isVerified()
+        && isNotBlocked()
         && isValidId(slug)
         && isValidWikiPage(incoming(), slug)
         && incoming().keys().hasAll([
@@ -140,42 +173,61 @@ service cloud.firestore {
           'lastEditorName', 'version', 'createdAt', 'updatedAt'
         ])
         && incoming().authorId == request.auth.uid
+        && incoming().lastEditorId == request.auth.uid
         && incoming().version == 1
         && incoming().createdAt == request.time
         && incoming().updatedAt == request.time;
 
       allow update: if isVerified()
+        && isNotBlocked()
         && isValidId(slug)
         && isValidWikiPage(incoming(), slug)
         && incoming().slug == existing().slug
-        && incoming().authorId == existing().authorId
-        && incoming().authorName == existing().authorName
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt == request.time
-        && incoming().version == existing().version + 1
         && (
-          // Tier 1: Page Author or Admin (full editorial + lock/visibility control)
+          // Standard editorial / moderation update
           (
-            (existing().authorId == request.auth.uid || isAdmin())
-            && incoming().diff(existing()).affectedKeys().hasOnly([
-              'title', 'content', 'category', 'tags', 'visibility', 'isLocked',
-              'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
-            ])
+            incoming().version == existing().version + 1
+            && incoming().authorId == existing().authorId
+            && incoming().authorName == existing().authorName
+            && incoming().lastEditorId == request.auth.uid
+            && (
+              // Tier 1: Page Author or Admin (full editorial + lock/visibility control)
+              (
+                (existing().authorId == request.auth.uid || isAdmin())
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'title', 'content', 'category', 'tags', 'visibility', 'isLocked',
+                  'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
+                ])
+              ) ||
+              // Tier 2: Collaborator on public unlocked page (content/metadata edits only)
+              (
+                existing().visibility == 'public'
+                && existing().isLocked == false
+                && incoming().visibility == existing().visibility
+                && incoming().isLocked == existing().isLocked
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'title', 'content', 'category', 'tags',
+                  'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
+                ])
+              )
+            )
           ) ||
-          // Tier 2: Collaborator on public unlocked page (content/metadata edits only)
+          // Tier Admin: LGPD Anonymization of author/lastEditor metadata without altering content
           (
-            existing().visibility == 'public'
-            && existing().isLocked == false
-            && incoming().visibility == existing().visibility
-            && incoming().isLocked == existing().isLocked
+            isAdmin()
+            && incoming().version == existing().version
             && incoming().diff(existing()).affectedKeys().hasOnly([
-              'title', 'content', 'category', 'tags',
-              'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
+              'authorId', 'authorName', 'lastEditorId', 'lastEditorName', 'updatedAt'
             ])
+            && (incoming().authorId == existing().authorId || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
+            && (incoming().lastEditorId == existing().lastEditorId || (incoming().lastEditorId == 'lgpd-anonymized' && incoming().lastEditorName == 'Removed User (LGPD)'))
           )
         );
 
       allow delete: if isVerified()
+        && isNotBlocked()
         && isValidId(slug)
         && (existing().authorId == request.auth.uid || isAdmin());
 
@@ -192,6 +244,7 @@ service cloud.firestore {
           isAdmin();
 
         allow create: if isVerified()
+          && isNotBlocked()
           && isValidId(slug)
           && isValidId(revisionId)
           && isValidRevision(incoming(), slug)
@@ -217,14 +270,29 @@ service cloud.firestore {
           );
 
         allow update: if isVerified()
+          && isNotBlocked()
           && isValidId(slug)
           && isValidId(revisionId)
           && isValidRevision(incoming(), slug)
-          && (existing().pageAuthorId == request.auth.uid || isAdmin())
-          && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
-          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility;
+          && incoming().pageSlug == existing().pageSlug
+          && incoming().version == existing().version
+          && incoming().createdAt == existing().createdAt
+          && (
+            (
+              (existing().pageAuthorId == request.auth.uid || isAdmin())
+              && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
+              && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
+            ) ||
+            (
+              isAdmin()
+              && incoming().diff(existing()).affectedKeys().hasOnly(['editorId', 'editorName', 'pageAuthorId'])
+              && (incoming().editorId == existing().editorId || (incoming().editorId == 'lgpd-anonymized' && incoming().editorName == 'Removed User (LGPD)'))
+              && (incoming().pageAuthorId == existing().pageAuthorId || incoming().pageAuthorId == 'lgpd-anonymized')
+            )
+          );
 
         allow delete: if isVerified()
+          && isNotBlocked()
           && isValidId(slug)
           && isValidId(revisionId)
           && (existing().pageAuthorId == request.auth.uid || isAdmin());
@@ -243,6 +311,7 @@ service cloud.firestore {
           isAdmin();
 
         allow create: if isVerified()
+          && isNotBlocked()
           && isValidId(slug)
           && isValidId(commentId)
           && isValidComment(incoming(), slug)
@@ -266,14 +335,28 @@ service cloud.firestore {
           );
 
         allow update: if isVerified()
+          && isNotBlocked()
           && isValidId(slug)
           && isValidId(commentId)
           && isValidComment(incoming(), slug)
-          && (existing().pageAuthorId == request.auth.uid || isAdmin())
-          && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
-          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility;
+          && incoming().pageSlug == existing().pageSlug
+          && incoming().createdAt == existing().createdAt
+          && (
+            (
+              (existing().pageAuthorId == request.auth.uid || isAdmin())
+              && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
+              && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
+            ) ||
+            (
+              isAdmin()
+              && incoming().diff(existing()).affectedKeys().hasOnly(['authorId', 'authorName', 'pageAuthorId'])
+              && (incoming().authorId == existing().authorId || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
+              && (incoming().pageAuthorId == existing().pageAuthorId || incoming().pageAuthorId == 'lgpd-anonymized')
+            )
+          );
 
         allow delete: if isVerified()
+          && isNotBlocked()
           && isValidId(slug)
           && isValidId(commentId)
           && (
@@ -335,6 +418,7 @@ service cloud.firestore {
           isAdmin();
 
         allow create: if isVerified()
+          && isNotBlocked()
           && isValidId(userId)
           && isValidId(editId)
           && isOwner(userId)
@@ -351,6 +435,7 @@ service cloud.firestore {
           && existsAfter(/databases/$(database)/documents/collaborators/$(userId));
 
         allow update: if isVerified()
+          && isNotBlocked()
           && isValidId(userId)
           && isValidId(editId)
           && isValidUserEdit(incoming(), userId)
@@ -359,6 +444,7 @@ service cloud.firestore {
           && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility', 'pageTitle']);
 
         allow delete: if isVerified()
+          && isNotBlocked()
           && isValidId(userId)
           && isValidId(editId)
           && (isOwner(userId) || isAdmin());
@@ -390,20 +476,70 @@ service cloud.firestore {
       allow delete: if isAdmin() && isValidId(userId) && isValidId(docId);
     }
 
-    // Collection: /admins/{userId}
+    // Collection: /admins/{userId} (Managed exclusively by Bureaucrats)
     match /admins/{userId} {
       allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
-      allow list: if false;
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+      allow create: if isBureaucrat()
+        && isValidId(userId)
+        && isValidAdminRecord(incoming(), userId)
+        && incoming().grantedBy == request.auth.uid
+        && incoming().keys().hasAll(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
+        && incoming().keys().hasOnly(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isBureaucrat()
+        && isValidId(userId)
+        && isValidAdminRecord(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().grantedBy == request.auth.uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'grantedBy', 'updatedAt']);
+
+      allow delete: if isBureaucrat() && isValidId(userId);
+    }
+
+    // Collection: /blocked_users/{userId} (Managed by Admins and Bureaucrats)
+    match /blocked_users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
 
       allow create: if isAdmin()
         && isValidId(userId)
-        && isValidAdminRecord(incoming(), userId)
-        && incoming().keys().hasAll(['uid', 'createdAt'])
-        && incoming().keys().hasOnly(['uid', 'createdAt'])
+        && isValidBlockedUser(incoming(), userId)
+        && incoming().blockedBy == request.auth.uid
+        && incoming().keys().hasAll(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
+        && incoming().keys().hasOnly(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
+        && incoming().createdAt == request.time;
+
+      allow update: if isAdmin()
+        && isValidId(userId)
+        && isValidBlockedUser(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().blockedBy == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'reason', 'blockedBy', 'blockedByName']);
+
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    // Collection: /lgpd_logs/{logId} (Immutable LGPD Compliance Audit Log)
+    match /lgpd_logs/{logId} {
+      allow get: if isValidId(logId) && isAdmin();
+      allow list: if isSignedIn() && (resource.data.executedBy == request.auth.uid && isAdmin() || isAdmin());
+
+      allow create: if isAdmin()
+        && isValidId(logId)
+        && isValidLgpdLog(incoming())
+        && incoming().keys().hasAll(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
+        && incoming().keys().hasOnly(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
         && incoming().createdAt == request.time;
 
       allow update: if false;
-      allow delete: if isAdmin() && isValidId(userId);
+      allow delete: if false;
     }
   }
 }

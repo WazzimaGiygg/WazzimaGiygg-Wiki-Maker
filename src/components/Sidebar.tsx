@@ -8,12 +8,13 @@ import {
   Moon,
   Plus,
   Search,
+  Shield,
   Sun,
   User as UserIcon,
   X,
 } from 'lucide-react';
 import type { User } from 'firebase/auth';
-import { WIKI_CATEGORIES, type WikiPage } from '../types/wiki';
+import { type GovernanceRole, WIKI_CATEGORIES, type WikiPage } from '../types/wiki';
 import { toWikiSlug } from '../lib/markdownUtils';
 
 interface SidebarProps {
@@ -23,10 +24,13 @@ interface SidebarProps {
   user: User | null;
   personalPageSlug?: string | null;
   discussionPageSlug?: string | null;
+  governanceRole?: GovernanceRole;
+  isAdminViewActive?: boolean;
   isDark: boolean;
   onCloseMobile: () => void;
   onSelectPage: (slug: string) => void;
   onQuickCreateSlug: (slug: string) => void;
+  onOpenAdmin?: () => void;
   onSignOut: () => void;
   onSignIn: () => void;
   onToggleTheme: () => void;
@@ -39,10 +43,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   user,
   personalPageSlug,
   discussionPageSlug,
+  governanceRole = 'member',
+  isAdminViewActive = false,
   isDark,
   onCloseMobile,
   onSelectPage,
   onQuickCreateSlug,
+  onOpenAdmin,
   onSignOut,
   onSignIn,
   onToggleTheme,
@@ -261,7 +268,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onCloseMobile();
                   }}
                   className={`inline-flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
-                    activeSlug === personalPageSlug
+                    !isAdminViewActive && activeSlug === personalPageSlug
                       ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300'
                       : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
@@ -276,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onCloseMobile();
                   }}
                   className={`inline-flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
-                    activeSlug === discussionPageSlug
+                    !isAdminViewActive && activeSlug === discussionPageSlug
                       ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300'
                       : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
@@ -285,6 +292,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span>Discussion</span>
                 </button>
               </div>
+            )}
+
+            {(governanceRole === 'admin' || governanceRole === 'bureaucrat') && onOpenAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenAdmin();
+                  onCloseMobile();
+                }}
+                className={`w-full inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap ${
+                  isAdminViewActive
+                    ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300'
+                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  {governanceRole === 'bureaucrat' ? 'Bureaucrat & Admin' : 'Admin Console'}
+                </span>
+              </button>
             )}
           </div>
         ) : (

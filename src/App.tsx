@@ -18,6 +18,7 @@ import {
   Trash2,
   User as UserIcon,
 } from 'lucide-react';
+import { AdminConsoleView } from './components/AdminConsoleView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { MarkdownRenderer } from './components/MarkdownRenderer';
@@ -26,6 +27,7 @@ import { PageIndexView } from './components/PageIndexView';
 import { RevisionHistory } from './components/RevisionHistory';
 import { Sidebar } from './components/Sidebar';
 import { UserEditsPanel } from './components/UserEditsPanel';
+import { fetchCurrentUserGovernance } from './lib/adminService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
 import { extractToc, formatRelativeTime, slugToTitle, toWikiSlug } from './lib/markdownUtils';
 import {
@@ -42,7 +44,9 @@ import {
   updateWikiPage,
 } from './lib/wikiService';
 import {
+  type BlockedUser,
   type CollaboratorProfile,
+  type GovernanceRole,
   type PageComment,
   type PageRevision,
   type PageTab,
@@ -55,6 +59,7 @@ import {
 
 function parseHashRoute(): { view: WorkspaceView; slug: string } {
   const hash = window.location.hash.replace(/^#\/?/, '');
+  if (hash === 'admin') return { view: 'admin', slug: 'start' };
   if (hash === 'pages' || hash === 'paginas') return { view: 'index', slug: 'start' };
   if (hash === 'recent' || hash === 'recentes') return { view: 'recent', slug: 'start' };
   if (hash.startsWith('new') || hash.startsWith('nova')) {
@@ -78,6 +83,8 @@ function WikiWorkspace() {
   const [user, setUser] = React.useState<User | null>(null);
   const [authReady, setAuthReady] = React.useState(false);
   const [currentCollaborator, setCurrentCollaborator] = React.useState<CollaboratorProfile | null>(null);
+  const [governanceRole, setGovernanceRole] = React.useState<GovernanceRole>('member');
+  const [blockedRecord, setBlockedRecord] = React.useState<BlockedUser | null>(null);
 
   const [publicPages, setPublicPages] = React.useState<WikiPage[]>([]);
   const [privatePages, setPrivatePages] = React.useState<WikiPage[]>([]);
@@ -156,17 +163,25 @@ function WikiWorkspace() {
       setUser(currentUser);
       setAuthReady(true);
       if (currentUser) {
-        void syncUserDocuments(currentUser).then((result) => {
-          setCurrentCollaborator(result.profile);
-          const currentHash = window.location.hash;
-          const isOnDefaultEntry =
-            !currentHash || currentHash === '#/' || currentHash === '#/page/start';
-          if (result.isNewUser && isOnDefaultEntry) {
-            navigateToPage(result.profile.personalPageSlug);
+        void (async () => {
+          const gov = await fetchCurrentUserGovernance(currentUser);
+          setGovernanceRole(gov.role);
+          setBlockedRecord(gov.blocked);
+          if (!gov.blocked) {
+            const result = await syncUserDocuments(currentUser);
+            setCurrentCollaborator(result.profile);
+            const currentHash = window.location.hash;
+            const isOnDefaultEntry =
+              !currentHash || currentHash === '#/' || currentHash === '#/page/start';
+            if (result.isNewUser && isOnDefaultEntry) {
+              navigateToPage(result.profile.personalPageSlug);
+            }
           }
-        });
+        })();
       } else {
         setCurrentCollaborator(null);
+        setGovernanceRole('member');
+        setBlockedRecord(null);
       }
     });
     return unsub;
@@ -349,6 +364,13 @@ function WikiWorkspace() {
     window.location.hash = mode === 'recent' ? '#/recent' : '#/pages';
   };
 
+  const navigateToAdmin = () => {
+    setView('admin');
+    setSaveError(null);
+    setConfirmDeleteOpen(false);
+    window.location.hash = '#/admin';
+  };
+
   const handleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
@@ -361,12 +383,19 @@ function WikiWorkspace() {
     await signOut(auth);
   };
 
-  const isAdmin = Boolean(user?.email && user.email === ADMIN_EMAIL && user.emailVerified);
+  const isAdmin = Boolean(
+    user &&
+      ((user.email && user.email === ADMIN_EMAIL && user.emailVerified) ||
+        governanceRole === 'admin' ||
+        governanceRole === 'bureaucrat')
+  );
+  const isBlocked = Boolean(blockedRecord);
   const canManageActiveMeta = Boolean(
-    user && activePage && (activePage.authorId === user.uid || isAdmin)
+    user && !isBlocked && activePage && (activePage.authorId === user.uid || isAdmin)
   );
   const canEditActivePage = Boolean(
     user &&
+      !isBlocked &&
       activePage &&
       ((activePage.visibility === 'public' && !activePage.isLocked) ||
         activePage.authorId === user.uid ||
@@ -576,8 +605,9 @@ function WikiWorkspace() {
             {user ? (
               <button
                 type="button"
+                disabled={isBlocked}
                 onClick={() => navigateToCreate('')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-45 disabled:cursor-not-allowed"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Page</span>
@@ -604,16 +634,30 @@ function WikiWorkspace() {
           user={user}
           personalPageSlug={currentCollaborator?.personalPageSlug}
           discussionPageSlug={currentCollaborator?.discussionPageSlug}
+          governanceRole={governanceRole}
+          isAdminViewActive={view === 'admin'}
           isDark={isDark}
           onCloseMobile={() => setMobileMenuOpen(false)}
           onSelectPage={navigateToPage}
           onQuickCreateSlug={navigateToCreate}
+          onOpenAdmin={navigateToAdmin}
           onSignOut={() => void handleSignOut()}
           onSignIn={() => void handleSignIn()}
           onToggleTheme={() => setIsDark((prev) => !prev)}
         />
 
         <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10">
+          {blockedRecord && (
+            <div className="max-w-5xl mb-6 p-4 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/30 text-xs text-red-900 dark:text-red-200 space-y-1">
+              <div className="font-semibold">
+                Account write access suspended by wiki administration
+              </div>
+              <div>
+                Reason: {blockedRecord.reason} · Moderator: {blockedRecord.blockedByName}
+              </div>
+            </div>
+          )}
+
           {!pagesLoaded ? (
             <div className="max-w-3xl space-y-4">
               <div className="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
@@ -621,6 +665,34 @@ function WikiWorkspace() {
               <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-800 animate-pulse mt-6" />
               <div className="h-4 w-5/6 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
               <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            </div>
+          ) : view === 'admin' ? (
+            <div className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8">
+              {user && isAdmin ? (
+                <AdminConsoleView
+                  currentUser={user}
+                  currentUserRole={
+                    user.email === ADMIN_EMAIL && user.emailVerified ? 'bureaucrat' : governanceRole
+                  }
+                  onSelectPage={navigateToPage}
+                />
+              ) : (
+                <div className="py-10 space-y-4">
+                  <h1 className="font-display text-2xl font-semibold text-slate-900 dark:text-slate-100">
+                    Administration Access Restricted
+                  </h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 max-w-xl">
+                    This console is reserved for WazzimaGiygg Maker Bureaucrats and Administrators.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigateToPage('start')}
+                    className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    Return to Home
+                  </button>
+                </div>
+              )}
             </div>
           ) : view === 'create' ? (
             <div className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6">
@@ -633,7 +705,7 @@ function WikiWorkspace() {
                 </h1>
               </div>
 
-              {user ? (
+              {user && !isBlocked ? (
                 <MarkdownEditor
                   mode="create"
                   initialSlug={createPresetSlug}
@@ -651,6 +723,12 @@ function WikiWorkspace() {
                   onCancel={() => navigateToPage('start')}
                   onNavigateSlug={navigateToPage}
                 />
+              ) : user && isBlocked ? (
+                <div className="py-8 space-y-4">
+                  <p className="text-sm text-red-700 dark:text-red-400">
+                    Your account is currently blocked from creating or editing wiki pages.
+                  </p>
+                </div>
               ) : (
                 <div className="py-8 space-y-4">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
@@ -672,7 +750,7 @@ function WikiWorkspace() {
               <PageIndexView
                 mode={view}
                 pages={allPages}
-                isSignedIn={Boolean(user)}
+                isSignedIn={Boolean(user && !isBlocked)}
                 onSelectPage={navigateToPage}
                 onNewPage={() => navigateToCreate('')}
               />
@@ -697,7 +775,7 @@ function WikiWorkspace() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                {user ? (
+                {user && !isBlocked ? (
                   <>
                     <button
                       type="button"
@@ -993,9 +1071,9 @@ function WikiWorkspace() {
                           comments={comments}
                           currentUserId={user?.uid ?? null}
                           canModerate={canManageActiveMeta}
-                          isSignedIn={Boolean(user)}
+                          isSignedIn={Boolean(user && !isBlocked)}
                           onAddComment={async (body) => {
-                            if (!user) return;
+                            if (!user || isBlocked) return;
                             await addPageComment(activePage, body, user);
                           }}
                           onDeleteComment={async (commentId) => {
@@ -1072,9 +1150,9 @@ function WikiWorkspace() {
                   comments={comments}
                   currentUserId={user?.uid ?? null}
                   canModerate={canManageActiveMeta}
-                  isSignedIn={Boolean(user)}
+                  isSignedIn={Boolean(user && !isBlocked)}
                   onAddComment={async (body) => {
-                    if (!user) return;
+                    if (!user || isBlocked) return;
                     await addPageComment(activePage, body, user);
                   }}
                   onDeleteComment={async (commentId) => {

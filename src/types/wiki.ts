@@ -29,7 +29,39 @@ export const VALIDATION_LIMITS = {
   COMMENT_BODY_MAX_LENGTH: 2000,
   PHOTO_URL_MAX_LENGTH: 500,
   EMAIL_MAX_LENGTH: 200,
+  BLOCK_REASON_MAX_LENGTH: 300,
+  LGPD_SUMMARY_MAX_LENGTH: 300,
 } as const;
+
+export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
+export type LgpdErasureMode = 'anonymize' | 'purge';
+
+export interface AdminRecord {
+  uid: string;
+  role: 'admin' | 'bureaucrat';
+  grantedBy?: string;
+  createdAt: Timestamp | null;
+  updatedAt?: Timestamp | null;
+}
+
+export interface BlockedUser {
+  uid: string;
+  displayName: string;
+  reason: string;
+  blockedBy: string;
+  blockedByName: string;
+  createdAt: Timestamp | null;
+}
+
+export interface LgpdErasureLog {
+  id: string;
+  targetUid: string;
+  mode: LgpdErasureMode;
+  summary: string;
+  executedBy: string;
+  executedByName: string;
+  createdAt: Timestamp | null;
+}
 
 export interface WikiPage {
   slug: string;
@@ -95,4 +127,4 @@ export interface UserEdit {
 }
 
 export type PageTab = 'read' | 'edit' | 'history' | 'comments' | 'source';
-export type WorkspaceView = 'page' | 'index' | 'recent' | 'create';
+export type WorkspaceView = 'page' | 'index' | 'recent' | 'create' | 'admin';

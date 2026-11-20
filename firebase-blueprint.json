@@ -348,7 +348,7 @@
     },
     "AdminRecord": {
       "title": "AdminRecord",
-      "description": "Trusted admin marker document.",
+      "description": "Trusted governance role record for wiki administrators and bureaucrats.",
       "type": "object",
       "properties": {
         "uid": {
@@ -357,12 +357,104 @@
           "maxLength": 128,
           "pattern": "^[a-zA-Z0-9_\\-]+$"
         },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "bureaucrat"],
+          "description": "Governance tier: admin or bureaucrat."
+        },
+        "grantedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "role", "grantedBy", "createdAt", "updatedAt"]
+    },
+    "BlockedUser": {
+      "title": "BlockedUser",
+      "description": "Moderation block record preventing a user from writing or editing wiki content.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "blockedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "blockedByName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
         }
       },
-      "required": ["uid", "createdAt"]
+      "required": ["uid", "displayName", "reason", "blockedBy", "blockedByName", "createdAt"]
+    },
+    "LgpdErasureLog": {
+      "title": "LgpdErasureLog",
+      "description": "Immutable LGPD data erasure audit entry containing no personal data.",
+      "type": "object",
+      "properties": {
+        "targetUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["anonymize", "purge"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "executedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "executedByName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["targetUid", "mode", "summary", "executedBy", "executedByName", "createdAt"]
     }
   },
   "firestore": {
@@ -392,7 +484,15 @@
     },
     "/admins/{userId}": {
       "schema": { "$ref": "#/entities/AdminRecord" },
-      "description": "Admin role records."
+      "description": "Governance role records for admins and bureaucrats."
+    },
+    "/blocked_users/{userId}": {
+      "schema": { "$ref": "#/entities/BlockedUser" },
+      "description": "Blocked user records enforced by Firestore rules."
+    },
+    "/lgpd_logs/{logId}": {
+      "schema": { "$ref": "#/entities/LgpdErasureLog" },
+      "description": "Immutable LGPD data erasure compliance log."
     }
   }
 }
