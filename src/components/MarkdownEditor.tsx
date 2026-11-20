@@ -9,6 +9,7 @@ import {
   List,
   ListChecks,
   Lock,
+  PanelRight,
   Save,
   SplitSquareHorizontal,
   Table,
@@ -20,6 +21,7 @@ import {
   WIKI_CATEGORIES,
 } from '../types/wiki';
 import { toWikiSlug } from '../lib/markdownUtils';
+import { InfoboxBuilderModal } from './InfoboxBuilderModal';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
 interface MarkdownEditorProps {
@@ -79,6 +81,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [summary, setSummary] = React.useState('');
   const [paneMode, setPaneMode] = React.useState<EditorPaneMode>('split');
   const [localError, setLocalError] = React.useState<string | null>(null);
+  const [infoboxModalOpen, setInfoboxModalOpen] = React.useState(false);
 
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
@@ -132,6 +135,29 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     });
   };
 
+  const insertBlockAtCursor = (blockText: string) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setContent((prev) => (prev.trim() ? `${blockText}\n\n${prev}` : `${blockText}\n`));
+      return;
+    }
+
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const before = content.slice(0, start);
+    const after = content.slice(end);
+    const prefix = before && !before.endsWith('\n\n') ? (before.endsWith('\n') ? '\n' : '\n\n') : '';
+    const suffix = after && !after.startsWith('\n\n') ? (after.startsWith('\n') ? '\n' : '\n\n') : '\n';
+    const next = `${before}${prefix}${blockText}${suffix}${after}`;
+    setContent(next);
+
+    const nextCaret = before.length + prefix.length + blockText.length + suffix.length;
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(nextCaret, nextCaret);
+    });
+  };
+
   const submitForm = async () => {
     setLocalError(null);
     const normalizedSlug = mode === 'create' ? toWikiSlug(slug) : initialSlug;
@@ -163,10 +189,44 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+    if (e.nativeEvent.isComposing || infoboxModalOpen) return;
+
+    const isMod = e.metaKey || e.ctrlKey;
+    const keyLower = e.key.toLowerCase();
+
+    if (isMod && (e.key === 'Enter' || keyLower === 's')) {
       e.preventDefault();
       if (!isSaving) {
         void submitForm();
+      }
+      return;
+    }
+
+    if (isMod && e.shiftKey && keyLower === 'i') {
+      e.preventDefault();
+      setInfoboxModalOpen(true);
+      return;
+    }
+
+    if (isMod && e.shiftKey && keyLower === 'p') {
+      e.preventDefault();
+      setPaneMode((prev) => (prev === 'write' ? 'split' : prev === 'split' ? 'preview' : 'write'));
+      return;
+    }
+
+    if (isMod && e.shiftKey && keyLower === 'l') {
+      e.preventDefault();
+      insertSnippet('[[', ']]', 'page-slug|Link Label');
+      return;
+    }
+
+    if (document.activeElement === textareaRef.current && isMod && !e.shiftKey) {
+      if (keyLower === 'b') {
+        e.preventDefault();
+        insertSnippet('**', '**', 'bold');
+      } else if (keyLower === 'i') {
+        e.preventDefault();
+        insertSnippet('*', '*', 'italic');
       }
     }
   };
@@ -327,7 +387,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
           <button
             type="button"
-            title="Bold"
+            title="Bold (Ctrl+B)"
             onClick={() => insertSnippet('**', '**', 'bold')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -335,7 +395,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
           <button
             type="button"
-            title="Italic"
+            title="Italic (Ctrl+I)"
             onClick={() => insertSnippet('*', '*', 'italic')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -343,12 +403,21 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
           <button
             type="button"
-            title="Wikidot internal link [[slug]]"
+            title="Wikidot internal link [[slug]] (Ctrl+Shift+L)"
             onClick={() => insertSnippet('[[', ']]', 'page-slug|Link Label')}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
           >
             <Link2 className="w-3.5 h-3.5" />
             <span>[[WikiLink]]</span>
+          </button>
+          <button
+            type="button"
+            title="Insert Infobox (Ctrl+Shift+I)"
+            onClick={() => setInfoboxModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors whitespace-nowrap shrink-0"
+          >
+            <PanelRight className="w-3.5 h-3.5" />
+            <span>Infobox</span>
           </button>
           <button
             type="button"
@@ -442,11 +511,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               value={content}
               maxLength={VALIDATION_LIMITS.CONTENT_MAX_LENGTH}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Write in Markdown... Use [[slug]] to create internal links between wiki pages."
+              placeholder="Write in Markdown... Use [[slug]] for wiki links or :::infobox for infoboxes. Press Ctrl+Enter to save."
               className="w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y"
             />
-            <div className="flex items-center justify-between mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
-              <span>Supports GitHub Flavored Markdown &amp; [[internal-links]]</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
+              <span>GFM, :::infobox &amp; [[internal-links]] · Ctrl+Enter to save</span>
               <span>
                 {content.length.toLocaleString('en-US')} /{' '}
                 {VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('en-US')}
@@ -489,6 +558,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         <div className="flex items-center justify-end gap-3 shrink-0">
           <button
             type="button"
+            title="Cancel editing (Esc)"
             onClick={onCancel}
             disabled={isSaving}
             className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
@@ -497,6 +567,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
           <button
             type="button"
+            title="Save changes (Ctrl+Enter or Ctrl+S)"
             onClick={() => void submitForm()}
             disabled={isSaving}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-60"
@@ -506,6 +577,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
         </div>
       </div>
+
+      <InfoboxBuilderModal
+        isOpen={infoboxModalOpen}
+        existingSlugs={existingSlugs}
+        onClose={() => setInfoboxModalOpen(false)}
+        onInsert={insertBlockAtCursor}
+        onNavigateSlug={onNavigateSlug}
+      />
     </div>
   );
 };

@@ -780,7 +780,27 @@ Text in **bold**, *italic*, ~~strikethrough~~, and \`inline code\`.
 | --- | --- | --- |
 | Bold | \`**text**\` | **text** |
 | Internal link | \`[[slug]]\` | Direct navigation |
-| Code | \`\\\`const x = 1\\\`\` | \`const x = 1\` |`,
+| Code | \`\\\`const x = 1\\\`\` | \`const x = 1\` |
+
+## Infoboxes
+
+Add structured Wiki Infoboxes with \`:::infobox <type>\` blocks (\`general\`, \`character\`, \`location\`, \`item\`, \`organization\`, \`project\`), or use the **Infobox** button in the editor toolbar (\`Ctrl+Shift+I\`):
+
+\`\`\`markdown
+:::infobox project
+title: WazzimaGiygg Maker
+subtitle: Collaborative Markdown Wiki
+Status: Active
+Stack: TypeScript, React, Firebase
+:::
+\`\`\`
+
+## Keyboard Shortcuts
+
+- \`Ctrl+E\` — Switch from **Read** to **Edit** mode
+- \`Ctrl+Enter\` / \`Ctrl+S\` — Save revision in the Markdown editor
+- \`Ctrl+K\` — Focus the sidebar page filter
+- \`?\` — Open the full keyboard shortcuts guide`,
     },
     {
       slug: 'best-practices',

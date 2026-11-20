@@ -2,6 +2,7 @@ import React from 'react';
 import {
   FileText,
   FolderOpen,
+  Keyboard,
   Lock,
   LogOut,
   MessageSquare,
@@ -31,6 +32,7 @@ interface SidebarProps {
   onSelectPage: (slug: string) => void;
   onQuickCreateSlug: (slug: string) => void;
   onOpenAdmin?: () => void;
+  onOpenShortcuts?: () => void;
   onSignOut: () => void;
   onSignIn: () => void;
   onToggleTheme: () => void;
@@ -50,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectPage,
   onQuickCreateSlug,
   onOpenAdmin,
+  onOpenShortcuts,
   onSignOut,
   onSignIn,
   onToggleTheme,
@@ -150,10 +153,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="relative">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
+            id="sidebar-page-filter"
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter pages..."
+            placeholder="Filter pages... (Ctrl+K)"
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
           />
         </div>
@@ -324,8 +328,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-[11px] text-slate-500 dark:text-slate-400">Theme</span>
+        <div className="flex items-center justify-between gap-2 pt-1">
+          {onOpenShortcuts ? (
+            <button
+              type="button"
+              onClick={onOpenShortcuts}
+              title="Keyboard shortcuts (?)"
+              className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
+            >
+              <Keyboard className="w-3.5 h-3.5" />
+              <span>Shortcuts</span>
+            </button>
+          ) : (
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Theme</span>
+          )}
           <button
             type="button"
             onClick={onToggleTheme}

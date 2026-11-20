@@ -25,6 +25,7 @@ import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
 import { RevisionHistory } from './components/RevisionHistory';
+import { ShortcutsModal } from './components/ShortcutsModal';
 import { Sidebar } from './components/Sidebar';
 import { UserEditsPanel } from './components/UserEditsPanel';
 import { fetchCurrentUserGovernance } from './lib/adminService';
@@ -112,6 +113,7 @@ function WikiWorkspace() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [copiedSource, setCopiedSource] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
   const [isDark, setIsDark] = React.useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('wazzimagiygg-theme') === 'dark';
@@ -403,6 +405,100 @@ function WikiWorkspace() {
   );
   const canDeleteActivePage = canManageActiveMeta;
 
+  // Global keyboard shortcuts (Ctrl+E Read->Edit, Ctrl+K Search, Alt+N New Page, ? Help, Esc Cancel)
+  React.useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.isComposing) return;
+
+      const isMod = e.metaKey || e.ctrlKey;
+      const keyLower = e.key.toLowerCase();
+      const target = e.target as HTMLElement | null;
+      const isEditableTarget = Boolean(
+        target &&
+          (target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'SELECT' ||
+            target.isContentEditable)
+      );
+
+      // Ctrl/Cmd + E -> Switch from Read (or another page tab) to Edit mode
+      if (isMod && !e.shiftKey && !e.altKey && keyLower === 'e') {
+        if (view === 'page' && activePage) {
+          e.preventDefault();
+          if (activeTab !== 'edit') {
+            if (!user) {
+              void handleSignIn();
+            } else if (canEditActivePage) {
+              setSaveError(null);
+              setActiveTab('edit');
+            }
+          }
+        }
+        return;
+      }
+
+      // Ctrl/Cmd + K -> Focus sidebar page search filter
+      if (isMod && !e.shiftKey && !e.altKey && keyLower === 'k') {
+        e.preventDefault();
+        if (window.innerWidth < 1024) {
+          setMobileMenuOpen(true);
+        }
+        requestAnimationFrame(() => {
+          const input = document.getElementById('sidebar-page-filter') as HTMLInputElement | null;
+          input?.focus();
+          input?.select();
+        });
+        return;
+      }
+
+      // Alt + N -> Open New Page creator
+      if (e.altKey && !isMod && !e.shiftKey && keyLower === 'n') {
+        e.preventDefault();
+        if (user && !isBlocked) {
+          navigateToCreate('');
+        } else if (!user) {
+          void handleSignIn();
+        }
+        return;
+      }
+
+      // '?' outside text fields -> Toggle keyboard shortcuts guide
+      if (e.key === '?' && !isEditableTarget && !isMod && !e.altKey) {
+        e.preventDefault();
+        setShortcutsOpen((prev) => !prev);
+        return;
+      }
+
+      // Esc -> Close confirmation/modal or return from Edit to Read mode
+      if (e.key === 'Escape') {
+        if (shortcutsOpen) {
+          setShortcutsOpen(false);
+          return;
+        }
+        if (confirmDeleteOpen) {
+          setConfirmDeleteOpen(false);
+          return;
+        }
+        if (view === 'page' && activeTab === 'edit' && !isSaving && target?.tagName !== 'SELECT') {
+          setActiveTab('read');
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [
+    view,
+    activePage,
+    activeTab,
+    user,
+    isBlocked,
+    canEditActivePage,
+    shortcutsOpen,
+    confirmDeleteOpen,
+    isSaving,
+  ]);
+
   const handleCreateSave = async (data: {
     slug: string;
     title: string;
@@ -641,6 +737,7 @@ function WikiWorkspace() {
           onSelectPage={navigateToPage}
           onQuickCreateSlug={navigateToCreate}
           onOpenAdmin={navigateToAdmin}
+          onOpenShortcuts={() => setShortcutsOpen(true)}
           onSignOut={() => void handleSignOut()}
           onSignIn={() => void handleSignIn()}
           onToggleTheme={() => setIsDark((prev) => !prev)}
@@ -890,10 +987,10 @@ function WikiWorkspace() {
                       disabled={Boolean(user && !canEditActivePage)}
                       title={
                         !user
-                          ? 'Sign in with Google to edit'
+                          ? 'Sign in with Google to edit (Ctrl+E)'
                           : !canEditActivePage
                           ? 'This page is locked by the author'
-                          : 'Edit Markdown content'
+                          : 'Edit Markdown content (Ctrl+E)'
                       }
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 disabled:opacity-45 disabled:cursor-not-allowed ${
                         activeTab === 'edit'
@@ -1202,6 +1299,8 @@ function WikiWorkspace() {
           )}
         </main>
       </div>
+
+      <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   );
 }
