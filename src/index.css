@@ -208,3 +208,61 @@
 .dark .wiki-prose hr {
   border-top-color: #1e293b;
 }
+
+@media print {
+  @page {
+    size: auto;
+    margin: 18mm 16mm 20mm 16mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  [data-wiki-chrome="nav"],
+  [data-wiki-chrome="sidebar"],
+  [data-wiki-chrome="edit-tools"],
+  [data-wiki-chrome="page-outline"],
+  [data-wiki-chrome="footer"],
+  [data-wiki-chrome="floating"],
+  [data-wiki-chrome="personal-actions"],
+  [data-wiki-print-bar="true"] {
+    display: none !important;
+  }
+
+  [data-wiki-document="sheet"] {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  [data-wiki-document="article"] {
+    grid-column: span 12 / span 12 !important;
+    max-width: 100% !important;
+  }
+
+  .wiki-prose h1,
+  .wiki-prose h2,
+  .wiki-prose h3,
+  .wiki-prose h4,
+  #referencias h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .wiki-prose pre,
+  .wiki-prose blockquote,
+  .wiki-prose table,
+  .wiki-prose tr,
+  #referencias li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+

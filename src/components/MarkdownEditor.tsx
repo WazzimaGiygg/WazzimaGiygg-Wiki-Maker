@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Bold,
+  BookMarked,
   Code,
   Eye,
   Heading2,
@@ -220,6 +221,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return;
     }
 
+    if (isMod && e.shiftKey && keyLower === 'r') {
+      e.preventDefault();
+      insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...');
+      return;
+    }
+
     if (document.activeElement === textareaRef.current && isMod && !e.shiftKey) {
       if (keyLower === 'b') {
         e.preventDefault();
@@ -421,6 +428,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
           <button
             type="button"
+            title="Insert bibliographic reference <ref> (Ctrl+Shift+R)"
+            onClick={() =>
+              insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...')
+            }
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
+          >
+            <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+            <span>&lt;ref&gt;</span>
+          </button>
+          <button
+            type="button"
             title="Bullet list"
             onClick={() => insertSnippet('\n- ', '', 'List item')}
             className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -515,7 +533,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               className="w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y"
             />
             <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
-              <span>GFM, :::infobox &amp; [[internal-links]] · Ctrl+Enter to save</span>
+              <span>GFM, :::infobox, &lt;ref&gt; &amp; [[internal-links]] · Ctrl+Enter to save</span>
               <span>
                 {content.length.toLocaleString('en-US')} /{' '}
                 {VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('en-US')}

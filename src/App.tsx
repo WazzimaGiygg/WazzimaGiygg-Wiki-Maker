@@ -15,9 +15,12 @@ import {
   Menu,
   MessageSquare,
   Plus,
+  Printer,
   Sparkles,
   Trash2,
   User as UserIcon,
+  WifiOff,
+  X,
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -28,9 +31,11 @@ import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
 import { PrivacyNoticeBanner } from './components/PrivacyNoticeBanner';
+import { ReferencesFooter } from './components/ReferencesFooter';
 import { RevisionHistory } from './components/RevisionHistory';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { Sidebar } from './components/Sidebar';
+import { ToastContainer, type ToastNotification } from './components/ToastContainer';
 import { UserEditsPanel } from './components/UserEditsPanel';
 import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance } from './lib/adminService';
@@ -45,13 +50,16 @@ import {
 } from './lib/dossierArticle';
 import { LEGAL_GOVERNANCE } from './lib/legalConfig';
 import {
+  extractArticleReferences,
   extractToc,
   formatAbsoluteTime,
   formatRelativeTime,
   parseMarkdownWithInfoboxes,
+  scrollToWikiAnchor,
   slugToTitle,
   toWikiSlug,
 } from './lib/markdownUtils';
+import { buildWikiPrintStylesheet, PRINT_STYLESHEET_ID } from './lib/printStyles';
 import {
   addPageComment,
   buildPersonalSlugs,
@@ -148,13 +156,27 @@ function WikiWorkspace() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [copiedSource, setCopiedSource] = React.useState(false);
+  const [isPrintView, setIsPrintView] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
+  const [toasts, setToasts] = React.useState<ToastNotification[]>([]);
+  const [isOnline, setIsOnline] = React.useState<boolean>(() =>
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
   const [isDark, setIsDark] = React.useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('wazzimagiygg-theme') === 'dark';
   });
+
+  const pushToast = React.useCallback((toast: Omit<ToastNotification, 'id'>) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setToasts((prev) => [...prev.slice(-3), { ...toast, id }]);
+  }, []);
+
+  const dismissToast = React.useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   // Sync theme class on <html>
   React.useEffect(() => {
@@ -167,6 +189,43 @@ function WikiWorkspace() {
       localStorage.setItem('wazzimagiygg-theme', 'light');
     }
   }, [isDark]);
+
+  // Dynamically generate and mount the CSS print stylesheet when Print View is active
+  React.useEffect(() => {
+    const existing = document.getElementById(PRINT_STYLESHEET_ID);
+    if (!isPrintView) {
+      existing?.remove();
+      return;
+    }
+
+    const styleEl =
+      existing instanceof HTMLStyleElement
+        ? existing
+        : document.createElement('style');
+    styleEl.id = PRINT_STYLESHEET_ID;
+    styleEl.setAttribute('data-generated-by', 'wazzimagiygg-print-view');
+    styleEl.textContent = buildWikiPrintStylesheet();
+
+    if (!existing) {
+      document.head.appendChild(styleEl);
+    }
+
+    return () => {
+      document.getElementById(PRINT_STYLESHEET_ID)?.remove();
+    };
+  }, [isPrintView]);
+
+  // Track online/offline browser connectivity for Service Worker / PWA status
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Show floating Back to Top control after scrolling down long pages
   React.useEffect(() => {
@@ -194,6 +253,7 @@ function WikiWorkspace() {
       setActiveTab('read');
       setSaveError(null);
       setConfirmDeleteOpen(false);
+      setIsPrintView(false);
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
@@ -206,6 +266,7 @@ function WikiWorkspace() {
     setActiveTab('read');
     setSaveError(null);
     setConfirmDeleteOpen(false);
+    setIsPrintView(false);
     window.location.hash = `#/page/${normalized}`;
   }, []);
 
@@ -317,6 +378,74 @@ function WikiWorkspace() {
     () => allPages.find((p) => p.slug === activeSlug) ?? null,
     [allPages, activeSlug]
   );
+
+  // Notify reader via toast when the currently open article is updated in Firestore by another collaborator
+  const seenActivePageRef = React.useRef<{
+    slug: string;
+    version: number;
+    updatedAtMs: number;
+    authorId: string;
+    content: string;
+    title: string;
+  } | null>(null);
+
+  React.useEffect(() => {
+    if (!pagesLoaded || view !== 'page' || !activePage) {
+      seenActivePageRef.current = null;
+      return;
+    }
+
+    const updatedAtMs = activePage.updatedAt?.toMillis() ?? 0;
+    const prev = seenActivePageRef.current;
+
+    if (!prev || prev.slug !== activePage.slug) {
+      seenActivePageRef.current = {
+        slug: activePage.slug,
+        version: activePage.version,
+        updatedAtMs,
+        authorId: activePage.authorId,
+        content: activePage.content,
+        title: activePage.title,
+      };
+      return;
+    }
+
+    const versionAdvanced = activePage.version > prev.version;
+    const timestampAdvanced =
+      prev.updatedAtMs > 0 && updatedAtMs > 0 && updatedAtMs > prev.updatedAtMs;
+    const bodyChanged =
+      activePage.content !== prev.content || activePage.title !== prev.title;
+    const editedByOtherCollaborator =
+      activePage.lastEditorId !== 'builtin-editorial' &&
+      (!user || activePage.lastEditorId !== user.uid);
+
+    seenActivePageRef.current = {
+      slug: activePage.slug,
+      version: activePage.version,
+      updatedAtMs,
+      authorId: activePage.authorId,
+      content: activePage.content,
+      title: activePage.title,
+    };
+
+    if (editedByOtherCollaborator && (versionAdvanced || timestampAdvanced || bodyChanged)) {
+      const isEditingNow = activeTab === 'edit';
+      pushToast({
+        tone: isEditingNow ? 'warning' : 'info',
+        title: isEditingNow
+          ? 'Artigo atualizado enquanto você edita'
+          : 'Artigo atualizado em tempo real',
+        description: `${activePage.lastEditorName} publicou uma nova revisão de "${activePage.title}".`,
+        meta: `v${activePage.version} · :${activePage.slug}`,
+        actionLabel: 'Ver histórico',
+        onAction: () => {
+          setActiveTab('history');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        durationMs: isEditingNow ? 10000 : 7500,
+      });
+    }
+  }, [pagesLoaded, view, activePage, activeTab, user, pushToast]);
 
   // Subscribe to active page comments
   React.useEffect(() => {
@@ -431,6 +560,7 @@ function WikiWorkspace() {
     setView('create');
     setSaveError(null);
     setConfirmDeleteOpen(false);
+    setIsPrintView(false);
     window.location.hash = normalized ? `#/new/${normalized}` : '#/new';
   };
 
@@ -438,6 +568,7 @@ function WikiWorkspace() {
     setView(mode);
     setSaveError(null);
     setConfirmDeleteOpen(false);
+    setIsPrintView(false);
     window.location.hash = mode === 'recent' ? '#/recent' : '#/pages';
   };
 
@@ -445,6 +576,7 @@ function WikiWorkspace() {
     setView('admin');
     setSaveError(null);
     setConfirmDeleteOpen(false);
+    setIsPrintView(false);
     window.location.hash = '#/admin';
   };
 
@@ -453,6 +585,7 @@ function WikiWorkspace() {
     setView('legal');
     setSaveError(null);
     setConfirmDeleteOpen(false);
+    setIsPrintView(false);
     window.location.hash = section === 'terms' ? '#/terms' : '#/privacy';
   };
 
@@ -552,10 +685,14 @@ function WikiWorkspace() {
         return;
       }
 
-      // Esc -> Close confirmation/modal or return from Edit to Read mode
+      // Esc -> Close confirmation/modal, exit Print View, or return from Edit to Read mode
       if (e.key === 'Escape') {
         if (shortcutsOpen) {
           setShortcutsOpen(false);
+          return;
+        }
+        if (isPrintView) {
+          setIsPrintView(false);
           return;
         }
         if (confirmDeleteOpen) {
@@ -578,6 +715,7 @@ function WikiWorkspace() {
     isBlocked,
     canEditActivePage,
     shortcutsOpen,
+    isPrintView,
     confirmDeleteOpen,
     isSaving,
   ]);
@@ -691,6 +829,11 @@ function WikiWorkspace() {
     [activePage?.content]
   );
 
+  const articleReferences = React.useMemo(
+    () => (activePage ? extractArticleReferences(activePage.content).references : []),
+    [activePage?.content]
+  );
+
   const activeCategoryLabel = activePage
     ? WIKI_CATEGORIES.find((c) => c.id === activePage.category)?.label ?? activePage.category
     : '';
@@ -752,9 +895,16 @@ function WikiWorkspace() {
   }, [view, legalSection, activePage]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100">
+    <div
+      className={`min-h-screen flex flex-col bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100${
+        isPrintView ? ' wiki-print-view' : ''
+      }`}
+    >
       {/* Strict 3-Zone Top Bar Contract */}
-      <header className="sticky top-0 z-30 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
+      <header
+        data-wiki-chrome="nav"
+        className="sticky top-0 z-30 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 print:hidden"
+      >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-8">
           {/* Zone 1: Single-element Brand Wordmark */}
           <div className="flex items-center gap-3 min-w-0">
@@ -887,8 +1037,25 @@ function WikiWorkspace() {
         />
 
         <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10">
+          {!isOnline && (
+            <div
+              data-wiki-chrome="floating"
+              role="status"
+              aria-live="polite"
+              className="max-w-5xl mb-6 p-3.5 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/30 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2.5 print:hidden"
+            >
+              <WifiOff className="w-4 h-4 shrink-0 text-amber-700 dark:text-amber-400" />
+              <span>
+                Offline mode — Cached static assets, Google Fonts, and locally synced wiki pages remain readable.
+              </span>
+            </div>
+          )}
+
           {blockedRecord && (
-            <div className="max-w-5xl mb-6 p-4 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/30 text-xs text-red-900 dark:text-red-200 space-y-1">
+            <div
+              data-wiki-chrome="floating"
+              className="max-w-5xl mb-6 p-4 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/30 text-xs text-red-900 dark:text-red-200 space-y-1 print:hidden"
+            >
               <div className="font-semibold">
                 Account write access suspended by wiki administration
               </div>
@@ -1074,45 +1241,116 @@ function WikiWorkspace() {
               </div>
             </div>
           ) : (
-            /* Active Wiki Page View */
-            <div className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6">
-              {/* Page Header & Clean Unboxed Metadata */}
-              <div className="space-y-3 pb-5 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <div className="font-mono">
-                    wiki / {activeCategoryLabel.toLowerCase()} / :{activePage.slug}
+            <>
+              {isPrintView && (
+                <div
+                  data-wiki-print-bar="true"
+                  className="max-w-[820px] mx-auto mb-4 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 flex flex-wrap items-center justify-between gap-3 shadow-xs print:hidden"
+                >
+                  <div className="flex items-center gap-2 text-xs text-slate-700">
+                    <Printer className="w-4 h-4 text-blue-700 shrink-0" />
+                    <span className="font-semibold text-slate-900">Print View</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="font-mono text-slate-600">:{activePage.slug}</span>
                   </div>
-                  <div className="font-mono tabular-nums">
-                    v{activePage.version} ·{' '}
-                    {activePage.visibility === 'private' ? 'Private' : 'Public'}
-                    {activePage.isLocked ? ' · Locked' : ''}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-md bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5 shrink-0" />
+                      <span>Print / Save PDF</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsPrintView(false)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5 shrink-0" />
+                      <span>Exit Print View</span>
+                    </button>
                   </div>
                 </div>
+              )}
 
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <h1 className="font-display text-3xl sm:text-4xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
-                    {activePage.title}
-                  </h1>
-                </div>
+              {/* Active Wiki Page View */}
+              <div
+                data-wiki-document="sheet"
+                className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6"
+              >
+                {/* Page Header & Clean Unboxed Metadata */}
+                <div className="space-y-3 pb-5 border-b border-slate-200 dark:border-slate-800">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="font-mono">
+                      wiki / {activeCategoryLabel.toLowerCase()} / :{activePage.slug}
+                    </div>
+                    <div className="font-mono tabular-nums">
+                      v{activePage.version} ·{' '}
+                      {activePage.visibility === 'private' ? 'Private' : 'Public'}
+                      {activePage.isLocked ? ' · Locked' : ''}
+                    </div>
+                  </div>
 
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  <span>Created by {activePage.authorName}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>Last edited by {activePage.lastEditorName}</span>
-                  <span aria-hidden="true">·</span>
-                  <span className="tabular-nums">{formatRelativeTime(activePage.updatedAt)}</span>
-                  {activePage.tags.length > 0 && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span className="font-mono text-slate-600 dark:text-slate-300">
-                        {activePage.tags.map((t) => `#${t}`).join('  ')}
-                      </span>
-                    </>
-                  )}
-                </div>
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <h1 className="font-display text-3xl sm:text-4xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
+                      {activePage.title}
+                    </h1>
 
-                {/* Wikidot Action Tabs */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <div
+                      data-wiki-chrome="edit-tools"
+                      className="print:hidden flex items-center gap-2 shrink-0"
+                    >
+                      <button
+                        type="button"
+                        aria-pressed={isPrintView}
+                        onClick={() => {
+                          setIsPrintView((prev) => {
+                            const next = !prev;
+                            if (next) {
+                              setActiveTab('read');
+                            }
+                            return next;
+                          });
+                        }}
+                        title={
+                          isPrintView
+                            ? 'Exit document Print View (Esc)'
+                            : 'Open clean, document-ready Print View'
+                        }
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                          isPrintView
+                            ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
+                            : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        <Printer className="w-3.5 h-3.5 shrink-0" />
+                        <span>Print</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                    <span>Created by {activePage.authorName}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>Last edited by {activePage.lastEditorName}</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="tabular-nums">{formatRelativeTime(activePage.updatedAt)}</span>
+                    {activePage.tags.length > 0 && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span className="font-mono text-slate-600 dark:text-slate-300">
+                          {activePage.tags.map((t) => `#${t}`).join('  ')}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Wikidot Action Tabs */}
+                  <div
+                    data-wiki-chrome="edit-tools"
+                    className="flex flex-wrap items-center justify-between gap-3 pt-2 print:hidden"
+                  >
                   <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg">
                     <button
                       type="button"
@@ -1242,9 +1480,19 @@ function WikiWorkspace() {
               {/* Active Tab Content */}
               {activeTab === 'read' && (
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-                  <article className={toc.length > 0 ? 'xl:col-span-9' : 'xl:col-span-12'}>
+                  <article
+                    data-wiki-document="article"
+                    className={
+                      !isPrintView && (toc.length > 0 || articleReferences.length > 0)
+                        ? 'xl:col-span-9'
+                        : 'xl:col-span-12'
+                    }
+                  >
                     {(isPersonalProfilePage || isPersonalDiscussionPage) && (
-                      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800">
+                      <div
+                        data-wiki-chrome="personal-actions"
+                        className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800 print:hidden"
+                      >
                         <div className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
                           {isPersonalDiscussionPage ? (
                             <MessageSquare className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
@@ -1341,8 +1589,15 @@ function WikiWorkspace() {
                         content={activePage.content}
                         existingSlugs={existingSlugs}
                         onNavigateSlug={navigateToPage}
+                        showReferencesFooter={false}
                       />
                     </div>
+
+                    <ReferencesFooter
+                      references={articleReferences}
+                      existingSlugs={existingSlugs}
+                      onNavigateSlug={navigateToPage}
+                    />
 
                     {isPersonalProfilePage && (
                       <UserEditsPanel
@@ -1432,8 +1687,11 @@ function WikiWorkspace() {
                     </footer>
                   </article>
 
-                  {toc.length > 0 && (
-                    <aside className="xl:col-span-3 xl:sticky xl:top-20 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-800 pt-4 xl:pt-0 xl:pl-5 space-y-2.5">
+                  {(toc.length > 0 || articleReferences.length > 0) && (
+                    <aside
+                      data-wiki-chrome="page-outline"
+                      className="xl:col-span-3 xl:sticky xl:top-20 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-800 pt-4 xl:pt-0 xl:pl-5 space-y-2.5 print:hidden"
+                    >
                       <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                         On this page
                       </div>
@@ -1464,6 +1722,23 @@ function WikiWorkspace() {
                             </a>
                           </li>
                         ))}
+                        {articleReferences.length > 0 && (
+                          <li className="pl-0 pt-1.5 mt-1.5 border-t border-slate-200/70 dark:border-slate-800/70 font-medium">
+                            <a
+                              href="#referencias"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                scrollToWikiAnchor('referencias', 'start');
+                              }}
+                              className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+                            >
+                              <span className="truncate">Referências</span>
+                              <span className="font-mono text-[10px] tabular-nums text-slate-400 dark:text-slate-500 shrink-0">
+                                {articleReferences.length}
+                              </span>
+                            </a>
+                          </li>
+                        )}
                       </ul>
                     </aside>
                   )}
@@ -1555,13 +1830,17 @@ function WikiWorkspace() {
                   </pre>
                 </div>
               )}
-            </div>
+              </div>
+            </>
           )}
         </main>
       </div>
 
       {/* Global WikiWazzimaGiygg + LGPD / Marco Civil Compliance Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f1623]/80">
+      <footer
+        data-wiki-chrome="footer"
+        className="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f1623]/80 print:hidden"
+      >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-5 space-y-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div className="space-y-1">
@@ -1643,16 +1922,18 @@ function WikiWorkspace() {
         </div>
       </footer>
 
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <PrivacyNoticeBanner onOpenPrivacy={() => navigateToLegal('privacy')} />
 
       {showBackToTop && (
         <button
+          data-wiki-chrome="floating"
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Back to top"
           title="Back to top"
-          className="fixed bottom-6 right-6 z-30 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-sm text-slate-800 dark:text-slate-100 shadow-md hover:border-blue-700 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          className="fixed bottom-6 right-6 z-30 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-sm text-slate-800 dark:text-slate-100 shadow-md hover:border-blue-700 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer print:hidden"
         >
           <ArrowUp className="w-3.5 h-3.5 shrink-0" />
           <span>Back to Top</span>

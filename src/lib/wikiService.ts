@@ -831,10 +831,22 @@ Stack: TypeScript, React, Firebase
 :::
 \`\`\`
 
+## Bibliographic References (\`<ref>\`)
+
+Cite sources anywhere in your article using \`<ref>...</ref>\` tags. Citations are numbered automatically and collected into a formatted **Referências** section at the bottom of the page with bidirectional jump links:
+
+\`\`\`markdown
+Statement grounded in Brazilian law.<ref>Brasil. Lei nº 13.709/2018 (LGPD). https://www.planalto.gov.br</ref>
+
+Named citations can be reused multiple times:<ref name="mci">Lei nº 12.965/2014 (Marco Civil da Internet).</ref>
+Second mention of the same source.<ref name="mci" />
+\`\`\`
+
 ## Keyboard Shortcuts
 
 - \`Ctrl+E\` — Switch from **Read** to **Edit** mode
 - \`Ctrl+Enter\` / \`Ctrl+S\` — Save revision in the Markdown editor
+- \`Ctrl+Shift+R\` — Insert a \`<ref>...</ref>\` bibliographic citation
 - \`Ctrl+K\` — Focus the sidebar page filter
 - \`?\` — Open the full keyboard shortcuts guide`,
     },

@@ -7,6 +7,19 @@ export interface TocItem {
   level: 1 | 2 | 3;
 }
 
+export interface WikiReferenceItem {
+  index: number;
+  id: string;
+  name?: string;
+  content: string;
+  backlinks: string[];
+}
+
+export interface ExtractedReferencesResult {
+  processedMarkdown: string;
+  references: WikiReferenceItem[];
+}
+
 /**
  * Normalizes arbitrary user text into a Firestore-safe wiki slug matching ^[a-zA-Z0-9_-]+$.
  */
@@ -61,6 +74,105 @@ export function preprocessWikiLinks(markdown: string): string {
       });
     })
     .join('');
+}
+
+const REF_TAG_REGEX =
+  /<ref(?:\s+name\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s/>]+)))?\s*(?:\/>|>([\s\S]*?)<\/ref>)/gi;
+
+const INFOBOX_SKIP_REGEX =
+  /(^:::infobox(?:[ \t]+[a-zA-Z0-9_-]+)?[ \t]*\r?\n[\s\S]*?^:::[ \t]*$)/gm;
+
+function normalizeRefBody(raw: string): string {
+  return raw
+    .replace(/\r?\n+/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+/**
+ * Extracts `<ref>` and `<ref name="...">` bibliographic tags from Markdown outside
+ * fenced/inline code blocks and `:::infobox` blocks, replacing each citation with
+ * a numbered inline marker link (`https://wiki.ref/<index>/<backlinkId>`).
+ */
+export function extractArticleReferences(markdown: string): ExtractedReferencesResult {
+  if (!markdown || !/<ref[\s>]/i.test(markdown)) {
+    return { processedMarkdown: markdown, references: [] };
+  }
+
+  const codeParts = markdown.split(/(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]+`)/g);
+  const namedDefinitions = new Map<string, string>();
+
+  // Pass 1: collect named reference definitions anywhere in prose (supports forward refs)
+  for (let i = 0; i < codeParts.length; i++) {
+    if (i % 2 === 1) continue;
+    const subParts = codeParts[i].split(INFOBOX_SKIP_REGEX);
+    for (let j = 0; j < subParts.length; j++) {
+      if (j % 2 === 1) continue;
+      REF_TAG_REGEX.lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = REF_TAG_REGEX.exec(subParts[j])) !== null) {
+        const refName = (match[1] ?? match[2] ?? match[3] ?? '').trim();
+        const body = normalizeRefBody(match[4] ?? '');
+        if (refName && body && !namedDefinitions.has(refName)) {
+          namedDefinitions.set(refName, body);
+        }
+      }
+    }
+  }
+
+  const references: WikiReferenceItem[] = [];
+  const namedItems = new Map<string, WikiReferenceItem>();
+
+  // Pass 2: assign sequential 1-based numbers and rewrite citations in document order
+  const processedMarkdown = codeParts
+    .map((segment, i) => {
+      if (i % 2 === 1) return segment;
+      const subParts = segment.split(INFOBOX_SKIP_REGEX);
+      return subParts
+        .map((sub, j) => {
+          if (j % 2 === 1) return sub;
+          REF_TAG_REGEX.lastIndex = 0;
+          return sub.replace(
+            REF_TAG_REGEX,
+            (fullMatch, g1?: string, g2?: string, g3?: string, g4?: string) => {
+              const refName = (g1 ?? g2 ?? g3 ?? '').trim();
+              const inlineBody = normalizeRefBody(g4 ?? '');
+              const resolvedBody =
+                inlineBody ||
+                (refName ? namedDefinitions.get(refName) ?? '' : '');
+
+              if (!resolvedBody && !refName) {
+                return fullMatch;
+              }
+
+              let item = refName ? namedItems.get(refName) : undefined;
+              if (!item) {
+                const index = references.length + 1;
+                const id = `ref-${index}`;
+                item = {
+                  index,
+                  id,
+                  ...(refName ? { name: refName } : {}),
+                  content: resolvedBody || `Referência "${refName}"`,
+                  backlinks: [],
+                };
+                references.push(item);
+                if (refName) {
+                  namedItems.set(refName, item);
+                }
+              }
+
+              const backlinkId = `cite-${item.id}-${item.backlinks.length + 1}`;
+              item.backlinks.push(backlinkId);
+              return `[${item.index}](https://wiki.ref/${item.index}/${backlinkId})`;
+            }
+          );
+        })
+        .join('');
+    })
+    .join('');
+
+  return { processedMarkdown, references };
 }
 
 export type InfoboxType =
@@ -360,6 +472,9 @@ export function serializeInfoboxBlock(block: InfoboxBlock): string {
  */
 function cleanHeadingDisplayText(raw: string): string {
   return raw
+    .replace(/\[\d+\]\(https:\/\/wiki\.ref\/[^)]+\)/g, '')
+    .replace(/<ref\b[^>]*\/>/gi, '')
+    .replace(/<ref\b[^>]*>[\s\S]*?<\/ref>/gi, '')
     .replace(/\[\[([^\]|]+?)\|([^\]]+?)\]\]/g, '$2')
     .replace(/\[\[([^\]]+?)\]\]/g, '$1')
     .replace(/\[([^\]]+?)\]\([^)]+\)/g, '$1')
@@ -455,4 +570,21 @@ export function formatAbsoluteTime(timestamp: Timestamp | null | undefined): str
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+/**
+ * Smoothly scrolls to a DOM anchor without mutating `window.location.hash`
+ * (preserving `#/page/<slug>` navigation) and applies a brief focus highlight.
+ */
+export function scrollToWikiAnchor(
+  id: string,
+  block: ScrollLogicalPosition = 'center'
+): void {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block });
+  el.classList.add('ring-2', 'ring-blue-600/40', 'bg-blue-50/70', 'dark:bg-blue-950/30', 'rounded');
+  window.setTimeout(() => {
+    el.classList.remove('ring-2', 'ring-blue-600/40', 'bg-blue-50/70', 'dark:bg-blue-950/30', 'rounded');
+  }, 1600);
 }

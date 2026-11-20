@@ -4,11 +4,14 @@ import remarkGfm from 'remark-gfm';
 import { ChevronDown, ChevronUp, ExternalLink, FilePlus2, List } from 'lucide-react';
 import {
   createHeadingIdAllocator,
+  extractArticleReferences,
   extractToc,
   parseMarkdownWithInfoboxes,
   preprocessWikiLinks,
+  scrollToWikiAnchor,
   type TocItem,
 } from '../lib/markdownUtils';
+import { ReferencesFooter } from './ReferencesFooter';
 import { WikiInfobox } from './WikiInfobox';
 
 interface MarkdownRendererProps {
@@ -16,13 +19,17 @@ interface MarkdownRendererProps {
   existingSlugs: Set<string>;
   onNavigateSlug: (slug: string) => void;
   showToc?: boolean;
+  showReferencesFooter?: boolean;
 }
 
 function getHeadingText(children: React.ReactNode): string {
   if (typeof children === 'string') return children;
   if (typeof children === 'number') return String(children);
   if (Array.isArray(children)) return children.map(getHeadingText).join('');
-  if (React.isValidElement<{ children?: React.ReactNode }>(children)) {
+  if (React.isValidElement<{ children?: React.ReactNode; href?: string }>(children)) {
+    if (children.props.href && children.props.href.startsWith('https://wiki.ref/')) {
+      return '';
+    }
     return getHeadingText(children.props.children);
   }
   return '';
@@ -47,11 +54,22 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   existingSlugs,
   onNavigateSlug,
   showToc = true,
+  showReferencesFooter = true,
 }) => {
   const [tocExpanded, setTocExpanded] = React.useState(true);
 
-  const segments = React.useMemo(() => parseMarkdownWithInfoboxes(content), [content]);
-  const tocItems = React.useMemo(() => extractToc(content), [content]);
+  const { processedMarkdown, references } = React.useMemo(
+    () => extractArticleReferences(content),
+    [content]
+  );
+  const segments = React.useMemo(
+    () => parseMarkdownWithInfoboxes(processedMarkdown),
+    [processedMarkdown]
+  );
+  const tocItems = React.useMemo(
+    () => extractToc(processedMarkdown),
+    [processedMarkdown]
+  );
   const hasInfobox = React.useMemo(
     () => segments.some((seg) => seg.kind === 'infobox'),
     [segments]
@@ -96,7 +114,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           type="button"
           onClick={() => setTocExpanded((prev) => !prev)}
           aria-expanded={tocExpanded}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer print:hidden"
         >
           <span>{tocExpanded ? 'Hide' : 'Show'}</span>
           {tocExpanded ? (
@@ -108,7 +126,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       </div>
 
       {tocExpanded && (
-        <ol className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 max-h-72 overflow-y-auto pr-1 text-xs list-none pl-0">
+        <ol className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 max-h-72 overflow-y-auto print:max-h-none print:overflow-visible pr-1 text-xs list-none pl-0">
           {tocItems.map((item) => (
             <li key={item.id} className={getTocIndentClass(item.level, minHeadingLevel)}>
               <a
@@ -143,7 +161,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             scrollToAnchor(id);
           }}
           aria-label={`Jump to section ${getHeadingText(children)}`}
-          className="ml-2 inline-block opacity-0 group-hover:opacity-100 focus:opacity-100 font-mono text-[0.75em] font-normal text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 no-underline transition-opacity select-none"
+          className="ml-2 inline-block opacity-0 group-hover:opacity-100 focus:opacity-100 font-mono text-[0.75em] font-normal text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 no-underline transition-opacity select-none print:hidden"
         >
           #
         </a>
@@ -181,6 +199,41 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                   h2: ({ children }) => renderHeading('h2', children),
                   h3: ({ children }) => renderHeading('h3', children),
                   a: ({ href, children }) => {
+                    if (href && href.startsWith('https://wiki.ref/')) {
+                      const refPath = href.replace('https://wiki.ref/', '');
+                      const slashIndex = refPath.indexOf('/');
+                      const refIndexStr =
+                        slashIndex === -1 ? refPath : refPath.slice(0, slashIndex);
+                      const backlinkId =
+                        slashIndex === -1 ? '' : refPath.slice(slashIndex + 1);
+                      const refItem = references.find(
+                        (r) => String(r.index) === refIndexStr
+                      );
+                      const refAnchorId = refItem ? refItem.id : `ref-${refIndexStr}`;
+
+                      return (
+                        <sup className="inline-block ml-0.5 align-super leading-none">
+                          <a
+                            id={backlinkId || undefined}
+                            href={`#${refAnchorId}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              scrollToWikiAnchor(refAnchorId, 'center');
+                            }}
+                            title={
+                              refItem
+                                ? `Referência [${refIndexStr}]: ${refItem.content}`
+                                : `Referência [${refIndexStr}]`
+                            }
+                            aria-label={`Ir para referência ${refIndexStr}`}
+                            className="scroll-mt-24 inline-block px-0.5 font-mono text-[11px] font-semibold tabular-nums text-blue-700 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 rounded cursor-pointer no-underline"
+                          >
+                            [{refIndexStr}]
+                          </a>
+                        </sup>
+                      );
+                    }
+
                     if (href && href.startsWith('https://wiki.internal/')) {
                       const targetSlug = href.replace('https://wiki.internal/', '');
                       const exists = existingSlugs.has(targetSlug);
@@ -226,6 +279,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         );
       })}
       {tocInsertIndex === segments.length && tocNode}
+      {showReferencesFooter && (
+        <ReferencesFooter
+          references={references}
+          existingSlugs={existingSlugs}
+          onNavigateSlug={onNavigateSlug}
+        />
+      )}
     </div>
   );
 };

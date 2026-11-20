@@ -23,8 +23,9 @@ export const PrivacyNoticeBanner: React.FC<PrivacyNoticeBannerProps> = ({ onOpen
 
   return (
     <aside
+      data-wiki-chrome="floating"
       aria-label="LGPD and Marco Civil privacy notice"
-      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-lg z-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-md shadow-lg p-4 space-y-3"
+      className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-lg z-40 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-md shadow-lg p-4 space-y-3 print:hidden"
     >
       <div className="flex items-start gap-2.5">
         <ShieldCheck className="w-4 h-4 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />

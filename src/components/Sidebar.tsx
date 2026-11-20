@@ -17,6 +17,7 @@ import {
 import type { User } from 'firebase/auth';
 import { type GovernanceRole, WIKI_CATEGORIES, type WikiPage } from '../types/wiki';
 import { toWikiSlug } from '../lib/markdownUtils';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface SidebarProps {
   pages: WikiPage[];
@@ -328,6 +329,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
+        <PWAInstallButton />
+
         <div className="flex items-center justify-between gap-2 pt-1">
           {onOpenShortcuts ? (
             <button
@@ -358,11 +361,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Fixed Sidebar */}
-      <aside className="hidden lg:block w-[264px] shrink-0">{sidebarContent}</aside>
+      <aside data-wiki-chrome="sidebar" className="hidden lg:block w-[264px] shrink-0 print:hidden">
+        {sidebarContent}
+      </aside>
 
       {/* Mobile Drawer */}
       {isOpenMobile && (
-        <div className="fixed inset-0 z-40 lg:hidden flex">
+        <div
+          data-wiki-chrome="sidebar"
+          className="fixed inset-0 z-40 lg:hidden flex print:hidden"
+        >
           <div
             className="fixed inset-0 bg-slate-950/40 backdrop-blur-[1px]"
             onClick={onCloseMobile}

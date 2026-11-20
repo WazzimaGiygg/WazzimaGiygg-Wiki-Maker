@@ -1,16 +1,19 @@
 {
+  "id": "/",
   "name": "WazzimaGiygg Maker",
-  "short_name": "WazzimaGiygg Wiki",
+  "short_name": "WikiMaker",
   "description": "Create, edit, and organize collaborative Markdown wiki pages, infoboxes, and revision histories in real time.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#1d4ed8",
   "icons": [
     {
       "src": "/assets/aistudio/image_c25fcad0.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "sizes": "945x600",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

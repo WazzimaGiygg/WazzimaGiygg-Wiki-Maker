@@ -1,5 +1,8 @@
 /*
   Content-Security-Policy: frame-ancestors 'self' https://aistudio.google.com https://*.aistudio.google.com https://ai.studio https://*.ai.studio https://makersuite.google.com
-*/
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /

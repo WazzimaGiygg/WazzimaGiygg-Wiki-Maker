@@ -17,7 +17,7 @@ const SHORTCUT_GROUPS: {
       { keys: ['Ctrl', 'K'], description: 'Focus sidebar page filter search' },
       { keys: ['Alt', 'N'], description: 'Create a new collaborative page' },
       { keys: ['?'], description: 'Open or close keyboard shortcuts guide' },
-      { keys: ['Esc'], description: 'Close modal or return from Edit to Read mode' },
+      { keys: ['Esc'], description: 'Close modal, exit Print View, or return from Edit to Read mode' },
     ],
   },
   {
@@ -28,6 +28,7 @@ const SHORTCUT_GROUPS: {
       { keys: ['Ctrl', 'B'], description: 'Wrap selection in bold (**text**)' },
       { keys: ['Ctrl', 'I'], description: 'Wrap selection in italic (*text*)' },
       { keys: ['Ctrl', 'Shift', 'L'], description: 'Insert [[slug|Label]] internal wiki link' },
+      { keys: ['Ctrl', 'Shift', 'R'], description: 'Insert <ref>...</ref> bibliographic citation' },
       { keys: ['Ctrl', 'Shift', 'I'], description: 'Open Insert Infobox builder' },
       { keys: ['Ctrl', 'Shift', 'P'], description: 'Cycle Write / Split / Preview panes' },
     ],
