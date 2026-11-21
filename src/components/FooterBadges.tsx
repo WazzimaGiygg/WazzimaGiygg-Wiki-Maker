@@ -200,6 +200,27 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
       </button>
 
+      {/* 6b. Ecossistema WazzimaGiygg /averdade */}
+      <a
+        href="https://wazzimagiygg.com/averdade/"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Ecossistema wazzimagiygg.com — Confira a verdade sobre os absurdos da Wikipédia"
+        className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-slate-900 via-indigo-950 to-black border border-sky-500/60 hover:border-sky-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+      >
+        <div className="w-5 h-5 rounded flex items-center justify-center bg-sky-500/20 text-sky-300 border border-sky-400/40 text-[7px] font-mono font-bold shrink-0">
+          WG
+        </div>
+        <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
+          <span className="text-[5px] font-mono tracking-tighter text-sky-300 font-bold uppercase">
+            WAZZIMAGIYGG
+          </span>
+          <span className="text-[7.5px] font-sans font-bold text-white group-hover:text-sky-200 tracking-tight">
+            /averdade
+          </span>
+        </div>
+      </a>
+
       {/* 7. Open Source GitHub */}
       <a
         href="https://github.com/WazzimaGiygg/WikiWazzimaGiygg"

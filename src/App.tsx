@@ -2497,6 +2497,28 @@ function WikiWorkspace() {
                   {LEGAL_GOVERNANCE.dpoEmail}
                 </a>
               </div>
+              <p className="pt-0.5 text-slate-600 dark:text-slate-300 leading-relaxed">
+                Este site pertence ao ecossistema{' '}
+                <a
+                  href={LEGAL_GOVERNANCE.ecosystemUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-wiki-surface="link"
+                  className="font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                >
+                  {LEGAL_GOVERNANCE.ecosystemDomain}
+                </a>
+                , um projeto <strong className="font-semibold text-slate-800 dark:text-slate-100">WazzimaGiygg</strong>. Confira a verdade sobre os absurdos da Wikipédia no link:{' '}
+                <a
+                  href={LEGAL_GOVERNANCE.truthPortalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-wiki-surface="link"
+                  className="font-mono text-blue-700 dark:text-blue-400 hover:underline break-all"
+                >
+                  {LEGAL_GOVERNANCE.truthPortalUrl}
+                </a>
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 shrink-0">

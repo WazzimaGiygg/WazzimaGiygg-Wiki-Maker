@@ -1,6 +1,9 @@
 export const LEGAL_GOVERNANCE = {
   siteName: 'WazzimaGiygg Maker',
   siteUrl: 'https://wikimaker.wazzimagiygg.com/',
+  ecosystemDomain: 'wazzimagiygg.com',
+  ecosystemUrl: 'https://wazzimagiygg.com/',
+  truthPortalUrl: 'https://wazzimagiygg.com/averdade/',
   controllerName: 'Pedro Henrique Cardona Peres',
   dpoName: 'Pedro Henrique Cardona Peres',
   dpoEmail: 'pedrohenriquecardonaperes@gmail.com',
