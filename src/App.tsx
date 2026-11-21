@@ -17,6 +17,8 @@ import {
   MessageSquare,
   Plus,
   Printer,
+  RefreshCw,
+  ShieldAlert,
   Shuffle,
   Sparkles,
   Trash2,
@@ -43,9 +45,10 @@ import { UserEditsPanel } from './components/UserEditsPanel';
 import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance } from './lib/adminService';
 import {
+  bootAndSubscribeSiteExtensions,
   getInitialSiteExtensionsState,
+  resolveSiteTitle,
   type SiteExtensionsState,
-  subscribeSiteExtensions,
 } from './lib/extensionsService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
 import { evaluateFrameContext } from './lib/frameGuard';
@@ -132,6 +135,7 @@ function WikiWorkspace() {
 
   const [user, setUser] = React.useState<User | null>(null);
   const [authReady, setAuthReady] = React.useState(false);
+  const [governanceReady, setGovernanceReady] = React.useState(false);
   const [currentCollaborator, setCurrentCollaborator] = React.useState<CollaboratorProfile | null>(null);
   const [governanceRole, setGovernanceRole] = React.useState<GovernanceRole>('member');
   const [blockedRecord, setBlockedRecord] = React.useState<BlockedUser | null>(null);
@@ -142,6 +146,11 @@ function WikiWorkspace() {
   const [extensionsState, setExtensionsState] = React.useState<SiteExtensionsState>(() =>
     getInitialSiteExtensionsState()
   );
+  const [extensionsBootStatus, setExtensionsBootStatus] = React.useState<
+    'loading' | 'loaded' | 'error'
+  >('loading');
+  const [extensionsBootError, setExtensionsBootError] = React.useState<string | null>(null);
+  const [extensionsReloadNonce, setExtensionsReloadNonce] = React.useState(0);
 
   const [view, setView] = React.useState<WorkspaceView>(initialRoute.view);
   const [legalSection, setLegalSection] = React.useState<LegalSectionTab>(
@@ -249,6 +258,7 @@ function WikiWorkspace() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const siteTitle = React.useMemo(() => resolveSiteTitle(extensionsState), [extensionsState]);
   const tocExt = extensionsState.byId.toc;
   const refsExt = extensionsState.byId.references;
   const infoboxExt = extensionsState.byId.infoboxes;
@@ -258,6 +268,15 @@ function WikiWorkspace() {
   const copyLinkExt = extensionsState.byId['copy-link'];
   const realtimeExt = extensionsState.byId['realtime-toasts'];
   const discussionExt = extensionsState.byId['page-discussion'];
+
+  const isBureaucrat = Boolean(
+    user &&
+      ((user.email && user.email === ADMIN_EMAIL && user.emailVerified) ||
+        governanceRole === 'bureaucrat')
+  );
+  const isGovernanceSettled = authReady && (!user || governanceReady);
+  const isWikiBootReady =
+    isGovernanceSettled && (extensionsBootStatus === 'loaded' || isBureaucrat);
 
   const canViewDiscussion = Boolean(
     discussionExt.enabled && (user || discussionExt.settings.allowAnonymousRead !== false)
@@ -324,46 +343,85 @@ function WikiWorkspace() {
       setUser(currentUser);
       setAuthReady(true);
       if (currentUser) {
+        setGovernanceReady(false);
         void (async () => {
-          const gov = await fetchCurrentUserGovernance(currentUser);
-          setGovernanceRole(gov.role);
-          setBlockedRecord(gov.blocked);
-          if (!gov.blocked) {
-            const result = await syncUserDocuments(currentUser);
-            setCurrentCollaborator(result.profile);
-            const isElevatedAdmin =
-              (currentUser.email && currentUser.email === ADMIN_EMAIL && currentUser.emailVerified) ||
-              gov.role === 'bureaucrat' ||
-              gov.role === 'admin';
-            if (isElevatedAdmin) {
-              void ensureDossierArticlePublished(currentUser);
-            }
-            const currentHash = window.location.hash;
-            const isOnDefaultEntry =
-              !currentHash || currentHash === '#/' || currentHash === '#/page/start';
-            if (result.isNewUser && isOnDefaultEntry) {
-              navigateToPage(result.profile.personalPageSlug);
-            }
+          try {
+            const gov = await fetchCurrentUserGovernance(currentUser);
+            setGovernanceRole(gov.role);
+            setBlockedRecord(gov.blocked);
+          } catch (error) {
+            console.error('Failed to resolve user governance role:', error);
+            setGovernanceRole('member');
+            setBlockedRecord(null);
+          } finally {
+            setGovernanceReady(true);
           }
         })();
       } else {
         setCurrentCollaborator(null);
         setGovernanceRole('member');
         setBlockedRecord(null);
+        setGovernanceReady(true);
       }
     });
     return unsub;
-  }, [navigateToPage]);
+  }, []);
 
-  // Load site-wide extension configurations from Firebase on Wiki boot
+  // Load site-wide extension configurations from Firebase on Wiki boot (blocks wiki on failure unless Bureaucrat)
   React.useEffect(() => {
     if (!authReady) return;
-    return subscribeSiteExtensions(setExtensionsState);
-  }, [authReady]);
+    setExtensionsBootStatus('loading');
+    setExtensionsBootError(null);
+    return bootAndSubscribeSiteExtensions({
+      onLoaded: (state) => {
+        setExtensionsState(state);
+        setExtensionsBootStatus('loaded');
+        setExtensionsBootError(null);
+      },
+      onError: (message) => {
+        setExtensionsBootStatus('error');
+        setExtensionsBootError(message);
+      },
+    });
+  }, [authReady, extensionsReloadNonce, user?.uid]);
 
-  // Subscribe to public pages (always allowed by rules)
+  // Sync collaborator profile & dossier only once Wiki boot gate allows normal operation
+  const syncedUserRef = React.useRef<string | null>(null);
   React.useEffect(() => {
-    if (!authReady) return;
+    if (!user) {
+      syncedUserRef.current = null;
+      return;
+    }
+    if (!isWikiBootReady || blockedRecord) return;
+    if (syncedUserRef.current === user.uid) return;
+    syncedUserRef.current = user.uid;
+
+    void (async () => {
+      try {
+        const result = await syncUserDocuments(user);
+        setCurrentCollaborator(result.profile);
+        const isElevatedAdmin =
+          (user.email && user.email === ADMIN_EMAIL && user.emailVerified) ||
+          governanceRole === 'bureaucrat' ||
+          governanceRole === 'admin';
+        if (isElevatedAdmin) {
+          void ensureDossierArticlePublished(user);
+        }
+        const currentHash = window.location.hash;
+        const isOnDefaultEntry =
+          !currentHash || currentHash === '#/' || currentHash === '#/page/start';
+        if (result.isNewUser && isOnDefaultEntry) {
+          navigateToPage(result.profile.personalPageSlug);
+        }
+      } catch (error) {
+        console.error('Failed to sync collaborator documents:', error);
+      }
+    })();
+  }, [user, isWikiBootReady, blockedRecord, governanceRole, navigateToPage]);
+
+  // Subscribe to public pages only after boot extensions loaded (or Bureaucrat bypass)
+  React.useEffect(() => {
+    if (!isWikiBootReady) return;
     const q = query(collection(db, 'pages'), where('visibility', '==', 'public'));
     const unsub = onSnapshot(
       q,
@@ -377,11 +435,11 @@ function WikiWorkspace() {
       }
     );
     return unsub;
-  }, [authReady]);
+  }, [isWikiBootReady]);
 
-  // Subscribe to current user's private pages when authenticated
+  // Subscribe to current user's private pages when authenticated & boot ready
   React.useEffect(() => {
-    if (!authReady || !user) {
+    if (!isWikiBootReady || !user) {
       setPrivatePages([]);
       return;
     }
@@ -1005,34 +1063,37 @@ function WikiWorkspace() {
 
   // Sync per-page SEO title, meta description, OpenGraph, and robots indexing directive
   React.useEffect(() => {
-    const defaultTitle = 'WazzimaGiygg Maker — Collaborative Markdown Wiki';
+    const defaultTitle = `${siteTitle} — Collaborative Markdown Wiki`;
     const defaultDesc =
-      'Create, edit, and organize collaborative Markdown wiki pages, infoboxes, and revision histories in real time with WazzimaGiygg Maker.';
+      `Create, edit, and organize collaborative Markdown wiki pages, infoboxes, and revision histories in real time with ${siteTitle}.`;
 
     let nextTitle = defaultTitle;
     let nextDesc = defaultDesc;
     let robotsValue = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
 
-    if (view === 'admin') {
-      nextTitle = 'Administration Console — WazzimaGiygg Maker';
+    if (!isWikiBootReady && extensionsBootStatus === 'error') {
+      nextTitle = `Indisponível — ${siteTitle}`;
+      robotsValue = 'noindex, nofollow';
+    } else if (view === 'admin') {
+      nextTitle = `Administration Console — ${siteTitle}`;
       robotsValue = 'noindex, nofollow';
     } else if (view === 'legal') {
       nextTitle =
         legalSection === 'terms'
-          ? 'Terms & Marco Civil Compliance — WazzimaGiygg Maker'
-          : 'Privacy Policy & LGPD — WazzimaGiygg Maker';
+          ? `Terms & Marco Civil Compliance — ${siteTitle}`
+          : `Privacy Policy & LGPD — ${siteTitle}`;
       nextDesc = `LGPD (Law No. 13.709/2018) and Marco Civil da Internet compliance information. DPO: ${LEGAL_GOVERNANCE.dpoName}.`;
     } else if (view === 'create') {
-      nextTitle = 'Create New Page — WazzimaGiygg Maker';
+      nextTitle = `Create New Page — ${siteTitle}`;
       robotsValue = 'noindex, follow';
     } else if (view === 'index') {
-      nextTitle = 'All Wiki Pages — WazzimaGiygg Maker';
-      nextDesc = 'Browse every collaborative Markdown page published on WazzimaGiygg Maker.';
+      nextTitle = `All Wiki Pages — ${siteTitle}`;
+      nextDesc = `Browse every collaborative Markdown page published on ${siteTitle}.`;
     } else if (view === 'recent') {
-      nextTitle = 'Recent Wiki Changes — WazzimaGiygg Maker';
-      nextDesc = 'Inspect recent collaborative edits and page updates on WazzimaGiygg Maker.';
+      nextTitle = `Recent Wiki Changes — ${siteTitle}`;
+      nextDesc = `Inspect recent collaborative edits and page updates on ${siteTitle}.`;
     } else if (view === 'page' && activePage) {
-      nextTitle = `${activePage.title} — WazzimaGiygg Maker`;
+      nextTitle = `${activePage.title} — ${siteTitle}`;
       const plainExcerpt = activePage.content
         .replace(/:::infobox[\s\S]*?:::/g, '')
         .replace(/[#>*_`[\]()]/g, ' ')
@@ -1057,7 +1118,119 @@ function WikiWorkspace() {
     setMeta('meta[name="twitter:title"]', nextTitle);
     setMeta('meta[name="twitter:description"]', nextDesc);
     setMeta('meta[name="robots"]', robotsValue);
-  }, [view, legalSection, activePage]);
+  }, [siteTitle, isWikiBootReady, extensionsBootStatus, view, legalSection, activePage]);
+
+  const handleRetryExtensionsBoot = () => {
+    setExtensionsBootStatus('loading');
+    setExtensionsBootError(null);
+    setExtensionsReloadNonce((n) => n + 1);
+  };
+
+  const handleBureaucratBypassSignIn = async () => {
+    if (user) {
+      await handleSignOut();
+    }
+    await handleSignIn();
+  };
+
+  // Boot Loading Gate: block wiki rendering until initial extension load succeeds (or Bureaucrat logs in)
+  if (!isGovernanceSettled || (extensionsBootStatus === 'loading' && !isBureaucrat)) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f1623] p-6 space-y-4">
+          <div className="flex items-center gap-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <RefreshCw className="w-4 h-4 text-blue-700 dark:text-blue-400 animate-spin shrink-0" />
+            <span>Carregando extensões de {siteTitle}...</span>
+          </div>
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            As configurações das extensões são obtidas diretamente do Firebase na abertura do
+            Wiki-site antes da liberação do espaço colaborativo.
+          </p>
+          <div className="space-y-2 pt-1">
+            <div className="h-2.5 w-full rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div className="h-2.5 w-3/4 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Boot Failure Gate: Wiki cannot operate unless extensions load successfully OR user logs in as Bureaucrat
+  if (extensionsBootStatus === 'error' && !isBureaucrat) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100">
+        <div
+          role="alert"
+          className="w-full max-w-lg rounded-xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-[#0f1623] p-6 sm:p-7 space-y-5"
+        >
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="w-6 h-6 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-xs font-mono text-red-700 dark:text-red-400">
+                wiki / boot-extensions / unavailable
+              </p>
+              <h1 className="font-display text-xl font-semibold text-slate-900 dark:text-slate-100">
+                Não foi possível carregar as extensões do Wiki-site
+              </h1>
+            </div>
+          </div>
+
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            As extensões do Firebase são carregadas obrigatoriamente na abertura de{' '}
+            <strong>{siteTitle}</strong>. Como o carregamento falhou, o funcionamento do Wiki
+            permanece bloqueado para leitura e edição — exceto mediante login com uma conta de{' '}
+            <strong>Burocrata</strong>.
+          </p>
+
+          {extensionsBootError && (
+            <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-xs font-mono text-slate-700 dark:text-slate-300 break-words">
+              {extensionsBootError}
+            </div>
+          )}
+
+          {user && (
+            <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 text-xs text-amber-900 dark:text-amber-200">
+              Conectado atualmente como <strong>{user.displayName || user.email}</strong> (nível:{' '}
+              <span className="font-mono">{governanceRole}</span>). Este nível não possui
+              permissão de contingência de Burocrata.
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleRetryExtensionsBoot}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+              <span>Tentar carregar novamente</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void handleBureaucratBypassSignIn()}
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                {user ? 'Trocar para login de Burocrata' : 'Entrar como Burocrata (Google)'}
+              </span>
+            </button>
+
+            {user && (
+              <button
+                type="button"
+                onClick={() => void handleSignOut()}
+                className="px-3 py-2 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                Sair
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -1089,7 +1262,7 @@ function WikiWorkspace() {
               }}
               className="font-display text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 whitespace-nowrap shrink-0"
             >
-              WazzimaGiygg Maker
+              {siteTitle}
             </a>
           </div>
 
@@ -1205,6 +1378,7 @@ function WikiWorkspace() {
       {/* Main Workspace Frame */}
       <div className="flex-1 flex max-w-[1440px] w-full mx-auto">
         <Sidebar
+          siteTitle={siteTitle}
           pages={allPages}
           activeSlug={view === 'page' ? activeSlug : null}
           isOpenMobile={mobileMenuOpen}
@@ -1232,6 +1406,44 @@ function WikiWorkspace() {
         />
 
         <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10">
+          {extensionsBootStatus === 'error' && isBureaucrat && (
+            <div
+              data-wiki-chrome="floating"
+              role="status"
+              className="max-w-5xl mb-6 p-4 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/90 dark:bg-amber-950/35 text-xs text-amber-950 dark:text-amber-200 flex flex-wrap items-center justify-between gap-3 print:hidden"
+            >
+              <div className="flex items-start gap-2.5 min-w-0">
+                <ShieldAlert className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <div className="font-semibold">
+                    Acesso de contingência de Burocrata — falha ao carregar extensões na abertura
+                  </div>
+                  <div className="text-amber-900/90 dark:text-amber-200/80">
+                    Visitantes e colaboradores permanecem bloqueados até que as extensões carreguem
+                    do Firebase ({extensionsBootError || 'erro desconhecido'}).
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleRetryExtensionsBoot}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-[#0b0f17] text-amber-950 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 whitespace-nowrap cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Recarregar</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={navigateToAdmin}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-800 text-white hover:bg-amber-900 whitespace-nowrap cursor-pointer"
+                >
+                  Console de Burocratas
+                </button>
+              </div>
+            </div>
+          )}
+
           {!isOnline && (
             <div
               data-wiki-chrome="floating"
@@ -1297,7 +1509,7 @@ function WikiWorkspace() {
                     Administration Access Restricted
                   </h1>
                   <p className="text-sm text-slate-600 dark:text-slate-300 max-w-xl">
-                    This console is reserved for WazzimaGiygg Maker Bureaucrats and Administrators.
+                    This console is reserved for {siteTitle} Bureaucrats and Administrators.
                   </p>
                   <button
                     type="button"
@@ -1355,8 +1567,7 @@ function WikiWorkspace() {
               ) : (
                 <div className="py-8 space-y-4">
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    Sign in with your Google account to create and publish pages on WazzimaGiygg
-                    Maker.
+                    Sign in with your Google account to create and publish pages on {siteTitle}.
                   </p>
                   <button
                     type="button"
@@ -1387,7 +1598,7 @@ function WikiWorkspace() {
                 </p>
                 <h1 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-100">
                   {allPages.length === 0 && activeSlug === 'start'
-                    ? 'WazzimaGiygg Maker is ready to begin'
+                    ? `${siteTitle} is ready to begin`
                     : `The page ":${activeSlug}" does not exist yet`}
                 </h1>
                 <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
@@ -1779,7 +1990,7 @@ function WikiWorkspace() {
                             infobox={{
                               type: 'user',
                               title: personalAuthorProfile?.displayName || activePage.authorName,
-                              subtitle: 'WazzimaGiygg Maker Collaborator',
+                              subtitle: `${siteTitle} Collaborator`,
                               image: personalAuthorProfile?.photoURL || undefined,
                               layout: 'right',
                               fields: [
@@ -2099,7 +2310,7 @@ function WikiWorkspace() {
             <div className="space-y-1">
               <div>
                 <strong className="font-medium text-slate-700 dark:text-slate-200">
-                  {LEGAL_GOVERNANCE.siteName}
+                  {siteTitle}
                 </strong>{' '}
                 · Content under{' '}
                 <a
@@ -2167,6 +2378,7 @@ function WikiWorkspace() {
               WikiWazzimaGiygg Ecosystem · Infrastructure, Licensing &amp; Governance
             </span>
             <FooterBadges
+              siteTitle={siteTitle}
               onNavigateHome={() => navigateToPage('start')}
               onNavigateLegal={() => navigateToLegal('privacy')}
               onNavigateDossier={() => navigateToPage(DOSSIER_PAGE_SLUG)}

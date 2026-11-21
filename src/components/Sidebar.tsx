@@ -21,6 +21,7 @@ import { toWikiSlug } from '../lib/markdownUtils';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface SidebarProps {
+  siteTitle?: string;
   pages: WikiPage[];
   activeSlug: string | null;
   isOpenMobile: boolean;
@@ -83,6 +84,7 @@ function hasOtherBlockingDialog(): boolean {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
+  siteTitle,
   pages,
   activeSlug,
   isOpenMobile,
@@ -596,7 +598,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        <PWAInstallButton />
+        <PWAInstallButton siteTitle={siteTitle} />
 
         <div className="flex items-center justify-between gap-2 pt-1">
           {onOpenShortcuts ? (

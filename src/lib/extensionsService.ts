@@ -4,6 +4,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  getDocsFromServer,
   onSnapshot,
   query,
   serverTimestamp,
@@ -22,6 +23,8 @@ import {
   type WikiExtensionSettings,
 } from '../types/wiki';
 import { db, handleFirestoreError, OperationType } from './firebase';
+
+export const DEFAULT_SITE_TITLE = 'WazzimaGiygg Maker';
 
 export const EXTENSION_CATEGORY_LABELS: Record<WikiExtensionCategory, string> = {
   reading: 'Leitura',
@@ -44,6 +47,15 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   WikiExtensionId,
   ExtensionSettingFieldDescriptor[]
 > = {
+  'site-title': [
+    {
+      key: 'siteTitle',
+      label: 'Título do Wiki-site',
+      hint: 'Substitui o nome "WazzimaGiygg Maker" na barra superior, título das guias e rodapé.',
+      type: 'text',
+      maxLength: VALIDATION_LIMITS.EXTENSION_SITE_TITLE_MAX_LENGTH,
+    },
+  ],
   toc: [
     {
       key: 'defaultExpanded',
@@ -163,6 +175,24 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
 };
 
 export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
+  {
+    id: 'site-title',
+    scope: 'site',
+    name: 'Título do Wiki-site (Site Branding)',
+    description:
+      'Permite renomear o título principal do Wiki-site (padrão: "WazzimaGiygg Maker") exibido no cabeçalho, navegador e metadados.',
+    category: 'navigation',
+    enabled: true,
+    sortOrder: 0,
+    settings: {
+      siteTitle: DEFAULT_SITE_TITLE,
+    },
+    updatedBy: 'system-default',
+    updatedByName: 'Built-in Default',
+    createdAt: null,
+    updatedAt: null,
+    persisted: false,
+  },
   {
     id: 'toc',
     scope: 'site',
@@ -353,6 +383,15 @@ export function sanitizeExtensionSettings(
   const src = raw ?? {};
 
   switch (id) {
+    case 'site-title': {
+      const trimmedSiteTitle =
+        typeof src.siteTitle === 'string'
+          ? src.siteTitle.trim().slice(0, VALIDATION_LIMITS.EXTENSION_SITE_TITLE_MAX_LENGTH)
+          : '';
+      return {
+        siteTitle: trimmedSiteTitle || base.siteTitle || DEFAULT_SITE_TITLE,
+      };
+    }
     case 'toc': {
       const parsedMin =
         typeof src.minHeadings === 'number' && Number.isFinite(src.minHeadings)
@@ -512,6 +551,83 @@ export function getInitialSiteExtensionsState(): SiteExtensionsState {
   return {
     ...merged,
     loadedFromFirestore: false,
+  };
+}
+
+export function resolveSiteTitle(state: SiteExtensionsState): string {
+  const ext = state.byId['site-title'];
+  if (!ext || !ext.enabled) {
+    return DEFAULT_SITE_TITLE;
+  }
+  const configured = typeof ext.settings.siteTitle === 'string' ? ext.settings.siteTitle.trim() : '';
+  return configured || DEFAULT_SITE_TITLE;
+}
+
+/**
+ * Boot-time loader and live subscriber for site-wide extensions.
+ * Explicitly verifies initial load from Firestore server so failures block non-bureaucrat access.
+ */
+export function bootAndSubscribeSiteExtensions(handlers: {
+  onLoaded: (state: SiteExtensionsState) => void;
+  onError: (message: string) => void;
+}): Unsubscribe {
+  const q = query(collection(db, 'extensions'), where('scope', '==', 'site'));
+  let cancelled = false;
+  let unsubSnapshot: Unsubscribe | null = null;
+
+  const reportBootError = (error: unknown) => {
+    try {
+      handleFirestoreError(error, OperationType.LIST, 'extensions');
+    } catch (formatted) {
+      if (!cancelled) {
+        const rawMessage = error instanceof Error ? error.message : String(error);
+        const message =
+          rawMessage ||
+          (formatted instanceof Error ? formatted.message : 'Falha ao carregar extensões.');
+        handlers.onError(message);
+      }
+    }
+  };
+
+  void getDocsFromServer(q)
+    .then((initialSnap) => {
+      if (cancelled) return;
+      const docs = initialSnap.docs.map((d) => ({
+        id: d.id as WikiExtensionId,
+        ...(d.data() as Omit<WikiExtensionRecord, 'id'>),
+      }));
+      const merged = mergeExtensionsWithDefaults(docs);
+      handlers.onLoaded({
+        ...merged,
+        loadedFromFirestore: true,
+      });
+
+      unsubSnapshot = onSnapshot(
+        q,
+        (snap) => {
+          if (cancelled) return;
+          const liveDocs = snap.docs.map((d) => ({
+            id: d.id as WikiExtensionId,
+            ...(d.data() as Omit<WikiExtensionRecord, 'id'>),
+          }));
+          const liveMerged = mergeExtensionsWithDefaults(liveDocs);
+          handlers.onLoaded({
+            ...liveMerged,
+            loadedFromFirestore: true,
+          });
+        },
+        (error) => {
+          reportBootError(error);
+        }
+      );
+    })
+    .catch((error) => {
+      reportBootError(error);
+    });
+
+  return () => {
+    cancelled = true;
+    unsubSnapshot?.();
   };
 }
 

@@ -500,7 +500,7 @@
         },
         "settings": {
           "type": "object",
-          "description": "Typed per-extension configuration options map."
+          "description": "Typed per-extension configuration options map (including siteTitle branding)."
         },
         "updatedBy": {
           "type": "string",

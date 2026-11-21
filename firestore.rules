@@ -146,12 +146,13 @@ service cloud.firestore {
     function isValidExtensionSettings(settings) {
       return settings is map
         && settings.keys().hasOnly([
-          'defaultExpanded', 'minHeadings', 'footerTitle', 'showOutlineLink',
+          'siteTitle', 'defaultExpanded', 'minHeadings', 'footerTitle', 'showOutlineLink',
           'allowEditorToolbar', 'allowAutoProfileCard', 'showInNavbar',
           'showInSidebar', 'excludeDiscussions', 'showInHeader',
           'showToastFeedback', 'notifyWhileEditing', 'allowAnonymousRead',
           'autoExitOnNavigate'
         ])
+        && (!('siteTitle' in settings) || (settings.siteTitle is string && settings.siteTitle.size() >= 1 && settings.siteTitle.size() <= 80))
         && (!('defaultExpanded' in settings) || settings.defaultExpanded is bool)
         && (!('minHeadings' in settings) || (settings.minHeadings is int && settings.minHeadings >= 1 && settings.minHeadings <= 10))
         && (!('footerTitle' in settings) || (settings.footerTitle is string && settings.footerTitle.size() >= 1 && settings.footerTitle.size() <= 80))

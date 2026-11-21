@@ -6,7 +6,13 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
-export const PWAInstallButton: React.FC = () => {
+interface PWAInstallButtonProps {
+  siteTitle?: string;
+}
+
+export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
+  siteTitle = 'WazzimaGiygg Maker',
+}) => {
   const [deferredPrompt, setDeferredPrompt] = React.useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = React.useState(false);
   const [isIOS, setIsIOS] = React.useState(false);
@@ -79,7 +85,7 @@ export const PWAInstallButton: React.FC = () => {
             <div className="w-full max-w-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0f1623] p-5 shadow-xl space-y-3 text-xs text-slate-700 dark:text-slate-300">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-display text-base font-semibold text-slate-900 dark:text-slate-100">
-                  Install WazzimaGiygg Maker
+                  Install {siteTitle}
                 </h3>
                 <button
                   type="button"

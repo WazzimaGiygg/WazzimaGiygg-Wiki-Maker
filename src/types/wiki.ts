@@ -33,6 +33,7 @@ export const VALIDATION_LIMITS = {
   LGPD_SUMMARY_MAX_LENGTH: 300,
   EXTENSION_NAME_MAX_LENGTH: 80,
   EXTENSION_DESCRIPTION_MAX_LENGTH: 300,
+  EXTENSION_SITE_TITLE_MAX_LENGTH: 80,
   EXTENSION_FOOTER_TITLE_MAX_LENGTH: 80,
   EXTENSION_MIN_HEADINGS_MIN: 1,
   EXTENSION_MIN_HEADINGS_MAX: 10,
@@ -42,6 +43,7 @@ export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
 export type LgpdErasureMode = 'anonymize' | 'purge';
 
 export type WikiExtensionId =
+  | 'site-title'
   | 'toc'
   | 'references'
   | 'infoboxes'
@@ -55,6 +57,7 @@ export type WikiExtensionId =
 export type WikiExtensionCategory = 'reading' | 'navigation' | 'authoring' | 'collaboration';
 
 export interface WikiExtensionSettings {
+  siteTitle?: string;
   defaultExpanded?: boolean;
   minHeadings?: number;
   footerTitle?: string;

@@ -1,6 +1,7 @@
 import React from 'react';
 
 interface FooterBadgesProps {
+  siteTitle?: string;
   onNavigateHome: () => void;
   onNavigateLegal: () => void;
   onNavigateDossier: () => void;
@@ -10,6 +11,7 @@ interface FooterBadgesProps {
  * Retro 88x31 footer buttons matching the wikizero.wazzimagiygg.com ecosystem bar.
  */
 export const FooterBadges: React.FC<FooterBadgesProps> = ({
+  siteTitle = 'WazzimaGiygg Maker',
   onNavigateHome,
   onNavigateLegal,
   onNavigateDossier,
@@ -21,24 +23,24 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
       aria-label="Footer service and compliance buttons"
       className="flex flex-wrap items-center justify-center sm:justify-end gap-2 pt-1"
     >
-      {/* 1. Official WazzimaGiygg Maker */}
+      {/* 1. Official Site Home Badge */}
       <button
         type="button"
         onClick={onNavigateHome}
-        title="WazzimaGiygg Maker — Enciclopédia Colaborativa Aberta"
+        title={`${siteTitle} — Enciclopédia Colaborativa Aberta`}
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-slate-900 via-slate-800 to-black border border-slate-700 hover:border-blue-500 rounded transition p-1 shadow-xs group cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
       >
         {!logoError ? (
           <img
             src="/assets/aistudio/image_c25fcad0.png"
-            alt="WazzimaGiygg Maker"
+            alt={siteTitle}
             referrerPolicy="no-referrer"
             onError={() => setLogoError(true)}
             className="w-5 h-5 object-contain rounded-xs shrink-0"
           />
         ) : (
           <span className="w-5 h-5 rounded-xs bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">
-            W
+            {siteTitle.trim().charAt(0).toUpperCase() || 'W'}
           </span>
         )}
         <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
