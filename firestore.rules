@@ -31,45 +31,100 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isBootstrappedBureaucrat() {
+      return isVerified() && request.auth.token.email == 'mafersao1100@gmail.com';
+    }
+
+    function isNotBlocked() {
+      return isBootstrappedBureaucrat() || (
+        isSignedIn() &&
+        !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid))
+      );
+    }
+
     function isBureaucrat() {
-      return isVerified() && (
-        request.auth.token.email == 'mafersao1100@gmail.com' ||
-        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.get('role', 'admin') == 'bureaucrat')
+      return isBootstrappedBureaucrat() || (
+        isVerified() &&
+        !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid)) &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'bureaucrat'
       );
     }
 
     function isAdmin() {
-      return isBureaucrat() || (
-        isVerified() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      return isBootstrappedBureaucrat() || (
+        isVerified() &&
+        !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid)) &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
-    function isNotBlocked() {
-      return !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
+    function canModerateTarget(targetUid) {
+      return isVerified() && targetUid != request.auth.uid && (
+        isBootstrappedBureaucrat() ||
+        (!exists(/databases/$(database)/documents/admins/$(targetUid)) && isAdmin()) ||
+        (exists(/databases/$(database)/documents/admins/$(targetUid)) &&
+         get(/databases/$(database)/documents/admins/$(targetUid)).data.role != 'bureaucrat' &&
+         isBureaucrat())
+      );
+    }
+
+    // Pillar 5: Total Array Guarding (validates every bounded slot 0..7)
+    function isValidTagItem(tag) {
+      return tag is string && tag.size() >= 1 && tag.size() <= 32;
+    }
+
+    function isValidTagList(tags) {
+      return tags is list
+        && tags.size() <= 8
+        && (tags.size() <= 0 || isValidTagItem(tags[0]))
+        && (tags.size() <= 1 || isValidTagItem(tags[1]))
+        && (tags.size() <= 2 || isValidTagItem(tags[2]))
+        && (tags.size() <= 3 || isValidTagItem(tags[3]))
+        && (tags.size() <= 4 || isValidTagItem(tags[4]))
+        && (tags.size() <= 5 || isValidTagItem(tags[5]))
+        && (tags.size() <= 6 || isValidTagItem(tags[6]))
+        && (tags.size() <= 7 || isValidTagItem(tags[7]));
     }
 
     // Pillar 2: Validation Blueprints (never use existing() or diff() inside these helpers)
     function isValidWikiPage(data, slug) {
-      return data.slug is string && data.slug == slug && isValidId(data.slug)
+      return data.keys().hasAll([
+          'slug', 'title', 'content', 'category', 'tags', 'visibility',
+          'isLocked', 'authorId', 'authorName', 'lastEditorId',
+          'lastEditorName', 'version', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'slug', 'title', 'content', 'category', 'tags', 'visibility',
+          'isLocked', 'authorId', 'authorName', 'lastEditorId',
+          'lastEditorName', 'version', 'createdAt', 'updatedAt'
+        ])
+        && data.slug is string && data.slug == slug && isValidId(data.slug)
         && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
         && data.content is string && data.content.size() <= 200000
         && data.category is string && data.category.size() >= 1 && data.category.size() <= 40 && data.category.matches('^[a-z0-9\\-]+$')
-        && data.tags is list && data.tags.size() <= 8
-        && (data.tags.size() == 0 || (data.tags[0] is string && data.tags[0].size() >= 1 && data.tags[0].size() <= 32))
+        && isValidTagList(data.tags)
         && data.visibility in ['public', 'private']
         && data.isLocked is bool
         && data.authorId is string && isValidId(data.authorId)
         && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
         && data.lastEditorId is string && isValidId(data.lastEditorId)
         && data.lastEditorName is string && data.lastEditorName.size() >= 1 && data.lastEditorName.size() <= 80
-        && data.version is int && data.version >= 1
+        && data.version is int && data.version >= 1 && data.version <= 1000000
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
 
     function isValidRevision(data, slug) {
-      return data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
+      return data.keys().hasAll([
+          'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
+          'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
+          'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
+        ])
+        && data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
         && data.pageVisibility in ['public', 'private']
         && data.pageAuthorId is string && isValidId(data.pageAuthorId)
         && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
@@ -77,12 +132,20 @@ service cloud.firestore {
         && data.editorId is string && isValidId(data.editorId)
         && data.editorName is string && data.editorName.size() >= 1 && data.editorName.size() <= 80
         && data.summary is string && data.summary.size() <= 200
-        && data.version is int && data.version >= 1
+        && data.version is int && data.version >= 1 && data.version <= 1000000
         && data.createdAt is timestamp;
     }
 
     function isValidComment(data, slug) {
-      return data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
+      return data.keys().hasAll([
+          'pageSlug', 'pageVisibility', 'pageAuthorId',
+          'authorId', 'authorName', 'body', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'pageSlug', 'pageVisibility', 'pageAuthorId',
+          'authorId', 'authorName', 'body', 'createdAt'
+        ])
+        && data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
         && data.pageVisibility in ['public', 'private']
         && data.pageAuthorId is string && isValidId(data.pageAuthorId)
         && data.authorId is string && isValidId(data.authorId)
@@ -92,9 +155,18 @@ service cloud.firestore {
     }
 
     function isValidCollaborator(data, userId) {
-      return data.uid is string && data.uid == userId && isValidId(data.uid)
+      return data.keys().hasAll([
+          'uid', 'displayName', 'photoURL', 'personalPageSlug',
+          'discussionPageSlug', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'photoURL', 'personalPageSlug',
+          'discussionPageSlug', 'createdAt', 'updatedAt'
+        ])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
         && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
         && data.photoURL is string && data.photoURL.size() <= 500
+        && (data.photoURL == '' || data.photoURL.matches('^https?://.*$'))
         && data.personalPageSlug is string && isValidId(data.personalPageSlug)
         && data.discussionPageSlug is string && isValidId(data.discussionPageSlug)
         && data.createdAt is timestamp
@@ -102,23 +174,36 @@ service cloud.firestore {
     }
 
     function isValidUserEdit(data, userId) {
-      return data.editorId is string && data.editorId == userId && isValidId(data.editorId)
+      return data.keys().hasAll([
+          'editorId', 'pageSlug', 'pageTitle', 'pageVisibility',
+          'summary', 'version', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'editorId', 'pageSlug', 'pageTitle', 'pageVisibility',
+          'summary', 'version', 'createdAt'
+        ])
+        && data.editorId is string && data.editorId == userId && isValidId(data.editorId)
         && data.pageSlug is string && isValidId(data.pageSlug)
         && data.pageTitle is string && data.pageTitle.size() >= 1 && data.pageTitle.size() <= 160
         && data.pageVisibility in ['public', 'private']
         && data.summary is string && data.summary.size() <= 200
-        && data.version is int && data.version >= 1
+        && data.version is int && data.version >= 1 && data.version <= 1000000
         && data.createdAt is timestamp;
     }
 
     function isValidUserPrivateInfo(data, userId) {
-      return data.uid is string && data.uid == userId && isValidId(data.uid)
-        && data.email is string && data.email.size() >= 1 && data.email.size() <= 200
+      return data.keys().hasAll(['uid', 'email', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'updatedAt'])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
         && data.updatedAt is timestamp;
     }
 
     function isValidAdminRecord(data, userId) {
-      return data.uid is string && data.uid == userId && isValidId(data.uid)
+      return data.keys().hasAll(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
         && data.role in ['admin', 'bureaucrat']
         && data.grantedBy is string && isValidId(data.grantedBy)
         && data.createdAt is timestamp
@@ -126,7 +211,9 @@ service cloud.firestore {
     }
 
     function isValidBlockedUser(data, userId) {
-      return data.uid is string && data.uid == userId && isValidId(data.uid)
+      return data.keys().hasAll(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
+        && data.uid is string && data.uid == userId && isValidId(data.uid)
         && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
         && data.reason is string && data.reason.size() >= 1 && data.reason.size() <= 300
         && data.blockedBy is string && isValidId(data.blockedBy)
@@ -135,7 +222,9 @@ service cloud.firestore {
     }
 
     function isValidLgpdLog(data) {
-      return data.targetUid is string && isValidId(data.targetUid)
+      return data.keys().hasAll(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
+        && data.keys().hasOnly(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
+        && data.targetUid is string && isValidId(data.targetUid)
         && data.mode in ['anonymize', 'purge']
         && data.summary is string && data.summary.size() >= 1 && data.summary.size() <= 300
         && data.executedBy is string && data.executedBy == request.auth.uid && isValidId(data.executedBy)
@@ -172,7 +261,15 @@ service cloud.firestore {
     }
 
     function isValidWikiExtension(data, extensionId) {
-      return data.id is string && data.id == extensionId && isValidId(data.id)
+      return data.keys().hasAll([
+          'id', 'scope', 'name', 'description', 'category', 'enabled',
+          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'scope', 'name', 'description', 'category', 'enabled',
+          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id == extensionId && isValidId(data.id)
         && data.scope == 'site'
         && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
         && data.description is string && data.description.size() >= 1 && data.description.size() <= 300
@@ -201,33 +298,24 @@ service cloud.firestore {
         (isSignedIn() && resource.data.authorId == request.auth.uid) ||
         isAdmin();
 
+      // Pillar 10: Auth -> Static Validation -> DB Lookups
       allow create: if isVerified()
-        && isNotBlocked()
         && isValidId(slug)
         && isValidWikiPage(incoming(), slug)
-        && incoming().keys().hasAll([
-          'slug', 'title', 'content', 'category', 'tags', 'visibility',
-          'isLocked', 'authorId', 'authorName', 'lastEditorId',
-          'lastEditorName', 'version', 'createdAt', 'updatedAt'
-        ])
-        && incoming().keys().hasOnly([
-          'slug', 'title', 'content', 'category', 'tags', 'visibility',
-          'isLocked', 'authorId', 'authorName', 'lastEditorId',
-          'lastEditorName', 'version', 'createdAt', 'updatedAt'
-        ])
         && incoming().authorId == request.auth.uid
         && incoming().lastEditorId == request.auth.uid
         && incoming().version == 1
         && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time;
+        && incoming().updatedAt == request.time
+        && isNotBlocked();
 
       allow update: if isVerified()
-        && isNotBlocked()
         && isValidId(slug)
         && isValidWikiPage(incoming(), slug)
         && incoming().slug == existing().slug
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt == request.time
+        && isNotBlocked()
         && (
           // Standard editorial / moderation update
           (
@@ -264,14 +352,14 @@ service cloud.firestore {
             && incoming().diff(existing()).affectedKeys().hasOnly([
               'authorId', 'authorName', 'lastEditorId', 'lastEditorName', 'updatedAt'
             ])
-            && (incoming().authorId == existing().authorId || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
-            && (incoming().lastEditorId == existing().lastEditorId || (incoming().lastEditorId == 'lgpd-anonymized' && incoming().lastEditorName == 'Removed User (LGPD)'))
+            && ((incoming().authorId == existing().authorId && incoming().authorName == existing().authorName) || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
+            && ((incoming().lastEditorId == existing().lastEditorId && incoming().lastEditorName == existing().lastEditorName) || (incoming().lastEditorId == 'lgpd-anonymized' && incoming().lastEditorName == 'Removed User (LGPD)'))
           )
         );
 
       allow delete: if isVerified()
-        && isNotBlocked()
         && isValidId(slug)
+        && isNotBlocked()
         && (existing().authorId == request.auth.uid || isAdmin());
 
       // Subcollection: /pages/{slug}/revisions/{revisionId}
@@ -287,24 +375,21 @@ service cloud.firestore {
           isAdmin();
 
         allow create: if isVerified()
-          && isNotBlocked()
           && isValidId(slug)
           && isValidId(revisionId)
           && isValidRevision(incoming(), slug)
           && incoming().editorId == request.auth.uid
-          && incoming().keys().hasAll([
-            'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
-            'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
-          ])
-          && incoming().keys().hasOnly([
-            'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
-            'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
-          ])
           && incoming().createdAt == request.time
+          && revisionId == 'v_' + string(incoming().version)
+          && isNotBlocked()
           && existsAfter(/databases/$(database)/documents/pages/$(slug))
           && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
           && incoming().pageAuthorId == getAfter(/databases/$(database)/documents/pages/$(slug)).data.authorId
           && incoming().version == getAfter(/databases/$(database)/documents/pages/$(slug)).data.version
+          && incoming().title == getAfter(/databases/$(database)/documents/pages/$(slug)).data.title
+          && incoming().content == getAfter(/databases/$(database)/documents/pages/$(slug)).data.content
+          && incoming().editorId == getAfter(/databases/$(database)/documents/pages/$(slug)).data.lastEditorId
+          && getAfter(/databases/$(database)/documents/pages/$(slug)).data.updatedAt == request.time
           && (
             (getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public'
               && getAfter(/databases/$(database)/documents/pages/$(slug)).data.isLocked == false) ||
@@ -313,31 +398,32 @@ service cloud.firestore {
           );
 
         allow update: if isVerified()
-          && isNotBlocked()
           && isValidId(slug)
           && isValidId(revisionId)
           && isValidRevision(incoming(), slug)
           && incoming().pageSlug == existing().pageSlug
           && incoming().version == existing().version
           && incoming().createdAt == existing().createdAt
+          && isNotBlocked()
           && (
             (
               (existing().pageAuthorId == request.auth.uid || isAdmin())
               && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
+              && existsAfter(/databases/$(database)/documents/pages/$(slug))
               && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
             ) ||
             (
               isAdmin()
               && incoming().diff(existing()).affectedKeys().hasOnly(['editorId', 'editorName', 'pageAuthorId'])
-              && (incoming().editorId == existing().editorId || (incoming().editorId == 'lgpd-anonymized' && incoming().editorName == 'Removed User (LGPD)'))
+              && ((incoming().editorId == existing().editorId && incoming().editorName == existing().editorName) || (incoming().editorId == 'lgpd-anonymized' && incoming().editorName == 'Removed User (LGPD)'))
               && (incoming().pageAuthorId == existing().pageAuthorId || incoming().pageAuthorId == 'lgpd-anonymized')
             )
           );
 
         allow delete: if isVerified()
-          && isNotBlocked()
           && isValidId(slug)
           && isValidId(revisionId)
+          && isNotBlocked()
           && (existing().pageAuthorId == request.auth.uid || isAdmin());
       }
 
@@ -354,20 +440,12 @@ service cloud.firestore {
           isAdmin();
 
         allow create: if isVerified()
-          && isNotBlocked()
           && isValidId(slug)
           && isValidId(commentId)
           && isValidComment(incoming(), slug)
           && incoming().authorId == request.auth.uid
-          && incoming().keys().hasAll([
-            'pageSlug', 'pageVisibility', 'pageAuthorId',
-            'authorId', 'authorName', 'body', 'createdAt'
-          ])
-          && incoming().keys().hasOnly([
-            'pageSlug', 'pageVisibility', 'pageAuthorId',
-            'authorId', 'authorName', 'body', 'createdAt'
-          ])
           && incoming().createdAt == request.time
+          && isNotBlocked()
           && exists(/databases/$(database)/documents/pages/$(slug))
           && incoming().pageVisibility == get(/databases/$(database)/documents/pages/$(slug)).data.visibility
           && incoming().pageAuthorId == get(/databases/$(database)/documents/pages/$(slug)).data.authorId
@@ -378,30 +456,31 @@ service cloud.firestore {
           );
 
         allow update: if isVerified()
-          && isNotBlocked()
           && isValidId(slug)
           && isValidId(commentId)
           && isValidComment(incoming(), slug)
           && incoming().pageSlug == existing().pageSlug
           && incoming().createdAt == existing().createdAt
+          && isNotBlocked()
           && (
             (
               (existing().pageAuthorId == request.auth.uid || isAdmin())
               && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
+              && existsAfter(/databases/$(database)/documents/pages/$(slug))
               && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
             ) ||
             (
               isAdmin()
               && incoming().diff(existing()).affectedKeys().hasOnly(['authorId', 'authorName', 'pageAuthorId'])
-              && (incoming().authorId == existing().authorId || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
+              && ((incoming().authorId == existing().authorId && incoming().authorName == existing().authorName) || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
               && (incoming().pageAuthorId == existing().pageAuthorId || incoming().pageAuthorId == 'lgpd-anonymized')
             )
           );
 
         allow delete: if isVerified()
-          && isNotBlocked()
           && isValidId(slug)
           && isValidId(commentId)
+          && isNotBlocked()
           && (
             existing().authorId == request.auth.uid ||
             existing().pageAuthorId == request.auth.uid ||
@@ -419,16 +498,9 @@ service cloud.firestore {
         && isValidId(userId)
         && isOwner(userId)
         && isValidCollaborator(incoming(), userId)
-        && incoming().keys().hasAll([
-          'uid', 'displayName', 'photoURL', 'personalPageSlug',
-          'discussionPageSlug', 'createdAt', 'updatedAt'
-        ])
-        && incoming().keys().hasOnly([
-          'uid', 'displayName', 'photoURL', 'personalPageSlug',
-          'discussionPageSlug', 'createdAt', 'updatedAt'
-        ])
         && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time;
+        && incoming().updatedAt == request.time
+        && isNotBlocked();
 
       allow update: if isVerified()
         && isValidId(userId)
@@ -436,6 +508,7 @@ service cloud.firestore {
         && isValidCollaborator(incoming(), userId)
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt == request.time
+        && isNotBlocked()
         && (
           incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']) ||
           (
@@ -446,7 +519,7 @@ service cloud.firestore {
           )
         );
 
-      allow delete: if isAdmin() && isValidId(userId);
+      allow delete: if isValidId(userId) && canModerateTarget(userId);
 
       // Subcollection: /collaborators/{userId}/edits/{editId}
       match /edits/{editId} {
@@ -461,36 +534,40 @@ service cloud.firestore {
           isAdmin();
 
         allow create: if isVerified()
-          && isNotBlocked()
           && isValidId(userId)
           && isValidId(editId)
           && isOwner(userId)
           && isValidUserEdit(incoming(), userId)
-          && incoming().keys().hasAll([
-            'editorId', 'pageSlug', 'pageTitle', 'pageVisibility',
-            'summary', 'version', 'createdAt'
-          ])
-          && incoming().keys().hasOnly([
-            'editorId', 'pageSlug', 'pageTitle', 'pageVisibility',
-            'summary', 'version', 'createdAt'
-          ])
           && incoming().createdAt == request.time
-          && existsAfter(/databases/$(database)/documents/collaborators/$(userId));
+          && isNotBlocked()
+          && existsAfter(/databases/$(database)/documents/collaborators/$(userId))
+          && existsAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug))
+          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.visibility
+          && incoming().version == getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.version
+          && incoming().pageTitle == getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.title
+          && getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.lastEditorId == userId
+          && getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.updatedAt == request.time;
 
         allow update: if isVerified()
-          && isNotBlocked()
           && isValidId(userId)
           && isValidId(editId)
           && isValidUserEdit(incoming(), userId)
-          && (isOwner(userId) || isAdmin())
+          && incoming().editorId == existing().editorId
+          && incoming().pageSlug == existing().pageSlug
+          && incoming().version == existing().version
+          && incoming().summary == existing().summary
           && incoming().createdAt == existing().createdAt
-          && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility', 'pageTitle']);
+          && isNotBlocked()
+          && (isOwner(userId) || isAdmin())
+          && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility', 'pageTitle'])
+          && existsAfter(/databases/$(database)/documents/pages/$(existing().pageSlug))
+          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(existing().pageSlug)).data.visibility;
 
         allow delete: if isVerified()
-          && isNotBlocked()
           && isValidId(userId)
           && isValidId(editId)
-          && (isOwner(userId) || isAdmin());
+          && isNotBlocked()
+          && (isOwner(userId) || canModerateTarget(userId));
       }
     }
 
@@ -501,22 +578,23 @@ service cloud.firestore {
 
       allow create: if isVerified()
         && isValidId(userId)
-        && isValidId(docId)
-        && isOwner(userId)
-        && isValidUserPrivateInfo(incoming(), userId)
-        && incoming().keys().hasAll(['uid', 'email', 'updatedAt'])
-        && incoming().keys().hasOnly(['uid', 'email', 'updatedAt'])
-        && incoming().updatedAt == request.time;
-
-      allow update: if isVerified()
-        && isValidId(userId)
-        && isValidId(docId)
+        && docId == 'info'
         && isOwner(userId)
         && isValidUserPrivateInfo(incoming(), userId)
         && incoming().updatedAt == request.time
-        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt']);
+        && isNotBlocked();
 
-      allow delete: if isAdmin() && isValidId(userId) && isValidId(docId);
+      allow update: if isVerified()
+        && isValidId(userId)
+        && docId == 'info'
+        && isOwner(userId)
+        && isValidUserPrivateInfo(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt'])
+        && isNotBlocked();
+
+      allow delete: if isValidId(userId) && isValidId(docId) && canModerateTarget(userId);
     }
 
     // Collection: /admins/{userId} (Managed exclusively by Bureaucrats)
@@ -524,62 +602,65 @@ service cloud.firestore {
       allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
       allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
 
-      allow create: if isBureaucrat()
+      allow create: if isVerified()
         && isValidId(userId)
+        && userId != request.auth.uid
         && isValidAdminRecord(incoming(), userId)
         && incoming().grantedBy == request.auth.uid
-        && incoming().keys().hasAll(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
-        && incoming().keys().hasOnly(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
         && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time;
+        && incoming().updatedAt == request.time
+        && isBureaucrat();
 
-      allow update: if isBureaucrat()
+      allow update: if isVerified()
         && isValidId(userId)
+        && userId != request.auth.uid
         && isValidAdminRecord(incoming(), userId)
         && incoming().uid == existing().uid
         && incoming().createdAt == existing().createdAt
         && incoming().grantedBy == request.auth.uid
         && incoming().updatedAt == request.time
-        && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'grantedBy', 'updatedAt']);
+        && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'grantedBy', 'updatedAt'])
+        && isBureaucrat();
 
-      allow delete: if isBureaucrat() && isValidId(userId);
+      allow delete: if isValidId(userId)
+        && userId != request.auth.uid
+        && isBureaucrat();
     }
 
-    // Collection: /blocked_users/{userId} (Managed by Admins and Bureaucrats)
+    // Collection: /blocked_users/{userId} (Managed by Admins and Bureaucrats with tier protection)
     match /blocked_users/{userId} {
       allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
       allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
 
-      allow create: if isAdmin()
+      allow create: if isVerified()
         && isValidId(userId)
         && isValidBlockedUser(incoming(), userId)
         && incoming().blockedBy == request.auth.uid
-        && incoming().keys().hasAll(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
-        && incoming().keys().hasOnly(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
-        && incoming().createdAt == request.time;
+        && incoming().createdAt == request.time
+        && canModerateTarget(userId);
 
-      allow update: if isAdmin()
+      allow update: if isVerified()
         && isValidId(userId)
         && isValidBlockedUser(incoming(), userId)
         && incoming().uid == existing().uid
         && incoming().createdAt == existing().createdAt
         && incoming().blockedBy == request.auth.uid
-        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'reason', 'blockedBy', 'blockedByName']);
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'reason', 'blockedBy', 'blockedByName'])
+        && canModerateTarget(userId);
 
-      allow delete: if isAdmin() && isValidId(userId);
+      allow delete: if isValidId(userId) && canModerateTarget(userId);
     }
 
     // Collection: /lgpd_logs/{logId} (Immutable LGPD Compliance Audit Log)
     match /lgpd_logs/{logId} {
       allow get: if isValidId(logId) && isAdmin();
-      allow list: if isSignedIn() && (resource.data.executedBy == request.auth.uid && isAdmin() || isAdmin());
+      allow list: if isAdmin();
 
-      allow create: if isAdmin()
+      allow create: if isVerified()
         && isValidId(logId)
         && isValidLgpdLog(incoming())
-        && incoming().keys().hasAll(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
-        && incoming().keys().hasOnly(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
-        && incoming().createdAt == request.time;
+        && incoming().createdAt == request.time
+        && isAdmin();
 
       allow update: if false;
       allow delete: if false;
@@ -587,27 +668,23 @@ service cloud.firestore {
 
     // Collection: /extensions/{extensionId} (Publicly loaded at site boot; writable exclusively by Bureaucrats)
     match /extensions/{extensionId} {
-      allow get: if isValidId(extensionId);
+      allow get: if isValidId(extensionId) && (
+        resource == null ||
+        existing().scope == 'site' ||
+        isBureaucrat()
+      );
+
       allow list: if resource.data.scope == 'site' || isBureaucrat();
 
-      allow create: if isBureaucrat()
-        && isNotBlocked()
+      allow create: if isVerified()
         && isValidId(extensionId)
         && isValidWikiExtension(incoming(), extensionId)
         && incoming().updatedBy == request.auth.uid
-        && incoming().keys().hasAll([
-          'id', 'scope', 'name', 'description', 'category', 'enabled',
-          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
-        ])
-        && incoming().keys().hasOnly([
-          'id', 'scope', 'name', 'description', 'category', 'enabled',
-          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
-        ])
         && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time;
+        && incoming().updatedAt == request.time
+        && isBureaucrat();
 
-      allow update: if isBureaucrat()
-        && isNotBlocked()
+      allow update: if isVerified()
         && isValidId(extensionId)
         && isValidWikiExtension(incoming(), extensionId)
         && incoming().id == existing().id
@@ -618,9 +695,10 @@ service cloud.firestore {
         && incoming().diff(existing()).affectedKeys().hasOnly([
           'name', 'description', 'category', 'enabled', 'sortOrder',
           'settings', 'updatedBy', 'updatedByName', 'updatedAt'
-        ]);
+        ])
+        && isBureaucrat();
 
-      allow delete: if isBureaucrat() && isNotBlocked() && isValidId(extensionId);
+      allow delete: if isValidId(extensionId) && isBureaucrat();
     }
   }
 }
