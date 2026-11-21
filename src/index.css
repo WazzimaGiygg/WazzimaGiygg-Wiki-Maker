@@ -227,6 +227,50 @@
   --wiki-table-head-bg: #122038;
 }
 
+:root[data-wiki-theme="windows-95"] {
+  --wiki-canvas: #008080;
+  --wiki-surface: #e8e6df;
+  --wiki-surface-nav: #d4d0c8;
+  --wiki-surface-footer: #d4d0c8;
+  --wiki-surface-alt: #ffffff;
+  --wiki-border: #808080;
+  --wiki-heading: #000000;
+  --wiki-text: #111827;
+  --wiki-muted: #4b5563;
+  --wiki-accent: #000080;
+  --wiki-accent-hover: #102a9c;
+  --wiki-accent-soft: #000080;
+  --wiki-accent-soft-text: #ffffff;
+  --wiki-inline-code-bg: #d4d0c8;
+  --wiki-inline-code-text: #000000;
+  --wiki-code-bg: #111827;
+  --wiki-code-text: #f1f5f9;
+  --wiki-table-head-bg: #d4d0c8;
+  --wiki-font-display: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --wiki-font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root.dark[data-wiki-theme="windows-95"] {
+  --wiki-canvas: #06262a;
+  --wiki-surface: #1a202c;
+  --wiki-surface-nav: #1e2533;
+  --wiki-surface-footer: #161b26;
+  --wiki-surface-alt: #10151f;
+  --wiki-border: #475569;
+  --wiki-heading: #f8fafc;
+  --wiki-text: #d8e0ec;
+  --wiki-muted: #94a3b8;
+  --wiki-accent: #1d4ed8;
+  --wiki-accent-hover: #2563eb;
+  --wiki-accent-soft: #1e40af;
+  --wiki-accent-soft-text: #ffffff;
+  --wiki-inline-code-bg: #222b3d;
+  --wiki-inline-code-text: #f1f5f9;
+  --wiki-code-bg: #090d16;
+  --wiki-code-text: #e2e8f0;
+  --wiki-table-head-bg: #222b3d;
+}
+
 @layer base {
   html {
     font-family: var(--wiki-font-sans);
@@ -328,6 +372,64 @@
 :root.dark[data-wiki-theme="windows-1"] [data-wiki-surface="accent"] {
   color: #04080e;
   border-color: #38bdf8;
+}
+
+/* Windows 95 3D Beveled Window Chrome & Crisp Paper Document Sheet */
+:root[data-wiki-theme="windows-95"] [data-wiki-surface="panel"],
+:root[data-wiki-theme="windows-95"] [data-wiki-surface="inset"],
+:root[data-wiki-theme="windows-95"] [data-wiki-surface="accent"],
+:root[data-wiki-theme="windows-95"] [data-wiki-surface="nav-active"],
+:root[data-wiki-theme="windows-95"] .wiki-prose pre,
+:root[data-wiki-theme="windows-95"] .wiki-prose code,
+:root[data-wiki-theme="windows-95"] button,
+:root[data-wiki-theme="windows-95"] input,
+:root[data-wiki-theme="windows-95"] select,
+:root[data-wiki-theme="windows-95"] textarea {
+  border-radius: 0;
+}
+
+:root[data-wiki-theme="windows-95"] [data-wiki-surface="nav"] {
+  border-top: 5px solid var(--wiki-accent);
+  border-bottom: 1px solid #000000;
+  box-shadow: inset 0 -1px 0 #808080, inset 0 1px 0 #ffffff;
+}
+
+:root[data-wiki-theme="windows-95"]:not(.dark) [data-wiki-surface="panel"] {
+  border: 1px solid #404040;
+  box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080, 2px 2px 0 rgba(0, 0, 0, 0.28);
+}
+
+:root[data-wiki-theme="windows-95"]:not(.dark) [data-wiki-document="sheet"] {
+  background-color: #ffffff;
+}
+
+:root[data-wiki-theme="windows-95"]:not(.dark) [data-wiki-surface="inset"] {
+  border: 1px solid #808080;
+  box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #ffffff;
+}
+
+:root[data-wiki-theme="windows-95"]:not(.dark) [data-wiki-surface="accent"] {
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px 0 #4d79ff, inset -1px -1px 0 #000040;
+}
+
+:root.dark[data-wiki-theme="windows-95"] [data-wiki-surface="nav"] {
+  border-top: 5px solid var(--wiki-accent);
+  border-bottom: 1px solid #020617;
+  box-shadow: inset 0 -1px 0 #0f172a, inset 0 1px 0 #334155;
+}
+
+:root.dark[data-wiki-theme="windows-95"] [data-wiki-surface="panel"] {
+  border: 1px solid #090d16;
+  box-shadow: inset 1px 1px 0 #334155, inset -1px -1px 0 #090d16, 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+
+:root.dark[data-wiki-theme="windows-95"] [data-wiki-surface="link"] {
+  color: #60a5fa;
+}
+
+:root.dark[data-wiki-theme="windows-95"] [data-wiki-surface="progress"] {
+  background-color: #60a5fa;
 }
 
 /* Editorial Markdown typography inside the Wiki reading canvas */

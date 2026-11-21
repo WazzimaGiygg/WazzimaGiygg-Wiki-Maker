@@ -3,7 +3,8 @@ export type WikiThemeId =
   | 'archival-parchment'
   | 'botanical-atlas'
   | 'cobalt-monograph'
-  | 'windows-1';
+  | 'windows-1'
+  | 'windows-95';
 
 export type RgbTuple = [number, number, number];
 
@@ -271,6 +272,52 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         muted: [148, 163, 184],
         border: [56, 189, 248],
         accent: [56, 189, 248],
+        missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'windows-95',
+    name: 'Windows 95',
+    tagline:
+      'Área de trabalho verde-petróleo (#008080), janelas prateadas com chanfro 3D e barra azul-marinho clássica.',
+    typographyLabel: 'Public Sans + IBM Plex Mono',
+    editionLabel: 'Coleção Clássica 95',
+    lightSwatches: ['bg-[#008080]', 'bg-[#d4d0c8]', 'bg-[#000080]'],
+    darkSwatches: ['bg-[#06262a]', 'bg-[#1a202c]', 'bg-[#60a5fa]'],
+    metaThemeColor: {
+      light: '#000080',
+      dark: '#06262a',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 255, 255],
+        surfaceBg: [226, 224, 217],
+        chipBg: [212, 208, 200],
+        blockquoteBg: [240, 239, 235],
+        codeBlockBg: [17, 24, 39],
+        codeBlockText: [241, 245, 249],
+        codeBlockBorder: [128, 128, 128],
+        heading: [0, 0, 0],
+        body: [17, 24, 39],
+        muted: [75, 85, 99],
+        border: [128, 128, 128],
+        accent: [0, 0, 128],
+        missingLink: [168, 0, 0],
+      },
+      dark: {
+        pageBg: [22, 27, 38],
+        surfaceBg: [16, 21, 31],
+        chipBg: [34, 43, 61],
+        blockquoteBg: [26, 33, 49],
+        codeBlockBg: [9, 13, 22],
+        codeBlockText: [226, 232, 240],
+        codeBlockBorder: [51, 65, 85],
+        heading: [248, 250, 252],
+        body: [216, 224, 236],
+        muted: [148, 163, 184],
+        border: [71, 85, 105],
+        accent: [96, 165, 250],
         missingLink: [251, 191, 36],
       },
     },
