@@ -2,6 +2,7 @@ import React from 'react';
 
 interface FooterBadgesProps {
   siteTitle?: string;
+  showWikiomiteBadge?: boolean;
   onNavigateHome: () => void;
   onNavigateLegal: () => void;
   onNavigateDossier: () => void;
@@ -12,6 +13,7 @@ interface FooterBadgesProps {
  */
 export const FooterBadges: React.FC<FooterBadgesProps> = ({
   siteTitle = 'WazzimaGiygg Maker',
+  showWikiomiteBadge = false,
   onNavigateHome,
   onNavigateLegal,
   onNavigateDossier,
@@ -52,6 +54,27 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
           </span>
         </div>
       </button>
+
+      {showWikiomiteBadge && (
+        <button
+          type="button"
+          onClick={onNavigateHome}
+          title="Wikidiota (Tema Paródia) — Mantido pela Wikiomite Foundation durante o Reinado do Chronus"
+          className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-[#450a0a] via-[#7f1d1d] to-[#1c1917] border border-red-400/70 hover:border-red-300 rounded transition p-1 shadow-xs group cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+        >
+          <div className="w-5 h-5 rounded flex items-center justify-center bg-red-500/20 text-red-200 border border-red-400/40 text-[7px] font-mono font-bold shrink-0">
+            WF
+          </div>
+          <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
+            <span className="text-[5px] font-mono tracking-tighter text-red-200 font-bold uppercase">
+              WIKIOMITE
+            </span>
+            <span className="text-[7px] font-sans font-bold text-white group-hover:text-red-100 tracking-tight">
+              Chronus Era
+            </span>
+          </div>
+        </button>
+      )}
 
       {/* 2. Suporte Tickets 24h */}
       <a

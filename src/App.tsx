@@ -2281,10 +2281,17 @@ function WikiWorkspace() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-700 dark:text-blue-400 hover:underline"
+                          data-wiki-surface="link"
                         >
                           Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
                         </a>{' '}
                         and the GNU General Public License v2+.
+                        {activeTheme.institutionMeta && (
+                          <span>
+                            {' '}
+                            · {activeTheme.institutionMeta.notice}
+                          </span>
+                        )}
                       </div>
                     </footer>
                   </article>
@@ -2528,10 +2535,18 @@ function WikiWorkspace() {
 
           <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              WikiWazzimaGiygg Ecosystem · Infrastructure, Licensing &amp; Governance
+              {activeTheme.institutionMeta ? (
+                <>
+                  {activeTheme.institutionMeta.organization} ·{' '}
+                  {activeTheme.institutionMeta.eraLabel} · {activeTheme.institutionMeta.notice}
+                </>
+              ) : (
+                'WikiWazzimaGiygg Ecosystem · Infrastructure, Licensing & Governance'
+              )}
             </span>
             <FooterBadges
               siteTitle={siteTitle}
+              showWikiomiteBadge={activeTheme.id === 'wikidiota'}
               onNavigateHome={() => navigateToPage('start')}
               onNavigateLegal={() => navigateToLegal('privacy')}
               onNavigateDossier={() => navigateToPage(DOSSIER_PAGE_SLUG)}

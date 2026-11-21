@@ -1424,10 +1424,13 @@ class WikiPdfWriter {
     }
   }
 
-  applyFooters(siteTitle: string, slug: string): void {
+  applyFooters(siteTitle: string, slug: string, theme?: WikiThemeDefinition): void {
     const total = this.doc.getNumberOfPages();
     const footerY = PAGE_HEIGHT - 24;
-    const leftText = toPdfSafeText(`${siteTitle} · :${slug} · CC BY-SA 4.0`);
+    const instSuffix = theme?.institutionMeta
+      ? ` · ${theme.institutionMeta.organization} (${theme.institutionMeta.eraLabel})`
+      : '';
+    const leftText = toPdfSafeText(`${siteTitle}${instSuffix} · :${slug} · CC BY-SA 4.0`);
 
     for (let i = 1; i <= total; i++) {
       this.doc.setPage(i);
@@ -1502,7 +1505,7 @@ export async function exportArticleToPdf(
     writer.renderReferencesSection(references, referencesTitle);
   }
 
-  writer.applyFooters(siteTitle, page.slug);
+  writer.applyFooters(siteTitle, page.slug, resolvedTheme);
 
   const safeSlug = page.slug.replace(/[^a-zA-Z0-9_-]+/g, '-') || 'article';
   const filename = `${safeSlug}.pdf`;

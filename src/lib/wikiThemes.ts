@@ -4,7 +4,9 @@ export type WikiThemeId =
   | 'botanical-atlas'
   | 'cobalt-monograph'
   | 'windows-1'
-  | 'windows-95';
+  | 'windows-95'
+  | 'windows-xp'
+  | 'wikidiota';
 
 export type RgbTuple = [number, number, number];
 
@@ -24,12 +26,19 @@ export interface WikiThemePdfTokens {
   missingLink: RgbTuple;
 }
 
+export interface WikiThemeInstitutionMeta {
+  organization: string;
+  eraLabel: string;
+  notice: string;
+}
+
 export interface WikiThemeDefinition {
   id: WikiThemeId;
   name: string;
   tagline: string;
   typographyLabel: string;
   editionLabel: string;
+  institutionMeta?: WikiThemeInstitutionMeta;
   lightSwatches: [string, string, string];
   darkSwatches: [string, string, string];
   metaThemeColor: {
@@ -318,6 +327,104 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         muted: [148, 163, 184],
         border: [71, 85, 105],
         accent: [96, 165, 250],
+        missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'windows-xp',
+    name: 'Windows XP (Luna)',
+    tagline:
+      'Estilo Luna em azul-royal (#0054e3), barras em creme clássico (#ece9d8) e cantos suavemente arredondados.',
+    typographyLabel: 'DM Sans + Plus Jakarta Sans',
+    editionLabel: 'Coleção Luna 2001',
+    lightSwatches: ['bg-[#d6e5f5]', 'bg-[#ece9d8]', 'bg-[#0054e3]'],
+    darkSwatches: ['bg-[#0c0f17]', 'bg-[#171c28]', 'bg-[#3b82f6]'],
+    metaThemeColor: {
+      light: '#0054e3',
+      dark: '#171c28',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 255, 255],
+        surfaceBg: [236, 233, 216],
+        chipBg: [220, 235, 255],
+        blockquoteBg: [244, 247, 252],
+        codeBlockBg: [15, 23, 42],
+        codeBlockText: [226, 232, 240],
+        codeBlockBorder: [127, 157, 185],
+        heading: [0, 34, 102],
+        body: [24, 34, 48],
+        muted: [74, 88, 110],
+        border: [141, 178, 227],
+        accent: [0, 84, 227],
+        missingLink: [180, 83, 9],
+      },
+      dark: {
+        pageBg: [23, 28, 40],
+        surfaceBg: [12, 15, 23],
+        chipBg: [30, 41, 66],
+        blockquoteBg: [18, 24, 38],
+        codeBlockBg: [8, 10, 16],
+        codeBlockText: [226, 232, 240],
+        codeBlockBorder: [43, 54, 77],
+        heading: [248, 250, 252],
+        body: [216, 226, 242],
+        muted: [148, 163, 184],
+        border: [59, 130, 246],
+        accent: [96, 165, 250],
+        missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'wikidiota',
+    name: 'Wikidiota (Paródia)',
+    tagline:
+      'Enciclopédia paródica sob tutela da Wikiomite Foundation durante o Reinado do Chronus — humor editorial, carmesim satírico e serifa solene.',
+    typographyLabel: 'Fraunces + Plus Jakarta Sans',
+    editionLabel: 'Wikiomite Foundation · Reinado do Chronus',
+    institutionMeta: {
+      organization: 'Wikiomite Foundation',
+      eraLabel: 'Reinado do Chronus',
+      notice:
+        'Edição paródica e satírica mantida sob os anais da Wikiomite Foundation durante o Reinado do Chronus.',
+    },
+    lightSwatches: ['bg-[#f6f2e9]', 'bg-[#ffffff]', 'bg-[#b91c1c]'],
+    darkSwatches: ['bg-[#120e14]', 'bg-[#1b151e]', 'bg-[#f87171]'],
+    metaThemeColor: {
+      light: '#b91c1c',
+      dark: '#1b151e',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 255, 255],
+        surfaceBg: [239, 233, 218],
+        chipBg: [254, 226, 226],
+        blockquoteBg: [249, 245, 236],
+        codeBlockBg: [28, 25, 23],
+        codeBlockText: [245, 240, 232],
+        codeBlockBorder: [214, 207, 192],
+        heading: [28, 25, 23],
+        body: [41, 37, 36],
+        muted: [87, 83, 78],
+        border: [214, 207, 192],
+        accent: [185, 28, 28],
+        missingLink: [180, 83, 9],
+      },
+      dark: {
+        pageBg: [27, 21, 30],
+        surfaceBg: [18, 14, 20],
+        chipBg: [59, 32, 43],
+        blockquoteBg: [37, 29, 42],
+        codeBlockBg: [12, 9, 14],
+        codeBlockText: [243, 236, 245],
+        codeBlockBorder: [59, 45, 66],
+        heading: [250, 245, 255],
+        body: [231, 220, 232],
+        muted: [184, 167, 189],
+        border: [59, 45, 66],
+        accent: [248, 113, 113],
         missingLink: [251, 191, 36],
       },
     },
