@@ -31,10 +31,64 @@ export const VALIDATION_LIMITS = {
   EMAIL_MAX_LENGTH: 200,
   BLOCK_REASON_MAX_LENGTH: 300,
   LGPD_SUMMARY_MAX_LENGTH: 300,
+  EXTENSION_NAME_MAX_LENGTH: 80,
+  EXTENSION_DESCRIPTION_MAX_LENGTH: 300,
+  EXTENSION_FOOTER_TITLE_MAX_LENGTH: 80,
+  EXTENSION_MIN_HEADINGS_MIN: 1,
+  EXTENSION_MIN_HEADINGS_MAX: 10,
 } as const;
 
 export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
 export type LgpdErasureMode = 'anonymize' | 'purge';
+
+export type WikiExtensionId =
+  | 'toc'
+  | 'references'
+  | 'infoboxes'
+  | 'reading-progress'
+  | 'print-view'
+  | 'random-article'
+  | 'copy-link'
+  | 'realtime-toasts'
+  | 'page-discussion';
+
+export type WikiExtensionCategory = 'reading' | 'navigation' | 'authoring' | 'collaboration';
+
+export interface WikiExtensionSettings {
+  defaultExpanded?: boolean;
+  minHeadings?: number;
+  footerTitle?: string;
+  showOutlineLink?: boolean;
+  allowEditorToolbar?: boolean;
+  allowAutoProfileCard?: boolean;
+  showInNavbar?: boolean;
+  showInSidebar?: boolean;
+  excludeDiscussions?: boolean;
+  showInHeader?: boolean;
+  showToastFeedback?: boolean;
+  notifyWhileEditing?: boolean;
+  allowAnonymousRead?: boolean;
+  autoExitOnNavigate?: boolean;
+}
+
+export interface WikiExtensionRecord {
+  id: WikiExtensionId;
+  scope: 'site';
+  name: string;
+  description: string;
+  category: WikiExtensionCategory;
+  enabled: boolean;
+  sortOrder: number;
+  settings: WikiExtensionSettings;
+  updatedBy: string;
+  updatedByName: string;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
+}
+
+export interface ResolvedWikiExtension extends WikiExtensionRecord {
+  persisted: boolean;
+}
 
 export interface AdminRecord {
   uid: string;

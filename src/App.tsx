@@ -11,11 +11,13 @@ import {
   Edit3,
   FilePlus2,
   History,
+  Link2,
   Lock,
   Menu,
   MessageSquare,
   Plus,
   Printer,
+  Shuffle,
   Sparkles,
   Trash2,
   User as UserIcon,
@@ -31,6 +33,7 @@ import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
 import { PrivacyNoticeBanner } from './components/PrivacyNoticeBanner';
+import { ReadingProgressBar } from './components/ReadingProgressBar';
 import { ReferencesFooter } from './components/ReferencesFooter';
 import { RevisionHistory } from './components/RevisionHistory';
 import { ShortcutsModal } from './components/ShortcutsModal';
@@ -39,6 +42,11 @@ import { ToastContainer, type ToastNotification } from './components/ToastContai
 import { UserEditsPanel } from './components/UserEditsPanel';
 import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance } from './lib/adminService';
+import {
+  getInitialSiteExtensionsState,
+  type SiteExtensionsState,
+  subscribeSiteExtensions,
+} from './lib/extensionsService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
 import { evaluateFrameContext } from './lib/frameGuard';
 import {
@@ -131,6 +139,9 @@ function WikiWorkspace() {
   const [publicPages, setPublicPages] = React.useState<WikiPage[]>([]);
   const [privatePages, setPrivatePages] = React.useState<WikiPage[]>([]);
   const [pagesLoaded, setPagesLoaded] = React.useState(false);
+  const [extensionsState, setExtensionsState] = React.useState<SiteExtensionsState>(() =>
+    getInitialSiteExtensionsState()
+  );
 
   const [view, setView] = React.useState<WorkspaceView>(initialRoute.view);
   const [legalSection, setLegalSection] = React.useState<LegalSectionTab>(
@@ -156,6 +167,7 @@ function WikiWorkspace() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [copiedSource, setCopiedSource] = React.useState(false);
+  const [copiedPageLink, setCopiedPageLink] = React.useState(false);
   const [isPrintView, setIsPrintView] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
@@ -237,6 +249,33 @@ function WikiWorkspace() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const tocExt = extensionsState.byId.toc;
+  const refsExt = extensionsState.byId.references;
+  const infoboxExt = extensionsState.byId.infoboxes;
+  const progressExt = extensionsState.byId['reading-progress'];
+  const printExt = extensionsState.byId['print-view'];
+  const randomExt = extensionsState.byId['random-article'];
+  const copyLinkExt = extensionsState.byId['copy-link'];
+  const realtimeExt = extensionsState.byId['realtime-toasts'];
+  const discussionExt = extensionsState.byId['page-discussion'];
+
+  const canViewDiscussion = Boolean(
+    discussionExt.enabled && (user || discussionExt.settings.allowAnonymousRead !== false)
+  );
+  const autoExitPrintOnNavigate = printExt.settings.autoExitOnNavigate !== false;
+
+  React.useEffect(() => {
+    if (!printExt.enabled && isPrintView) {
+      setIsPrintView(false);
+    }
+  }, [printExt.enabled, isPrintView]);
+
+  React.useEffect(() => {
+    if (!canViewDiscussion && activeTab === 'comments') {
+      setActiveTab('read');
+    }
+  }, [canViewDiscussion, activeTab]);
+
   // Listen for browser back/forward hash navigation
   React.useEffect(() => {
     const handleHashChange = () => {
@@ -253,22 +292,31 @@ function WikiWorkspace() {
       setActiveTab('read');
       setSaveError(null);
       setConfirmDeleteOpen(false);
-      setIsPrintView(false);
+      if (autoExitPrintOnNavigate) {
+        setIsPrintView(false);
+      }
+      setCopiedPageLink(false);
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [autoExitPrintOnNavigate]);
 
-  const navigateToPage = React.useCallback((slug: string) => {
-    const normalized = toWikiSlug(slug) || 'start';
-    setActiveSlug(normalized);
-    setView('page');
-    setActiveTab('read');
-    setSaveError(null);
-    setConfirmDeleteOpen(false);
-    setIsPrintView(false);
-    window.location.hash = `#/page/${normalized}`;
-  }, []);
+  const navigateToPage = React.useCallback(
+    (slug: string) => {
+      const normalized = toWikiSlug(slug) || 'start';
+      setActiveSlug(normalized);
+      setView('page');
+      setActiveTab('read');
+      setSaveError(null);
+      setConfirmDeleteOpen(false);
+      if (autoExitPrintOnNavigate) {
+        setIsPrintView(false);
+      }
+      setCopiedPageLink(false);
+      window.location.hash = `#/page/${normalized}`;
+    },
+    [autoExitPrintOnNavigate]
+  );
 
   // Auth listener
   React.useEffect(() => {
@@ -306,6 +354,12 @@ function WikiWorkspace() {
     });
     return unsub;
   }, [navigateToPage]);
+
+  // Load site-wide extension configurations from Firebase on Wiki boot
+  React.useEffect(() => {
+    if (!authReady) return;
+    return subscribeSiteExtensions(setExtensionsState);
+  }, [authReady]);
 
   // Subscribe to public pages (always allowed by rules)
   React.useEffect(() => {
@@ -428,8 +482,15 @@ function WikiWorkspace() {
       title: activePage.title,
     };
 
-    if (editedByOtherCollaborator && (versionAdvanced || timestampAdvanced || bodyChanged)) {
+    if (
+      realtimeExt.enabled &&
+      editedByOtherCollaborator &&
+      (versionAdvanced || timestampAdvanced || bodyChanged)
+    ) {
       const isEditingNow = activeTab === 'edit';
+      if (isEditingNow && realtimeExt.settings.notifyWhileEditing === false) {
+        return;
+      }
       pushToast({
         tone: isEditingNow ? 'warning' : 'info',
         title: isEditingNow
@@ -445,7 +506,16 @@ function WikiWorkspace() {
         durationMs: isEditingNow ? 10000 : 7500,
       });
     }
-  }, [pagesLoaded, view, activePage, activeTab, user, pushToast]);
+  }, [
+    pagesLoaded,
+    view,
+    activePage,
+    activeTab,
+    user,
+    pushToast,
+    realtimeExt.enabled,
+    realtimeExt.settings.notifyWhileEditing,
+  ]);
 
   // Subscribe to active page comments
   React.useEffect(() => {
@@ -589,6 +659,32 @@ function WikiWorkspace() {
     window.location.hash = section === 'terms' ? '#/terms' : '#/privacy';
   };
 
+  const navigateToRandomPage = React.useCallback(() => {
+    if (!randomExt.enabled || allPages.length === 0) return;
+    const excludeDiscussions = randomExt.settings.excludeDiscussions !== false;
+    const contentPages = excludeDiscussions
+      ? allPages.filter((p) => !p.slug.endsWith('-discussion') && !p.tags.includes('discussion'))
+      : allPages;
+    const basePool = contentPages.length > 0 ? contentPages : allPages;
+    const currentSlug = view === 'page' ? activeSlug : null;
+    const candidates =
+      currentSlug && basePool.length > 1
+        ? basePool.filter((p) => p.slug !== currentSlug)
+        : basePool;
+    const randomIndex = Math.floor(Math.random() * candidates.length);
+    const chosen = candidates[randomIndex];
+    if (chosen) {
+      navigateToPage(chosen.slug);
+    }
+  }, [
+    randomExt.enabled,
+    randomExt.settings.excludeDiscussions,
+    allPages,
+    view,
+    activeSlug,
+    navigateToPage,
+  ]);
+
   const handleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
@@ -656,14 +752,16 @@ function WikiWorkspace() {
       // Ctrl/Cmd + K -> Focus sidebar page search filter
       if (isMod && !e.shiftKey && !e.altKey && keyLower === 'k') {
         e.preventDefault();
-        if (window.innerWidth < 1024) {
+        const isMobile = window.innerWidth < 1024;
+        if (isMobile) {
           setMobileMenuOpen(true);
         }
-        requestAnimationFrame(() => {
-          const input = document.getElementById('sidebar-page-filter') as HTMLInputElement | null;
+        window.setTimeout(() => {
+          const inputId = isMobile ? 'sidebar-page-filter-mobile' : 'sidebar-page-filter';
+          const input = document.getElementById(inputId) as HTMLInputElement | null;
           input?.focus();
           input?.select();
-        });
+        }, isMobile ? 40 : 0);
         return;
       }
 
@@ -685,8 +783,12 @@ function WikiWorkspace() {
         return;
       }
 
-      // Esc -> Close confirmation/modal, exit Print View, or return from Edit to Read mode
+      // Esc -> Close confirmation/modal/drawer, exit Print View, or return from Edit to Read mode
       if (e.key === 'Escape') {
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+          return;
+        }
         if (shortcutsOpen) {
           setShortcutsOpen(false);
           return;
@@ -714,6 +816,7 @@ function WikiWorkspace() {
     user,
     isBlocked,
     canEditActivePage,
+    mobileMenuOpen,
     shortcutsOpen,
     isPrintView,
     confirmDeleteOpen,
@@ -811,6 +914,59 @@ function WikiWorkspace() {
     setTimeout(() => setCopiedSource(false), 1800);
   };
 
+  const handleCopyPageLink = async () => {
+    if (!activePage) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}#/page/${activePage.slug}`;
+    let copied = false;
+
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(shareUrl);
+        copied = true;
+      }
+    } catch {
+      copied = false;
+    }
+
+    if (!copied) {
+      try {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = shareUrl;
+        tempInput.setAttribute('readonly', '');
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        copied = document.execCommand('copy');
+        document.body.removeChild(tempInput);
+      } catch {
+        copied = false;
+      }
+    }
+
+    if (copied) {
+      setCopiedPageLink(true);
+      window.setTimeout(() => setCopiedPageLink(false), 2000);
+      if (copyLinkExt.settings.showToastFeedback !== false) {
+        pushToast({
+          tone: 'success',
+          title: 'Link copied to clipboard',
+          description: `Direct URL for "${activePage.title}" is ready to share.`,
+          meta: `#/page/${activePage.slug}`,
+          durationMs: 3200,
+        });
+      }
+    } else if (copyLinkExt.settings.showToastFeedback !== false) {
+      pushToast({
+        tone: 'warning',
+        title: 'Could not copy link',
+        description: 'Clipboard access was blocked by the browser.',
+        meta: `#/page/${activePage.slug}`,
+        durationMs: 4500,
+      });
+    }
+  };
+
   const handleDownloadMarkdown = () => {
     if (!activePage) return;
     const blob = new Blob([`# ${activePage.title}\n\n${activePage.content}`], {
@@ -830,9 +986,18 @@ function WikiWorkspace() {
   );
 
   const articleReferences = React.useMemo(
-    () => (activePage ? extractArticleReferences(activePage.content).references : []),
-    [activePage?.content]
+    () =>
+      activePage && refsExt.enabled
+        ? extractArticleReferences(activePage.content).references
+        : [],
+    [activePage?.content, refsExt.enabled]
   );
+
+  const tocMinHeadings = Math.max(1, tocExt.settings.minHeadings ?? 1);
+  const outlineToc = tocExt.enabled && toc.length >= tocMinHeadings ? toc : [];
+  const outlineRefs =
+    refsExt.enabled && refsExt.settings.showOutlineLink !== false ? articleReferences : [];
+  const referencesSectionTitle = refsExt.settings.footerTitle || 'Referências';
 
   const activeCategoryLabel = activePage
     ? WIKI_CATEGORIES.find((c) => c.id === activePage.category)?.label ?? activePage.category
@@ -987,6 +1152,18 @@ function WikiWorkspace() {
             >
               Markdown Guide
             </a>
+            {randomExt.enabled && randomExt.settings.showInNavbar !== false && (
+              <button
+                type="button"
+                disabled={allPages.length === 0}
+                onClick={navigateToRandomPage}
+                title="Abrir um artigo aleatório da base de conhecimento"
+                className="inline-flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
+              >
+                <Shuffle className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
+                <span>Artigo aleatório</span>
+              </button>
+            )}
           </nav>
 
           {/* Zone 3: 1 Primary CTA */}
@@ -1012,6 +1189,17 @@ function WikiWorkspace() {
             )}
           </div>
         </div>
+        <ReadingProgressBar
+          visible={Boolean(
+            progressExt.enabled &&
+              pagesLoaded &&
+              view === 'page' &&
+              activePage &&
+              activeTab === 'read' &&
+              !isPrintView
+          )}
+          articleKey={activePage ? `${activePage.slug}-${activePage.version}-${activePage.content.length}` : undefined}
+        />
       </header>
 
       {/* Main Workspace Frame */}
@@ -1020,14 +1208,21 @@ function WikiWorkspace() {
           pages={allPages}
           activeSlug={view === 'page' ? activeSlug : null}
           isOpenMobile={mobileMenuOpen}
+          gestureDisabled={isPrintView}
           user={user}
           personalPageSlug={currentCollaborator?.personalPageSlug}
           discussionPageSlug={currentCollaborator?.discussionPageSlug}
           governanceRole={governanceRole}
           isAdminViewActive={view === 'admin'}
           isDark={isDark}
+          onOpenMobile={() => setMobileMenuOpen(true)}
           onCloseMobile={() => setMobileMenuOpen(false)}
           onSelectPage={navigateToPage}
+          onRandomPage={
+            randomExt.enabled && randomExt.settings.showInSidebar !== false
+              ? navigateToRandomPage
+              : undefined
+          }
           onQuickCreateSlug={navigateToCreate}
           onOpenAdmin={navigateToAdmin}
           onOpenShortcuts={() => setShortcutsOpen(true)}
@@ -1093,6 +1288,7 @@ function WikiWorkspace() {
                   currentUserRole={
                     user.email === ADMIN_EMAIL && user.emailVerified ? 'bureaucrat' : governanceRole
                   }
+                  extensionsState={extensionsState}
                   onSelectPage={navigateToPage}
                 />
               ) : (
@@ -1138,6 +1334,14 @@ function WikiWorkspace() {
                   existingSlugs={existingSlugs}
                   isSaving={isSaving}
                   errorMessage={saveError}
+                  enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}
+                  enableReferencesToolbar={refsExt.enabled && refsExt.settings.allowEditorToolbar !== false}
+                  enableInfoboxPreview={infoboxExt.enabled}
+                  enableReferencesPreview={refsExt.enabled}
+                  showTocPreview={tocExt.enabled}
+                  tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
+                  tocMinHeadings={tocMinHeadings}
+                  referencesTitle={referencesSectionTitle}
                   onSave={handleCreateSave}
                   onCancel={() => navigateToPage('start')}
                   onNavigateSlug={navigateToPage}
@@ -1297,37 +1501,59 @@ function WikiWorkspace() {
                       {activePage.title}
                     </h1>
 
-                    <div
-                      data-wiki-chrome="edit-tools"
-                      className="print:hidden flex items-center gap-2 shrink-0"
-                    >
-                      <button
-                        type="button"
-                        aria-pressed={isPrintView}
-                        onClick={() => {
-                          setIsPrintView((prev) => {
-                            const next = !prev;
-                            if (next) {
-                              setActiveTab('read');
-                            }
-                            return next;
-                          });
-                        }}
-                        title={
-                          isPrintView
-                            ? 'Exit document Print View (Esc)'
-                            : 'Open clean, document-ready Print View'
-                        }
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
-                          isPrintView
-                            ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
-                            : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
-                        }`}
+                    {(copyLinkExt.enabled && copyLinkExt.settings.showInHeader !== false) ||
+                    (printExt.enabled && printExt.settings.showInHeader !== false) ? (
+                      <div
+                        data-wiki-chrome="edit-tools"
+                        className="print:hidden flex items-center gap-2 shrink-0"
                       >
-                        <Printer className="w-3.5 h-3.5 shrink-0" />
-                        <span>Print</span>
-                      </button>
-                    </div>
+                        {copyLinkExt.enabled && copyLinkExt.settings.showInHeader !== false && (
+                          <button
+                            type="button"
+                            onClick={() => void handleCopyPageLink()}
+                            title="Copy direct URL to this page"
+                            aria-label="Copy link to current page"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                          >
+                            {copiedPageLink ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            ) : (
+                              <Link2 className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            <span>{copiedPageLink ? 'Copied' : 'Copy Link'}</span>
+                          </button>
+                        )}
+
+                        {printExt.enabled && printExt.settings.showInHeader !== false && (
+                          <button
+                            type="button"
+                            aria-pressed={isPrintView}
+                            onClick={() => {
+                              setIsPrintView((prev) => {
+                                const next = !prev;
+                                if (next) {
+                                  setActiveTab('read');
+                                }
+                                return next;
+                              });
+                            }}
+                            title={
+                              isPrintView
+                                ? 'Exit document Print View (Esc)'
+                                : 'Open clean, document-ready Print View'
+                            }
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                              isPrintView
+                                ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
+                                : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            <Printer className="w-3.5 h-3.5 shrink-0" />
+                            <span>Print</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
@@ -1412,18 +1638,20 @@ function WikiWorkspace() {
                       <span>History</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('comments')}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                        activeTab === 'comments'
-                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                      }`}
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>Discussion ({comments.length})</span>
-                    </button>
+                    {canViewDiscussion && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('comments')}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                          activeTab === 'comments'
+                            ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                        }`}
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>Discussion ({comments.length})</span>
+                      </button>
+                    )}
 
                     <button
                       type="button"
@@ -1483,7 +1711,7 @@ function WikiWorkspace() {
                   <article
                     data-wiki-document="article"
                     className={
-                      !isPrintView && (toc.length > 0 || articleReferences.length > 0)
+                      !isPrintView && (outlineToc.length > 0 || outlineRefs.length > 0)
                         ? 'xl:col-span-9'
                         : 'xl:col-span-12'
                     }
@@ -1542,6 +1770,8 @@ function WikiWorkspace() {
 
                     <div className="flow-root">
                       {isPersonalProfilePage &&
+                        infoboxExt.enabled &&
+                        infoboxExt.settings.allowAutoProfileCard !== false &&
                         !parseMarkdownWithInfoboxes(activePage.content).some(
                           (seg) => seg.kind === 'infobox'
                         ) && (
@@ -1589,15 +1819,24 @@ function WikiWorkspace() {
                         content={activePage.content}
                         existingSlugs={existingSlugs}
                         onNavigateSlug={navigateToPage}
+                        showToc={tocExt.enabled}
+                        tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
+                        tocMinHeadings={tocMinHeadings}
+                        enableReferences={refsExt.enabled}
+                        referencesTitle={referencesSectionTitle}
+                        enableInfoboxes={infoboxExt.enabled}
                         showReferencesFooter={false}
                       />
                     </div>
 
-                    <ReferencesFooter
-                      references={articleReferences}
-                      existingSlugs={existingSlugs}
-                      onNavigateSlug={navigateToPage}
-                    />
+                    {refsExt.enabled && (
+                      <ReferencesFooter
+                        references={articleReferences}
+                        title={referencesSectionTitle}
+                        existingSlugs={existingSlugs}
+                        onNavigateSlug={navigateToPage}
+                      />
+                    )}
 
                     {isPersonalProfilePage && (
                       <UserEditsPanel
@@ -1612,7 +1851,7 @@ function WikiWorkspace() {
                       />
                     )}
 
-                    {isPersonalDiscussionPage && (
+                    {isPersonalDiscussionPage && canViewDiscussion && (
                       <section
                         aria-label="Personal discussion thread"
                         className="pt-6 mt-8 border-t border-slate-200 dark:border-slate-800 space-y-4"
@@ -1687,7 +1926,7 @@ function WikiWorkspace() {
                     </footer>
                   </article>
 
-                  {(toc.length > 0 || articleReferences.length > 0) && (
+                  {(outlineToc.length > 0 || outlineRefs.length > 0) && (
                     <aside
                       data-wiki-chrome="page-outline"
                       className="xl:col-span-3 xl:sticky xl:top-20 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-800 pt-4 xl:pt-0 xl:pl-5 space-y-2.5 print:hidden"
@@ -1696,7 +1935,7 @@ function WikiWorkspace() {
                         On this page
                       </div>
                       <ul className="space-y-1.5 text-xs">
-                        {toc.map((item) => (
+                        {outlineToc.map((item) => (
                           <li
                             key={item.id}
                             className={
@@ -1722,8 +1961,14 @@ function WikiWorkspace() {
                             </a>
                           </li>
                         ))}
-                        {articleReferences.length > 0 && (
-                          <li className="pl-0 pt-1.5 mt-1.5 border-t border-slate-200/70 dark:border-slate-800/70 font-medium">
+                        {outlineRefs.length > 0 && (
+                          <li
+                            className={`pl-0 font-medium ${
+                              outlineToc.length > 0
+                                ? 'pt-1.5 mt-1.5 border-t border-slate-200/70 dark:border-slate-800/70'
+                                : ''
+                            }`}
+                          >
                             <a
                               href="#referencias"
                               onClick={(e) => {
@@ -1732,9 +1977,9 @@ function WikiWorkspace() {
                               }}
                               className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
                             >
-                              <span className="truncate">Referências</span>
+                              <span className="truncate">{referencesSectionTitle}</span>
                               <span className="font-mono text-[10px] tabular-nums text-slate-400 dark:text-slate-500 shrink-0">
-                                {articleReferences.length}
+                                {outlineRefs.length}
                               </span>
                             </a>
                           </li>
@@ -1759,6 +2004,14 @@ function WikiWorkspace() {
                   existingSlugs={existingSlugs}
                   isSaving={isSaving}
                   errorMessage={saveError}
+                  enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}
+                  enableReferencesToolbar={refsExt.enabled && refsExt.settings.allowEditorToolbar !== false}
+                  enableInfoboxPreview={infoboxExt.enabled}
+                  enableReferencesPreview={refsExt.enabled}
+                  showTocPreview={tocExt.enabled}
+                  tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
+                  tocMinHeadings={tocMinHeadings}
+                  referencesTitle={referencesSectionTitle}
                   onSave={handleEditSave}
                   onCancel={() => setActiveTab('read')}
                   onNavigateSlug={navigateToPage}
@@ -1777,7 +2030,7 @@ function WikiWorkspace() {
                 />
               )}
 
-              {activeTab === 'comments' && (
+              {activeTab === 'comments' && canViewDiscussion && (
                 <PageComments
                   comments={comments}
                   currentUserId={user?.uid ?? null}

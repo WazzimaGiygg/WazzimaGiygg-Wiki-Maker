@@ -455,6 +455,91 @@
         }
       },
       "required": ["targetUid", "mode", "summary", "executedBy", "executedByName", "createdAt"]
+    },
+    "WikiExtension": {
+      "title": "WikiExtension",
+      "description": "Site-wide wiki extension configuration managed exclusively by Bureaucrats and loaded at site boot.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique extension identifier matching the document ID."
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["site"],
+          "description": "Configuration scope loaded at wiki startup."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Human-readable name of the wiki extension."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Summary of what the extension adds or configures."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["reading", "navigation", "authoring", "collaboration"],
+          "description": "Functional category of the extension."
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the extension is active on the wiki."
+        },
+        "sortOrder": {
+          "type": "integer",
+          "description": "Display sort order in the Bureaucrat extension manager."
+        },
+        "settings": {
+          "type": "object",
+          "description": "Typed per-extension configuration options map."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the Bureaucrat who last updated this extension."
+        },
+        "updatedByName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Display name of the Bureaucrat who last updated this extension."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial extension configuration creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the most recent configuration update."
+        }
+      },
+      "required": [
+        "id",
+        "scope",
+        "name",
+        "description",
+        "category",
+        "enabled",
+        "sortOrder",
+        "settings",
+        "updatedBy",
+        "updatedByName",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -493,6 +578,10 @@
     "/lgpd_logs/{logId}": {
       "schema": { "$ref": "#/entities/LgpdErasureLog" },
       "description": "Immutable LGPD data erasure compliance log."
+    },
+    "/extensions/{extensionId}": {
+      "schema": { "$ref": "#/entities/WikiExtension" },
+      "description": "Site-wide wiki extension configurations determined by Bureaucrats and loaded at site boot."
     }
   }
 }

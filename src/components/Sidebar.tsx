@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   Shield,
+  Shuffle,
   Sun,
   User as UserIcon,
   X,
@@ -23,14 +24,17 @@ interface SidebarProps {
   pages: WikiPage[];
   activeSlug: string | null;
   isOpenMobile: boolean;
+  gestureDisabled?: boolean;
   user: User | null;
   personalPageSlug?: string | null;
   discussionPageSlug?: string | null;
   governanceRole?: GovernanceRole;
   isAdminViewActive?: boolean;
   isDark: boolean;
+  onOpenMobile?: () => void;
   onCloseMobile: () => void;
   onSelectPage: (slug: string) => void;
+  onRandomPage?: () => void;
   onQuickCreateSlug: (slug: string) => void;
   onOpenAdmin?: () => void;
   onOpenShortcuts?: () => void;
@@ -39,18 +43,60 @@ interface SidebarProps {
   onToggleTheme: () => void;
 }
 
+const MOBILE_BREAKPOINT_PX = 1024;
+const EDGE_ACTIVATION_PX = 48;
+const AXIS_LOCK_THRESHOLD_PX = 10;
+const DRAWER_SWIPE_THRESHOLD_RATIO = 0.32;
+const SWIPE_VELOCITY_THRESHOLD = 0.35;
+
+function isConflictingTouchTarget(target: EventTarget | null): boolean {
+  let node = target instanceof HTMLElement ? target : null;
+  while (node && node !== document.body) {
+    const tag = node.tagName;
+    if (
+      tag === 'INPUT' ||
+      tag === 'TEXTAREA' ||
+      tag === 'SELECT' ||
+      node.isContentEditable
+    ) {
+      return true;
+    }
+    if (node.scrollWidth > node.clientWidth + 4) {
+      const style = window.getComputedStyle(node);
+      if (style.overflowX === 'auto' || style.overflowX === 'scroll') {
+        return true;
+      }
+    }
+    node = node.parentElement;
+  }
+  return false;
+}
+
+function hasOtherBlockingDialog(): boolean {
+  const dialogs = document.querySelectorAll('[role="dialog"]');
+  for (const el of dialogs) {
+    if (el.getAttribute('data-sidebar-drawer') !== 'true') {
+      return true;
+    }
+  }
+  return false;
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({
   pages,
   activeSlug,
   isOpenMobile,
+  gestureDisabled = false,
   user,
   personalPageSlug,
   discussionPageSlug,
   governanceRole = 'member',
   isAdminViewActive = false,
   isDark,
+  onOpenMobile,
   onCloseMobile,
   onSelectPage,
+  onRandomPage,
   onQuickCreateSlug,
   onOpenAdmin,
   onOpenShortcuts,
@@ -60,6 +106,205 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [quickSlugInput, setQuickSlugInput] = React.useState('');
+  const mobileBackdropRef = React.useRef<HTMLDivElement | null>(null);
+  const mobileDrawerRef = React.useRef<HTMLElement | null>(null);
+  const touchSessionRef = React.useRef<{
+    active: boolean;
+    mode: 'open' | 'close';
+    axisLocked: 'none' | 'horizontal' | 'vertical';
+    startX: number;
+    startY: number;
+    startTime: number;
+    drawerWidth: number;
+    lastDeltaX: number;
+  }>({
+    active: false,
+    mode: 'open',
+    axisLocked: 'none',
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    drawerWidth: 280,
+    lastDeltaX: 0,
+  });
+
+  // Lock background page scroll while mobile drawer is open
+  React.useEffect(() => {
+    if (!isOpenMobile || typeof window === 'undefined') return;
+    if (window.innerWidth >= MOBILE_BREAKPOINT_PX) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpenMobile]);
+
+  // Swipe-to-open (from left viewport edge) and swipe-to-close gestures for touch screens
+  React.useEffect(() => {
+    if (gestureDisabled || typeof window === 'undefined') return;
+
+    const resetImperativeStyles = () => {
+      const drawer = mobileDrawerRef.current;
+      const backdrop = mobileBackdropRef.current;
+      if (drawer) {
+        drawer.style.transform = '';
+        drawer.style.transition = '';
+        drawer.style.visibility = '';
+      }
+      if (backdrop) {
+        backdrop.style.opacity = '';
+        backdrop.style.transition = '';
+        backdrop.style.visibility = '';
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.innerWidth >= MOBILE_BREAKPOINT_PX) return;
+      if (e.touches.length !== 1) return;
+      if (hasOtherBlockingDialog()) return;
+
+      const touch = e.touches[0];
+      if (!isOpenMobile) {
+        if (!onOpenMobile || touch.clientX > EDGE_ACTIVATION_PX) return;
+        if (isConflictingTouchTarget(e.target)) return;
+      } else {
+        const targetEl = e.target instanceof HTMLElement ? e.target : null;
+        if (
+          targetEl &&
+          (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA')
+        ) {
+          return;
+        }
+      }
+
+      const drawerRectWidth =
+        mobileDrawerRef.current?.getBoundingClientRect().width || 0;
+      const drawerWidth =
+        drawerRectWidth > 0
+          ? drawerRectWidth
+          : Math.min(280, Math.round(window.innerWidth * 0.85));
+
+      touchSessionRef.current = {
+        active: true,
+        mode: isOpenMobile ? 'close' : 'open',
+        axisLocked: 'none',
+        startX: touch.clientX,
+        startY: touch.clientY,
+        startTime: performance.now(),
+        drawerWidth,
+        lastDeltaX: 0,
+      };
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const session = touchSessionRef.current;
+      if (!session.active) return;
+
+      if (e.touches.length !== 1) {
+        session.active = false;
+        resetImperativeStyles();
+        return;
+      }
+
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - session.startX;
+      const deltaY = touch.clientY - session.startY;
+
+      if (session.axisLocked === 'none') {
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+        if (absX < AXIS_LOCK_THRESHOLD_PX && absY < AXIS_LOCK_THRESHOLD_PX) {
+          return;
+        }
+        if (absY >= absX) {
+          session.axisLocked = 'vertical';
+          session.active = false;
+          return;
+        }
+        if (session.mode === 'open' && deltaX > 0 && deltaX > absY * 1.15) {
+          session.axisLocked = 'horizontal';
+        } else if (session.mode === 'close' && deltaX < 0 && absX > absY * 1.15) {
+          session.axisLocked = 'horizontal';
+        } else {
+          session.axisLocked = 'vertical';
+          session.active = false;
+          return;
+        }
+      }
+
+      if (session.axisLocked !== 'horizontal') return;
+
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      session.lastDeltaX = deltaX;
+
+      const width = session.drawerWidth || 280;
+      const offsetPx =
+        session.mode === 'open'
+          ? Math.max(-width, Math.min(0, -width + deltaX))
+          : Math.max(-width, Math.min(0, deltaX));
+      const progress = Math.max(0, Math.min(1, (width + offsetPx) / width));
+
+      const drawer = mobileDrawerRef.current;
+      const backdrop = mobileBackdropRef.current;
+      if (drawer) {
+        drawer.style.transition = 'none';
+        drawer.style.visibility = 'visible';
+        drawer.style.transform = `translate3d(${offsetPx}px, 0, 0)`;
+      }
+      if (backdrop) {
+        backdrop.style.transition = 'none';
+        backdrop.style.visibility = 'visible';
+        backdrop.style.opacity = String(progress);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      const session = touchSessionRef.current;
+      if (!session.active) return;
+      session.active = false;
+
+      const wasHorizontal = session.axisLocked === 'horizontal';
+      const deltaX = session.lastDeltaX;
+      const width = session.drawerWidth || 280;
+      const elapsedMs = Math.max(1, performance.now() - session.startTime);
+      const velocityX = Math.abs(deltaX) / elapsedMs;
+
+      resetImperativeStyles();
+
+      if (!wasHorizontal) return;
+
+      if (session.mode === 'open') {
+        const shouldOpen =
+          deltaX >= width * DRAWER_SWIPE_THRESHOLD_RATIO ||
+          (deltaX >= 32 && velocityX >= SWIPE_VELOCITY_THRESHOLD);
+        if (shouldOpen) {
+          onOpenMobile?.();
+        }
+      } else {
+        const shouldClose =
+          -deltaX >= width * DRAWER_SWIPE_THRESHOLD_RATIO ||
+          (-deltaX >= 32 && velocityX >= SWIPE_VELOCITY_THRESHOLD);
+        if (shouldClose) {
+          onCloseMobile();
+        }
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+      resetImperativeStyles();
+    };
+  }, [isOpenMobile, gestureDisabled, onOpenMobile, onCloseMobile]);
 
   const filteredPages = React.useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -102,70 +347,92 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onCloseMobile();
   };
 
-  const sidebarContent = (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0f1623] border-r border-slate-200 dark:border-slate-800">
-      <div className="p-4 space-y-4 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-center justify-between lg:hidden">
-          <span className="font-display text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Wiki Navigation
-          </span>
-          <button
-            type="button"
-            onClick={onCloseMobile}
-            aria-label="Close sidebar"
-            className="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+  const renderSidebarContent = (variant: 'desktop' | 'mobile') => {
+    const quickCreatorId =
+      variant === 'mobile' ? 'quick-slug-creator-mobile' : 'quick-slug-creator';
+    const filterInputId =
+      variant === 'mobile' ? 'sidebar-page-filter-mobile' : 'sidebar-page-filter';
 
-        {/* Wikidot-style Quick Page Creator */}
-        <form onSubmit={handleQuickCreateSubmit} className="space-y-1.5">
-          <label
-            htmlFor="quick-slug-creator"
-            className="block text-xs font-medium text-slate-600 dark:text-slate-400"
-          >
-            Quick create by slug
-          </label>
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1 flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] px-2.5">
-              <span className="text-xs font-mono text-slate-400 select-none">:</span>
-              <input
-                id="quick-slug-creator"
-                type="text"
-                value={quickSlugInput}
-                onChange={(e) => setQuickSlugInput(e.target.value)}
-                placeholder="new-page"
-                className="w-full py-1.5 pl-1 text-xs font-mono bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
-              />
-            </div>
+    return (
+      <div className="flex flex-col h-full bg-white dark:bg-[#0f1623] border-r border-slate-200 dark:border-slate-800">
+        <div className="p-4 space-y-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center justify-between lg:hidden">
+            <span className="font-display text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Wiki Navigation
+            </span>
             <button
-              type="submit"
-              title="Create or open page"
-              disabled={!toWikiSlug(quickSlugInput)}
-              className="p-2 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white transition-colors disabled:opacity-40 shrink-0"
+              type="button"
+              onClick={onCloseMobile}
+              aria-label="Close sidebar"
+              className="p-2 -mr-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
-        </form>
 
-        {/* Live Sidebar Filter */}
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            id="sidebar-page-filter"
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter pages... (Ctrl+K)"
-            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
-          />
+          {/* Wikidot-style Quick Page Creator */}
+          <form onSubmit={handleQuickCreateSubmit} className="space-y-1.5">
+            <label
+              htmlFor={quickCreatorId}
+              className="block text-xs font-medium text-slate-600 dark:text-slate-400"
+            >
+              Quick create by slug
+            </label>
+            <div className="flex items-center gap-1.5">
+              <div className="flex-1 flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] px-2.5">
+                <span className="text-xs font-mono text-slate-400 select-none">:</span>
+                <input
+                  id={quickCreatorId}
+                  type="text"
+                  value={quickSlugInput}
+                  onChange={(e) => setQuickSlugInput(e.target.value)}
+                  placeholder="new-page"
+                  className="w-full py-1.5 pl-1 text-xs font-mono bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                title="Create or open page"
+                disabled={!toWikiSlug(quickSlugInput)}
+                className="p-2 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white transition-colors disabled:opacity-40 shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </form>
+
+          {/* Live Sidebar Filter */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              id={filterInputId}
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Filter pages... (Ctrl+K)"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+            />
+          </div>
+
+          {onRandomPage && (
+            <button
+              type="button"
+              disabled={pages.length === 0}
+              onClick={() => {
+                onRandomPage();
+                onCloseMobile();
+              }}
+              title="Abrir um artigo aleatório da base de conhecimento"
+              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-blue-700/60 dark:hover:border-blue-500/60 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
+            >
+              <Shuffle className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
+              <span>Artigo aleatório</span>
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Category Tree */}
-      <nav aria-label="Category index" className="flex-1 overflow-y-auto p-3 space-y-5">
+        {/* Category Tree */}
+        <nav aria-label="Category index" className="flex-1 overflow-y-auto overscroll-contain p-3 space-y-5">
         {filteredPages.length === 0 ? (
           <div className="px-2 py-4 text-xs text-slate-500 dark:text-slate-400">
             {pages.length === 0
@@ -353,31 +620,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
             <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
           </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
       {/* Desktop Fixed Sidebar */}
       <aside data-wiki-chrome="sidebar" className="hidden lg:block w-[264px] shrink-0 print:hidden">
-        {sidebarContent}
+        {renderSidebarContent('desktop')}
       </aside>
 
-      {/* Mobile Drawer */}
-      {isOpenMobile && (
+      {/* Mobile Swipeable Drawer */}
+      <div
+        data-wiki-chrome="sidebar"
+        aria-hidden={!isOpenMobile}
+        className={`fixed inset-0 z-40 lg:hidden flex print:hidden ${
+          isOpenMobile ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
+      >
         <div
-          data-wiki-chrome="sidebar"
-          className="fixed inset-0 z-40 lg:hidden flex print:hidden"
+          ref={mobileBackdropRef}
+          onClick={onCloseMobile}
+          className={`fixed inset-0 bg-slate-950/40 backdrop-blur-[1px] transition-[opacity,visibility] duration-200 ease-out motion-reduce:transition-none ${
+            isOpenMobile
+              ? 'opacity-100 visible pointer-events-auto'
+              : 'opacity-0 invisible pointer-events-none'
+          }`}
+        />
+        <aside
+          ref={mobileDrawerRef}
+          data-sidebar-drawer="true"
+          role={isOpenMobile ? 'dialog' : undefined}
+          aria-modal={isOpenMobile ? true : undefined}
+          aria-label="Wiki navigation drawer"
+          className={`relative z-50 w-[280px] max-w-[85vw] h-full shadow-xl transition-[transform,visibility] duration-200 ease-out motion-reduce:transition-none will-change-transform ${
+            isOpenMobile
+              ? 'translate-x-0 visible pointer-events-auto'
+              : '-translate-x-full invisible pointer-events-none'
+          }`}
         >
-          <div
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-[1px]"
-            onClick={onCloseMobile}
-          />
-          <aside className="relative z-50 w-[280px] max-w-[85vw] h-full">{sidebarContent}</aside>
-        </div>
-      )}
+          {renderSidebarContent('mobile')}
+        </aside>
+      </div>
     </>
   );
 };

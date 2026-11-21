@@ -38,6 +38,14 @@ interface MarkdownEditorProps {
   existingSlugs: Set<string>;
   isSaving: boolean;
   errorMessage: string | null;
+  enableInfoboxToolbar?: boolean;
+  enableReferencesToolbar?: boolean;
+  enableInfoboxPreview?: boolean;
+  enableReferencesPreview?: boolean;
+  showTocPreview?: boolean;
+  tocDefaultExpanded?: boolean;
+  tocMinHeadings?: number;
+  referencesTitle?: string;
   onSave: (data: {
     slug: string;
     title: string;
@@ -67,6 +75,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   existingSlugs,
   isSaving,
   errorMessage,
+  enableInfoboxToolbar = true,
+  enableReferencesToolbar = true,
+  enableInfoboxPreview = true,
+  enableReferencesPreview = true,
+  showTocPreview = true,
+  tocDefaultExpanded = true,
+  tocMinHeadings = 1,
+  referencesTitle = 'Referências',
   onSave,
   onCancel,
   onNavigateSlug,
@@ -203,7 +219,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return;
     }
 
-    if (isMod && e.shiftKey && keyLower === 'i') {
+    if (isMod && e.shiftKey && keyLower === 'i' && enableInfoboxToolbar) {
       e.preventDefault();
       setInfoboxModalOpen(true);
       return;
@@ -221,7 +237,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return;
     }
 
-    if (isMod && e.shiftKey && keyLower === 'r') {
+    if (isMod && e.shiftKey && keyLower === 'r' && enableReferencesToolbar) {
       e.preventDefault();
       insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...');
       return;
@@ -417,26 +433,30 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <Link2 className="w-3.5 h-3.5" />
             <span>[[WikiLink]]</span>
           </button>
-          <button
-            type="button"
-            title="Insert Infobox (Ctrl+Shift+I)"
-            onClick={() => setInfoboxModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors whitespace-nowrap shrink-0"
-          >
-            <PanelRight className="w-3.5 h-3.5" />
-            <span>Infobox</span>
-          </button>
-          <button
-            type="button"
-            title="Insert bibliographic reference <ref> (Ctrl+Shift+R)"
-            onClick={() =>
-              insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...')
-            }
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
-          >
-            <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-            <span>&lt;ref&gt;</span>
-          </button>
+          {enableInfoboxToolbar && (
+            <button
+              type="button"
+              title="Insert Infobox (Ctrl+Shift+I)"
+              onClick={() => setInfoboxModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors whitespace-nowrap shrink-0"
+            >
+              <PanelRight className="w-3.5 h-3.5" />
+              <span>Infobox</span>
+            </button>
+          )}
+          {enableReferencesToolbar && (
+            <button
+              type="button"
+              title="Insert bibliographic reference <ref> (Ctrl+Shift+R)"
+              onClick={() =>
+                insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...')
+              }
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-mono text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
+            >
+              <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+              <span>&lt;ref&gt;</span>
+            </button>
+          )}
           <button
             type="button"
             title="Bullet list"
@@ -551,6 +571,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               content={content}
               existingSlugs={existingSlugs}
               onNavigateSlug={onNavigateSlug}
+              showToc={showTocPreview}
+              tocDefaultExpanded={tocDefaultExpanded}
+              tocMinHeadings={tocMinHeadings}
+              enableReferences={enableReferencesPreview}
+              referencesTitle={referencesTitle}
+              enableInfoboxes={enableInfoboxPreview}
             />
           </div>
         )}

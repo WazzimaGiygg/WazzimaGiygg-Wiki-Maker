@@ -143,6 +143,46 @@ service cloud.firestore {
         && data.createdAt is timestamp;
     }
 
+    function isValidExtensionSettings(settings) {
+      return settings is map
+        && settings.keys().hasOnly([
+          'defaultExpanded', 'minHeadings', 'footerTitle', 'showOutlineLink',
+          'allowEditorToolbar', 'allowAutoProfileCard', 'showInNavbar',
+          'showInSidebar', 'excludeDiscussions', 'showInHeader',
+          'showToastFeedback', 'notifyWhileEditing', 'allowAnonymousRead',
+          'autoExitOnNavigate'
+        ])
+        && (!('defaultExpanded' in settings) || settings.defaultExpanded is bool)
+        && (!('minHeadings' in settings) || (settings.minHeadings is int && settings.minHeadings >= 1 && settings.minHeadings <= 10))
+        && (!('footerTitle' in settings) || (settings.footerTitle is string && settings.footerTitle.size() >= 1 && settings.footerTitle.size() <= 80))
+        && (!('showOutlineLink' in settings) || settings.showOutlineLink is bool)
+        && (!('allowEditorToolbar' in settings) || settings.allowEditorToolbar is bool)
+        && (!('allowAutoProfileCard' in settings) || settings.allowAutoProfileCard is bool)
+        && (!('showInNavbar' in settings) || settings.showInNavbar is bool)
+        && (!('showInSidebar' in settings) || settings.showInSidebar is bool)
+        && (!('excludeDiscussions' in settings) || settings.excludeDiscussions is bool)
+        && (!('showInHeader' in settings) || settings.showInHeader is bool)
+        && (!('showToastFeedback' in settings) || settings.showToastFeedback is bool)
+        && (!('notifyWhileEditing' in settings) || settings.notifyWhileEditing is bool)
+        && (!('allowAnonymousRead' in settings) || settings.allowAnonymousRead is bool)
+        && (!('autoExitOnNavigate' in settings) || settings.autoExitOnNavigate is bool);
+    }
+
+    function isValidWikiExtension(data, extensionId) {
+      return data.id is string && data.id == extensionId && isValidId(data.id)
+        && data.scope == 'site'
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
+        && data.description is string && data.description.size() >= 1 && data.description.size() <= 300
+        && data.category in ['reading', 'navigation', 'authoring', 'collaboration']
+        && data.enabled is bool
+        && data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 100
+        && isValidExtensionSettings(data.settings)
+        && data.updatedBy is string && isValidId(data.updatedBy)
+        && data.updatedByName is string && data.updatedByName.size() >= 1 && data.updatedByName.size() <= 80
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // Collection: /pages/{slug}
     match /pages/{slug} {
       allow get: if isValidId(slug) && (
@@ -540,6 +580,44 @@ service cloud.firestore {
 
       allow update: if false;
       allow delete: if false;
+    }
+
+    // Collection: /extensions/{extensionId} (Publicly loaded at site boot; writable exclusively by Bureaucrats)
+    match /extensions/{extensionId} {
+      allow get: if isValidId(extensionId);
+      allow list: if resource.data.scope == 'site' || isBureaucrat();
+
+      allow create: if isBureaucrat()
+        && isNotBlocked()
+        && isValidId(extensionId)
+        && isValidWikiExtension(incoming(), extensionId)
+        && incoming().updatedBy == request.auth.uid
+        && incoming().keys().hasAll([
+          'id', 'scope', 'name', 'description', 'category', 'enabled',
+          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
+        ])
+        && incoming().keys().hasOnly([
+          'id', 'scope', 'name', 'description', 'category', 'enabled',
+          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
+        ])
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isBureaucrat()
+        && isNotBlocked()
+        && isValidId(extensionId)
+        && isValidWikiExtension(incoming(), extensionId)
+        && incoming().id == existing().id
+        && incoming().scope == existing().scope
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().updatedBy == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'description', 'category', 'enabled', 'sortOrder',
+          'settings', 'updatedBy', 'updatedByName', 'updatedAt'
+        ]);
+
+      allow delete: if isBureaucrat() && isNotBlocked() && isValidId(extensionId);
     }
   }
 }

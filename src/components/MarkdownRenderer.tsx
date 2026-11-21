@@ -19,6 +19,11 @@ interface MarkdownRendererProps {
   existingSlugs: Set<string>;
   onNavigateSlug: (slug: string) => void;
   showToc?: boolean;
+  tocDefaultExpanded?: boolean;
+  tocMinHeadings?: number;
+  enableReferences?: boolean;
+  referencesTitle?: string;
+  enableInfoboxes?: boolean;
   showReferencesFooter?: boolean;
 }
 
@@ -54,17 +59,32 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   existingSlugs,
   onNavigateSlug,
   showToc = true,
+  tocDefaultExpanded = true,
+  tocMinHeadings = 1,
+  enableReferences = true,
+  referencesTitle = 'Referências',
+  enableInfoboxes = true,
   showReferencesFooter = true,
 }) => {
-  const [tocExpanded, setTocExpanded] = React.useState(true);
+  const [tocExpanded, setTocExpanded] = React.useState(tocDefaultExpanded);
+
+  React.useEffect(() => {
+    setTocExpanded(tocDefaultExpanded);
+  }, [tocDefaultExpanded]);
 
   const { processedMarkdown, references } = React.useMemo(
-    () => extractArticleReferences(content),
-    [content]
+    () =>
+      enableReferences
+        ? extractArticleReferences(content)
+        : { processedMarkdown: content, references: [] },
+    [content, enableReferences]
   );
   const segments = React.useMemo(
-    () => parseMarkdownWithInfoboxes(processedMarkdown),
-    [processedMarkdown]
+    () =>
+      enableInfoboxes
+        ? parseMarkdownWithInfoboxes(processedMarkdown)
+        : [{ kind: 'markdown' as const, content: processedMarkdown }],
+    [processedMarkdown, enableInfoboxes]
   );
   const tocItems = React.useMemo(
     () => extractToc(processedMarkdown),
@@ -94,7 +114,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   // Place the inline Table of Contents immediately after any leading infoboxes so it sits beside right-floated cards cleanly
   const firstMarkdownIndex = segments.findIndex((seg) => seg.kind === 'markdown');
   const tocInsertIndex = firstMarkdownIndex === -1 ? segments.length : firstMarkdownIndex;
-  const shouldRenderToc = showToc && tocItems.length > 0;
+  const shouldRenderToc = showToc && tocItems.length >= Math.max(1, tocMinHeadings);
 
   const tocNode = shouldRenderToc ? (
     <nav
@@ -279,9 +299,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         );
       })}
       {tocInsertIndex === segments.length && tocNode}
-      {showReferencesFooter && (
+      {enableReferences && showReferencesFooter && (
         <ReferencesFooter
           references={references}
+          title={referencesTitle}
           existingSlugs={existingSlugs}
           onNavigateSlug={onNavigateSlug}
         />

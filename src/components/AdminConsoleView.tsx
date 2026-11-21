@@ -25,15 +25,18 @@ import {
   unblockUserAccount,
 } from '../lib/adminService';
 import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
+import type { SiteExtensionsState } from '../lib/extensionsService';
 import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
 import { updateWikiPage } from '../lib/wikiService';
 import type { GovernanceRole, LgpdErasureMode, WikiPage } from '../types/wiki';
+import { ExtensionsManagerPanel } from './ExtensionsManagerPanel';
 
-type AdminTab = 'users' | 'edits' | 'pages' | 'lgpd';
+type AdminTab = 'users' | 'edits' | 'pages' | 'lgpd' | 'extensions';
 
 interface AdminConsoleViewProps {
   currentUser: User;
   currentUserRole: GovernanceRole;
+  extensionsState: SiteExtensionsState;
   onSelectPage: (slug: string) => void;
   onRefreshGlobalPages?: () => void;
 }
@@ -41,6 +44,7 @@ interface AdminConsoleViewProps {
 export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
   currentUser,
   currentUserRole,
+  extensionsState,
   onSelectPage,
 }) => {
   const isBureaucrat = currentUserRole === 'bureaucrat';
@@ -407,6 +411,18 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
             }`}
           >
             LGPD Audit Log ({snapshot?.lgpdLogs.length ?? 0})
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('extensions')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+              tab === 'extensions'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Extensões ({extensionsState.list.filter((e) => e.enabled).length}/
+            {extensionsState.list.length})
           </button>
         </div>
 
@@ -1031,6 +1047,15 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {/* TAB 5: EXTENSIONS MANAGEMENT (Bureaucrat Config) */}
+          {tab === 'extensions' && (
+            <ExtensionsManagerPanel
+              currentUser={currentUser}
+              isBureaucrat={isBureaucrat}
+              extensionsState={extensionsState}
+            />
           )}
         </>
       )}
