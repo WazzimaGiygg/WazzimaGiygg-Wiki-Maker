@@ -32,6 +32,8 @@ interface SidebarProps {
   governanceRole?: GovernanceRole;
   isAdminViewActive?: boolean;
   isDark: boolean;
+  canToggleTheme?: boolean;
+  forcedColorMode?: 'light' | 'dark';
   onOpenMobile?: () => void;
   onCloseMobile: () => void;
   onSelectPage: (slug: string) => void;
@@ -95,6 +97,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   governanceRole = 'member',
   isAdminViewActive = false,
   isDark,
+  canToggleTheme = true,
+  forcedColorMode,
   onOpenMobile,
   onCloseMobile,
   onSelectPage,
@@ -356,7 +360,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       variant === 'mobile' ? 'sidebar-page-filter-mobile' : 'sidebar-page-filter';
 
     return (
-      <div className="flex flex-col h-full bg-white dark:bg-[#0f1623] border-r border-slate-200 dark:border-slate-800">
+      <div
+        data-wiki-surface="panel"
+        className="flex flex-col h-full bg-white dark:bg-[#0f1623] border-r border-slate-200 dark:border-slate-800"
+      >
         <div className="p-4 space-y-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between lg:hidden">
             <span className="font-display text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -381,7 +388,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Quick create by slug
             </label>
             <div className="flex items-center gap-1.5">
-              <div className="flex-1 flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] px-2.5">
+              <div
+                data-wiki-surface="inset"
+                className="flex-1 flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] px-2.5"
+              >
                 <span className="text-xs font-mono text-slate-400 select-none">:</span>
                 <input
                   id={quickCreatorId}
@@ -412,6 +422,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter pages... (Ctrl+K)"
+              data-wiki-surface="inset"
               className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
             />
           </div>
@@ -425,9 +436,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onCloseMobile();
               }}
               title="Abrir um artigo aleatório da base de conhecimento"
+              data-wiki-surface="inset"
               className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-blue-700/60 dark:hover:border-blue-500/60 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
             >
-              <Shuffle className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
+              <Shuffle className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" data-wiki-surface="link" />
               <span>Artigo aleatório</span>
             </button>
           )}
@@ -467,6 +479,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             onSelectPage(page.slug);
                             onCloseMobile();
                           }}
+                          data-wiki-surface={isActive ? 'nav-active' : undefined}
                           className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-left text-xs rounded-md transition-colors ${
                             isActive
                               ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
@@ -497,7 +510,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Account & Theme Footer */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5 bg-slate-50/70 dark:bg-[#0b0f17]/70">
+      <div
+        data-wiki-surface="inset"
+        className="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5 bg-slate-50/70 dark:bg-[#0b0f17]/70"
+      >
         {user ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
@@ -510,7 +526,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-blue-700 text-white text-xs font-semibold flex items-center justify-center shrink-0">
+                  <div
+                    data-wiki-surface="accent"
+                    className="w-7 h-7 rounded-full bg-blue-700 text-white text-xs font-semibold flex items-center justify-center shrink-0"
+                  >
                     {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -616,11 +635,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
           <button
             type="button"
+            disabled={!canToggleTheme}
             onClick={onToggleTheme}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
+            title={
+              !canToggleTheme
+                ? `Esquema ${forcedColorMode === 'dark' ? 'escuro' : 'claro'} definido pela burocracia nas extensões do site`
+                : isDark
+                ? 'Switch to Light mode'
+                : 'Switch to Dark mode'
+            }
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-55 disabled:cursor-not-allowed"
           >
             {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
+            <span>
+              {!canToggleTheme
+                ? forcedColorMode === 'dark'
+                  ? 'Dark (fixo)'
+                  : 'Light (fixo)'
+                : isDark
+                ? 'Light mode'
+                : 'Dark mode'}
+            </span>
           </button>
           </div>
         </div>

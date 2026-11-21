@@ -533,6 +533,161 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                           );
                         }
 
+                        if (field.type === 'select' && field.options && field.options.length > 0) {
+                          const currentOptionValue =
+                            typeof value === 'string' && value
+                              ? value
+                              : field.options[0].value;
+                          const hasVisualSwatches = field.options.some((opt) =>
+                            Boolean(opt.lightSwatches)
+                          );
+
+                          if (hasVisualSwatches) {
+                            return (
+                              <div
+                                key={field.key}
+                                className="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0f1623] space-y-2.5"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <span className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                                    {field.label}
+                                  </span>
+                                  <span className="font-mono text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
+                                    {field.options.length} temas disponíveis
+                                  </span>
+                                </div>
+
+                                <div
+                                  role="radiogroup"
+                                  aria-label={field.label}
+                                  className="grid grid-cols-1 gap-2"
+                                >
+                                  {field.options.map((opt) => {
+                                    const selected = currentOptionValue === opt.value;
+                                    return (
+                                      <button
+                                        key={opt.value}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={selected}
+                                        disabled={!isBureaucrat || isCardBusy}
+                                        onClick={() =>
+                                          updateDraftSetting(ext, field.key, opt.value)
+                                        }
+                                        className={`w-full text-left p-2.5 rounded-lg border transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+                                          selected
+                                            ? 'border-blue-700 dark:border-blue-500 bg-blue-50/70 dark:bg-blue-950/35'
+                                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f17] hover:border-slate-300 dark:hover:border-slate-700'
+                                        }`}
+                                      >
+                                        <div className="flex flex-wrap items-start justify-between gap-2">
+                                          <div className="min-w-0 space-y-0.5">
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                              <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                                                {opt.label}
+                                              </span>
+                                              {opt.editionLabel && (
+                                                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                                                  · {opt.editionLabel}
+                                                </span>
+                                              )}
+                                            </div>
+                                            {opt.hint && (
+                                              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                                                {opt.hint}
+                                              </p>
+                                            )}
+                                            {opt.typographyLabel && (
+                                              <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-0.5">
+                                                Tipografia: {opt.typographyLabel}
+                                              </p>
+                                            )}
+                                          </div>
+
+                                          <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                                            {opt.lightSwatches && (
+                                              <div
+                                                className="flex items-center gap-1 px-1.5 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/70"
+                                                title="Paleta modo Claro"
+                                              >
+                                                <span className="text-[9px] font-mono text-slate-500 dark:text-slate-400 pr-0.5">
+                                                  L
+                                                </span>
+                                                {opt.lightSwatches.map((bgCls, idx) => (
+                                                  <span
+                                                    key={idx}
+                                                    className={`w-3 h-3 rounded-xs border border-slate-300/80 dark:border-slate-600 ${bgCls}`}
+                                                  />
+                                                ))}
+                                              </div>
+                                            )}
+                                            {opt.darkSwatches && (
+                                              <div
+                                                className="flex items-center gap-1 px-1.5 py-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-900/90"
+                                                title="Paleta modo Escuro"
+                                              >
+                                                <span className="text-[9px] font-mono text-slate-300 pr-0.5">
+                                                  D
+                                                </span>
+                                                {opt.darkSwatches.map((bgCls, idx) => (
+                                                  <span
+                                                    key={idx}
+                                                    className={`w-3 h-3 rounded-xs border border-slate-700 ${bgCls}`}
+                                                  />
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                  {field.hint}
+                                </p>
+                              </div>
+                            );
+                          }
+
+                          const activeHint =
+                            field.options.find((opt) => opt.value === currentOptionValue)?.hint ??
+                            field.hint;
+
+                          return (
+                            <div
+                              key={field.key}
+                              className="p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0f1623] space-y-1.5"
+                            >
+                              <label
+                                htmlFor={fieldId}
+                                className="block text-xs font-medium text-slate-800 dark:text-slate-200"
+                              >
+                                {field.label}
+                              </label>
+                              <select
+                                id={fieldId}
+                                value={currentOptionValue}
+                                disabled={!isBureaucrat || isCardBusy}
+                                onChange={(e) =>
+                                  updateDraftSetting(ext, field.key, e.target.value)
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700 disabled:opacity-60"
+                              >
+                                {field.options.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </option>
+                                ))}
+                              </select>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                {activeHint}
+                              </p>
+                            </div>
+                          );
+                        }
+
                         const textVal = typeof value === 'string' ? value : '';
                         return (
                           <div

@@ -99,6 +99,7 @@ export const ReadingProgressBar: React.FC<ReadingProgressBarProps> = ({
     >
       <div
         ref={fillRef}
+        data-wiki-surface="progress"
         className="h-full w-full origin-left scale-x-0 bg-blue-700 dark:bg-blue-400 transition-transform duration-75 ease-out motion-reduce:transition-none will-change-transform"
       />
     </div>

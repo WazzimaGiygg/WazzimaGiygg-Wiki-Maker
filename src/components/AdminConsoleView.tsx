@@ -30,8 +30,9 @@ import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
 import { updateWikiPage } from '../lib/wikiService';
 import type { GovernanceRole, LgpdErasureMode, WikiPage } from '../types/wiki';
 import { ExtensionsManagerPanel } from './ExtensionsManagerPanel';
+import { RepoUpdatesPanel } from './RepoUpdatesPanel';
 
-type AdminTab = 'users' | 'edits' | 'pages' | 'lgpd' | 'extensions';
+type AdminTab = 'users' | 'edits' | 'pages' | 'lgpd' | 'extensions' | 'updates';
 
 interface AdminConsoleViewProps {
   currentUser: User;
@@ -423,6 +424,17 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
           >
             Extensões ({extensionsState.list.filter((e) => e.enabled).length}/
             {extensionsState.list.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('updates')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+              tab === 'updates'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Atualizações do Repo
           </button>
         </div>
 
@@ -1057,6 +1069,9 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
               extensionsState={extensionsState}
             />
           )}
+
+          {/* TAB 6: GITHUB REPOSITORY UPDATES */}
+          {tab === 'updates' && <RepoUpdatesPanel isBureaucrat={isBureaucrat} />}
         </>
       )}
 

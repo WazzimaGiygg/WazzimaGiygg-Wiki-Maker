@@ -146,13 +146,15 @@ service cloud.firestore {
     function isValidExtensionSettings(settings) {
       return settings is map
         && settings.keys().hasOnly([
-          'siteTitle', 'defaultExpanded', 'minHeadings', 'footerTitle', 'showOutlineLink',
-          'allowEditorToolbar', 'allowAutoProfileCard', 'showInNavbar',
-          'showInSidebar', 'excludeDiscussions', 'showInHeader',
+          'siteTitle', 'themeId', 'colorScheme', 'defaultExpanded', 'minHeadings',
+          'footerTitle', 'showOutlineLink', 'allowEditorToolbar', 'allowAutoProfileCard',
+          'showInNavbar', 'showInSidebar', 'excludeDiscussions', 'showInHeader',
           'showToastFeedback', 'notifyWhileEditing', 'allowAnonymousRead',
           'autoExitOnNavigate'
         ])
         && (!('siteTitle' in settings) || (settings.siteTitle is string && settings.siteTitle.size() >= 1 && settings.siteTitle.size() <= 80))
+        && (!('themeId' in settings) || (settings.themeId is string && settings.themeId.size() >= 1 && settings.themeId.size() <= 40 && settings.themeId.matches('^[a-z0-9\\-]+$')))
+        && (!('colorScheme' in settings) || settings.colorScheme in ['user', 'light', 'dark'])
         && (!('defaultExpanded' in settings) || settings.defaultExpanded is bool)
         && (!('minHeadings' in settings) || (settings.minHeadings is int && settings.minHeadings >= 1 && settings.minHeadings <= 10))
         && (!('footerTitle' in settings) || (settings.footerTitle is string && settings.footerTitle.size() >= 1 && settings.footerTitle.size() <= 80))
@@ -174,7 +176,7 @@ service cloud.firestore {
         && data.scope == 'site'
         && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
         && data.description is string && data.description.size() >= 1 && data.description.size() <= 300
-        && data.category in ['reading', 'navigation', 'authoring', 'collaboration']
+        && data.category in ['appearance', 'reading', 'navigation', 'authoring', 'collaboration']
         && data.enabled is bool
         && data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 100
         && isValidExtensionSettings(data.settings)

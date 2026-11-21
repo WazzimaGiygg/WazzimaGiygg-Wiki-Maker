@@ -34,6 +34,8 @@ export const VALIDATION_LIMITS = {
   EXTENSION_NAME_MAX_LENGTH: 80,
   EXTENSION_DESCRIPTION_MAX_LENGTH: 300,
   EXTENSION_SITE_TITLE_MAX_LENGTH: 80,
+  EXTENSION_THEME_ID_MAX_LENGTH: 40,
+  EXTENSION_THEME_ID_PATTERN: /^[a-z0-9-]+$/,
   EXTENSION_FOOTER_TITLE_MAX_LENGTH: 80,
   EXTENSION_MIN_HEADINGS_MIN: 1,
   EXTENSION_MIN_HEADINGS_MAX: 10,
@@ -44,6 +46,7 @@ export type LgpdErasureMode = 'anonymize' | 'purge';
 
 export type WikiExtensionId =
   | 'site-title'
+  | 'site-theme'
   | 'toc'
   | 'references'
   | 'infoboxes'
@@ -54,10 +57,19 @@ export type WikiExtensionId =
   | 'realtime-toasts'
   | 'page-discussion';
 
-export type WikiExtensionCategory = 'reading' | 'navigation' | 'authoring' | 'collaboration';
+export type WikiExtensionCategory =
+  | 'appearance'
+  | 'reading'
+  | 'navigation'
+  | 'authoring'
+  | 'collaboration';
+
+export type WikiColorSchemePolicy = 'user' | 'light' | 'dark';
 
 export interface WikiExtensionSettings {
   siteTitle?: string;
+  themeId?: string;
+  colorScheme?: WikiColorSchemePolicy;
   defaultExpanded?: boolean;
   minHeadings?: number;
   footerTitle?: string;

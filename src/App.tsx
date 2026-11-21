@@ -9,9 +9,11 @@ import {
   Copy,
   Download,
   Edit3,
+  FileDown,
   FilePlus2,
   History,
   Link2,
+  Loader2,
   Lock,
   Menu,
   MessageSquare,
@@ -47,6 +49,7 @@ import { fetchCurrentUserGovernance } from './lib/adminService';
 import {
   bootAndSubscribeSiteExtensions,
   getInitialSiteExtensionsState,
+  resolveSiteTheme,
   resolveSiteTitle,
   type SiteExtensionsState,
 } from './lib/extensionsService';
@@ -70,6 +73,7 @@ import {
   slugToTitle,
   toWikiSlug,
 } from './lib/markdownUtils';
+import { exportArticleToPdf } from './lib/pdfExportService';
 import { buildWikiPrintStylesheet, PRINT_STYLESHEET_ID } from './lib/printStyles';
 import {
   addPageComment,
@@ -177,6 +181,7 @@ function WikiWorkspace() {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [copiedSource, setCopiedSource] = React.useState(false);
   const [copiedPageLink, setCopiedPageLink] = React.useState(false);
+  const [exportingPdf, setExportingPdf] = React.useState(false);
   const [isPrintView, setIsPrintView] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
@@ -199,17 +204,37 @@ function WikiWorkspace() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Sync theme class on <html>
+  const { theme: activeTheme, colorScheme: themeColorScheme } = React.useMemo(
+    () => resolveSiteTheme(extensionsState),
+    [extensionsState]
+  );
+
+  const effectiveIsDark =
+    themeColorScheme === 'dark' ? true : themeColorScheme === 'light' ? false : isDark;
+
+  // Sync dark mode preference, active theme attribute, and browser theme-color on <html>
   React.useEffect(() => {
     const root = document.documentElement;
-    if (isDark) {
+    root.setAttribute('data-wiki-theme', activeTheme.id);
+
+    if (effectiveIsDark) {
       root.classList.add('dark');
-      localStorage.setItem('wazzimagiygg-theme', 'dark');
     } else {
       root.classList.remove('dark');
-      localStorage.setItem('wazzimagiygg-theme', 'light');
     }
-  }, [isDark]);
+
+    if (themeColorScheme === 'user') {
+      localStorage.setItem('wazzimagiygg-theme', isDark ? 'dark' : 'light');
+    }
+
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute(
+        'content',
+        effectiveIsDark ? activeTheme.metaThemeColor.dark : activeTheme.metaThemeColor.light
+      );
+    }
+  }, [activeTheme, effectiveIsDark, isDark, themeColorScheme]);
 
   // Dynamically generate and mount the CSS print stylesheet when Print View is active
   React.useEffect(() => {
@@ -1038,6 +1063,84 @@ function WikiWorkspace() {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportPdf = async () => {
+    if (!activePage || exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const autoUserInfobox =
+        isPersonalProfilePage &&
+        infoboxExt.enabled &&
+        infoboxExt.settings.allowAutoProfileCard !== false
+          ? {
+              type: 'user' as const,
+              title: personalAuthorProfile?.displayName || activePage.authorName,
+              subtitle: `${siteTitle} Collaborator`,
+              image: personalAuthorProfile?.photoURL || undefined,
+              layout: 'right' as const,
+              fields: [
+                { key: 'Handle', value: `:${activePage.slug}` },
+                {
+                  key: 'Member ID',
+                  value: `\`${activePage.authorId.slice(0, 8)}\``,
+                },
+                {
+                  key: 'Discussion',
+                  value: `[[${
+                    personalAuthorProfile?.discussionPageSlug ?? `${activePage.slug}-discussion`
+                  }|Talk Page]]`,
+                },
+                { key: 'Role', value: 'Collaborator' },
+                ...(activePage.createdAt
+                  ? [
+                      {
+                        key: 'Joined',
+                        value: activePage.createdAt.toDate().toISOString().slice(0, 10),
+                      },
+                    ]
+                  : []),
+                { key: 'Status', value: 'Active' },
+              ],
+            }
+          : null;
+
+      const result = await exportArticleToPdf({
+        page: activePage,
+        categoryLabel: activeCategoryLabel,
+        siteTitle,
+        isDark: effectiveIsDark,
+        theme: activeTheme,
+        existingSlugs,
+        enableReferences: refsExt.enabled,
+        referencesTitle: referencesSectionTitle,
+        enableInfoboxes: infoboxExt.enabled,
+        autoUserInfobox,
+      });
+
+      pushToast({
+        tone: 'success',
+        title: 'PDF exportado com sucesso',
+        description: `${result.filename} (${result.pageCount} ${
+          result.pageCount === 1 ? 'página' : 'páginas'
+        }) — ${activeTheme.name} · ${effectiveIsDark ? 'Escuro' : 'Claro'}`,
+        meta: `:${activePage.slug}`,
+        durationMs: 3600,
+      });
+    } catch (err) {
+      pushToast({
+        tone: 'warning',
+        title: 'Falha ao gerar PDF',
+        description:
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível exportar o artigo para PDF.',
+        meta: `:${activePage.slug}`,
+        durationMs: 4500,
+      });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   const toc = React.useMemo(
     () => (activePage ? extractToc(activePage.content) : []),
     [activePage?.content]
@@ -1136,10 +1239,16 @@ function WikiWorkspace() {
   // Boot Loading Gate: block wiki rendering until initial extension load succeeds (or Bureaucrat logs in)
   if (!isGovernanceSettled || (extensionsBootStatus === 'loading' && !isBureaucrat)) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100">
-        <div className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f1623] p-6 space-y-4">
+      <div
+        data-wiki-surface="canvas"
+        className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100"
+      >
+        <div
+          data-wiki-surface="panel"
+          className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f1623] p-6 space-y-4"
+        >
           <div className="flex items-center gap-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100">
-            <RefreshCw className="w-4 h-4 text-blue-700 dark:text-blue-400 animate-spin shrink-0" />
+            <RefreshCw className="w-4 h-4 text-blue-700 dark:text-blue-400 animate-spin shrink-0" data-wiki-surface="link" />
             <span>Carregando extensões de {siteTitle}...</span>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -1158,9 +1267,13 @@ function WikiWorkspace() {
   // Boot Failure Gate: Wiki cannot operate unless extensions load successfully OR user logs in as Bureaucrat
   if (extensionsBootStatus === 'error' && !isBureaucrat) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100">
+      <div
+        data-wiki-surface="canvas"
+        className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100"
+      >
         <div
           role="alert"
+          data-wiki-surface="panel"
           className="w-full max-w-lg rounded-xl border border-red-200 dark:border-red-900/60 bg-white dark:bg-[#0f1623] p-6 sm:p-7 space-y-5"
         >
           <div className="flex items-start gap-3">
@@ -1234,6 +1347,7 @@ function WikiWorkspace() {
 
   return (
     <div
+      data-wiki-surface="canvas"
       className={`min-h-screen flex flex-col bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100${
         isPrintView ? ' wiki-print-view' : ''
       }`}
@@ -1241,6 +1355,7 @@ function WikiWorkspace() {
       {/* Strict 3-Zone Top Bar Contract */}
       <header
         data-wiki-chrome="nav"
+        data-wiki-surface="nav"
         className="sticky top-0 z-30 bg-white/95 dark:bg-[#0f1623]/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 print:hidden"
       >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-8">
@@ -1346,6 +1461,7 @@ function WikiWorkspace() {
                 type="button"
                 disabled={isBlocked}
                 onClick={() => navigateToCreate('')}
+                data-wiki-surface="accent"
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-45 disabled:cursor-not-allowed"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -1388,7 +1504,9 @@ function WikiWorkspace() {
           discussionPageSlug={currentCollaborator?.discussionPageSlug}
           governanceRole={governanceRole}
           isAdminViewActive={view === 'admin'}
-          isDark={isDark}
+          isDark={effectiveIsDark}
+          canToggleTheme={themeColorScheme === 'user'}
+          forcedColorMode={themeColorScheme === 'user' ? undefined : themeColorScheme}
           onOpenMobile={() => setMobileMenuOpen(true)}
           onCloseMobile={() => setMobileMenuOpen(false)}
           onSelectPage={navigateToPage}
@@ -1481,7 +1599,10 @@ function WikiWorkspace() {
               <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
             </div>
           ) : view === 'legal' ? (
-            <div className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8">
+            <div
+              data-wiki-surface="panel"
+              className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
+            >
               <LegalComplianceView
                 section={legalSection}
                 user={user}
@@ -1493,7 +1614,10 @@ function WikiWorkspace() {
               />
             </div>
           ) : view === 'admin' ? (
-            <div className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8">
+            <div
+              data-wiki-surface="panel"
+              className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
+            >
               {user && isAdmin ? (
                 <AdminConsoleView
                   currentUser={user}
@@ -1522,7 +1646,10 @@ function WikiWorkspace() {
               )}
             </div>
           ) : view === 'create' ? (
-            <div className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6">
+            <div
+              data-wiki-surface="panel"
+              className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6"
+            >
               <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
                 <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
                   wiki / new-page{createPresetSlug ? ` / :${createPresetSlug}` : ''}
@@ -1580,7 +1707,10 @@ function WikiWorkspace() {
               )}
             </div>
           ) : view === 'index' || view === 'recent' ? (
-            <div className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8">
+            <div
+              data-wiki-surface="panel"
+              className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
+            >
               <PageIndexView
                 mode={view}
                 pages={allPages}
@@ -1591,7 +1721,10 @@ function WikiWorkspace() {
             </div>
           ) : !activePage ? (
             /* Page does not exist yet — Wikidot-style instant create prompt */
-            <div className="max-w-3xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6">
+            <div
+              data-wiki-surface="panel"
+              className="max-w-3xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6"
+            >
               <div className="space-y-2">
                 <p className="text-xs font-mono text-slate-500 dark:text-slate-400">
                   wiki / :{activeSlug}
@@ -1692,6 +1825,7 @@ function WikiWorkspace() {
               {/* Active Wiki Page View */}
               <div
                 data-wiki-document="sheet"
+                data-wiki-surface="panel"
                 className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6"
               >
                 {/* Page Header & Clean Unboxed Metadata */}
@@ -1712,59 +1846,77 @@ function WikiWorkspace() {
                       {activePage.title}
                     </h1>
 
-                    {(copyLinkExt.enabled && copyLinkExt.settings.showInHeader !== false) ||
-                    (printExt.enabled && printExt.settings.showInHeader !== false) ? (
-                      <div
-                        data-wiki-chrome="edit-tools"
-                        className="print:hidden flex items-center gap-2 shrink-0"
-                      >
-                        {copyLinkExt.enabled && copyLinkExt.settings.showInHeader !== false && (
-                          <button
-                            type="button"
-                            onClick={() => void handleCopyPageLink()}
-                            title="Copy direct URL to this page"
-                            aria-label="Copy link to current page"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                          >
-                            {copiedPageLink ? (
-                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            ) : (
-                              <Link2 className="w-3.5 h-3.5 shrink-0" />
-                            )}
-                            <span>{copiedPageLink ? 'Copied' : 'Copy Link'}</span>
-                          </button>
-                        )}
+                    <div
+                      data-wiki-chrome="edit-tools"
+                      className="print:hidden flex flex-wrap items-center gap-2 shrink-0"
+                    >
+                      {copyLinkExt.enabled && copyLinkExt.settings.showInHeader !== false && (
+                        <button
+                          type="button"
+                          onClick={() => void handleCopyPageLink()}
+                          title="Copy direct URL to this page"
+                          aria-label="Copy link to current page"
+                          data-wiki-surface="inset"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        >
+                          {copiedPageLink ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          ) : (
+                            <Link2 className="w-3.5 h-3.5 shrink-0" />
+                          )}
+                          <span>{copiedPageLink ? 'Copied' : 'Copy Link'}</span>
+                        </button>
+                      )}
 
-                        {printExt.enabled && printExt.settings.showInHeader !== false && (
-                          <button
-                            type="button"
-                            aria-pressed={isPrintView}
-                            onClick={() => {
-                              setIsPrintView((prev) => {
-                                const next = !prev;
-                                if (next) {
-                                  setActiveTab('read');
-                                }
-                                return next;
-                              });
-                            }}
-                            title={
-                              isPrintView
-                                ? 'Exit document Print View (Esc)'
-                                : 'Open clean, document-ready Print View'
-                            }
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
-                              isPrintView
-                                ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
-                                : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
-                            }`}
-                          >
-                            <Printer className="w-3.5 h-3.5 shrink-0" />
-                            <span>Print</span>
-                          </button>
+                      <button
+                        type="button"
+                        disabled={exportingPdf}
+                        onClick={() => void handleExportPdf()}
+                        title={`Exportar artigo em PDF (${activeTheme.name} · ${
+                          effectiveIsDark ? 'Escuro' : 'Claro'
+                        })`}
+                        aria-label="Exportar conteúdo do artigo como PDF"
+                        data-wiki-surface="inset"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                      >
+                        {exportingPdf ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                        ) : (
+                          <FileDown className="w-3.5 h-3.5 shrink-0" />
                         )}
-                      </div>
-                    ) : null}
+                        <span>{exportingPdf ? 'Gerando PDF...' : 'Exportar PDF'}</span>
+                      </button>
+
+                      {printExt.enabled && printExt.settings.showInHeader !== false && (
+                        <button
+                          type="button"
+                          aria-pressed={isPrintView}
+                          onClick={() => {
+                            setIsPrintView((prev) => {
+                              const next = !prev;
+                              if (next) {
+                                setActiveTab('read');
+                              }
+                              return next;
+                            });
+                          }}
+                          title={
+                            isPrintView
+                              ? 'Exit document Print View (Esc)'
+                              : 'Open clean, document-ready Print View'
+                          }
+                          data-wiki-surface={isPrintView ? 'accent' : 'inset'}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                            isPrintView
+                              ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
+                              : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <Printer className="w-3.5 h-3.5 shrink-0" />
+                          <span>Print</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
@@ -2303,6 +2455,7 @@ function WikiWorkspace() {
       {/* Global WikiWazzimaGiygg + LGPD / Marco Civil Compliance Footer */}
       <footer
         data-wiki-chrome="footer"
+        data-wiki-surface="footer"
         className="border-t border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0f1623]/80 print:hidden"
       >
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-5 space-y-4 text-xs text-slate-500 dark:text-slate-400">
@@ -2394,6 +2547,7 @@ function WikiWorkspace() {
       {showBackToTop && (
         <button
           data-wiki-chrome="floating"
+          data-wiki-surface="panel"
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Back to top"

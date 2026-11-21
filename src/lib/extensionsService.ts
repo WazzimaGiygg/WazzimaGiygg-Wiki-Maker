@@ -17,30 +17,50 @@ import {
 import {
   type ResolvedWikiExtension,
   VALIDATION_LIMITS,
+  type WikiColorSchemePolicy,
   type WikiExtensionCategory,
   type WikiExtensionId,
   type WikiExtensionRecord,
   type WikiExtensionSettings,
 } from '../types/wiki';
 import { db, handleFirestoreError, OperationType } from './firebase';
+import {
+  DEFAULT_WIKI_THEME_ID,
+  getWikiThemeById,
+  isRegisteredWikiThemeId,
+  WIKI_THEMES,
+  type WikiThemeDefinition,
+} from './wikiThemes';
 
 export const DEFAULT_SITE_TITLE = 'WazzimaGiygg Maker';
 
 export const EXTENSION_CATEGORY_LABELS: Record<WikiExtensionCategory, string> = {
+  appearance: 'Aparência & Temas',
   reading: 'Leitura',
   navigation: 'Navegação',
   authoring: 'Autoria Markdown',
   collaboration: 'Colaboração',
 };
 
+export interface ExtensionSettingSelectOption {
+  value: string;
+  label: string;
+  hint?: string;
+  editionLabel?: string;
+  typographyLabel?: string;
+  lightSwatches?: [string, string, string];
+  darkSwatches?: [string, string, string];
+}
+
 export interface ExtensionSettingFieldDescriptor {
   key: keyof WikiExtensionSettings;
   label: string;
   hint: string;
-  type: 'boolean' | 'number' | 'text';
+  type: 'boolean' | 'number' | 'text' | 'select';
   min?: number;
   max?: number;
   maxLength?: number;
+  options?: ExtensionSettingSelectOption[];
 }
 
 export const EXTENSION_SETTING_DESCRIPTORS: Record<
@@ -54,6 +74,46 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
       hint: 'Substitui o nome "WazzimaGiygg Maker" na barra superior, título das guias e rodapé.',
       type: 'text',
       maxLength: VALIDATION_LIMITS.EXTENSION_SITE_TITLE_MAX_LENGTH,
+    },
+  ],
+  'site-theme': [
+    {
+      key: 'themeId',
+      label: 'Tema visual do Wiki-site',
+      hint: 'Define a identidade de cores, superfícies e tipografia aplicada ao site e aos PDFs exportados. Novos temas inseridos em atualizações futuras aparecem aqui automaticamente.',
+      type: 'select',
+      options: WIKI_THEMES.map((theme) => ({
+        value: theme.id,
+        label: theme.name,
+        hint: theme.tagline,
+        editionLabel: theme.editionLabel,
+        typographyLabel: theme.typographyLabel,
+        lightSwatches: theme.lightSwatches,
+        darkSwatches: theme.darkSwatches,
+      })),
+    },
+    {
+      key: 'colorScheme',
+      label: 'Política de modo Claro / Escuro',
+      hint: 'Permite que cada leitor alterne livremente ou fixa um esquema global determinado pela burocracia.',
+      type: 'select',
+      options: [
+        {
+          value: 'user',
+          label: 'Escolha do leitor (padrão)',
+          hint: 'Visitantes podem alternar livremente entre Light mode e Dark mode na barra lateral.',
+        },
+        {
+          value: 'light',
+          label: 'Forçar modo Claro',
+          hint: 'Mantém todo o Wiki-site no modo claro dentro do tema selecionado.',
+        },
+        {
+          value: 'dark',
+          label: 'Forçar modo Escuro',
+          hint: 'Mantém todo o Wiki-site no modo escuro dentro do tema selecionado.',
+        },
+      ],
     },
   ],
   toc: [
@@ -186,6 +246,25 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     sortOrder: 0,
     settings: {
       siteTitle: DEFAULT_SITE_TITLE,
+    },
+    updatedBy: 'system-default',
+    updatedByName: 'Built-in Default',
+    createdAt: null,
+    updatedAt: null,
+    persisted: false,
+  },
+  {
+    id: 'site-theme',
+    scope: 'site',
+    name: 'Aparência & Tema Visual',
+    description:
+      'Altera a aparência global do Wiki-site entre os temas disponíveis no catálogo interno, sincronizando leitura, barra de progresso e exportação PDF.',
+    category: 'appearance',
+    enabled: true,
+    sortOrder: 1,
+    settings: {
+      themeId: DEFAULT_WIKI_THEME_ID,
+      colorScheme: 'user',
     },
     updatedBy: 'system-default',
     updatedByName: 'Built-in Default',
@@ -392,6 +471,20 @@ export function sanitizeExtensionSettings(
         siteTitle: trimmedSiteTitle || base.siteTitle || DEFAULT_SITE_TITLE,
       };
     }
+    case 'site-theme': {
+      const rawThemeId = typeof src.themeId === 'string' ? src.themeId.trim() : '';
+      const resolvedThemeId = isRegisteredWikiThemeId(rawThemeId)
+        ? rawThemeId
+        : base.themeId || DEFAULT_WIKI_THEME_ID;
+      const resolvedColorScheme: WikiColorSchemePolicy =
+        src.colorScheme === 'light' || src.colorScheme === 'dark' || src.colorScheme === 'user'
+          ? src.colorScheme
+          : base.colorScheme || 'user';
+      return {
+        themeId: resolvedThemeId,
+        colorScheme: resolvedColorScheme,
+      };
+    }
     case 'toc': {
       const parsedMin =
         typeof src.minHeadings === 'number' && Number.isFinite(src.minHeadings)
@@ -512,6 +605,7 @@ export function mergeExtensionsWithDefaults(
           ? remote.description.trim().slice(0, VALIDATION_LIMITS.EXTENSION_DESCRIPTION_MAX_LENGTH)
           : def.description,
       category:
+        remote.category === 'appearance' ||
         remote.category === 'reading' ||
         remote.category === 'navigation' ||
         remote.category === 'authoring' ||
@@ -561,6 +655,27 @@ export function resolveSiteTitle(state: SiteExtensionsState): string {
   }
   const configured = typeof ext.settings.siteTitle === 'string' ? ext.settings.siteTitle.trim() : '';
   return configured || DEFAULT_SITE_TITLE;
+}
+
+export function resolveSiteTheme(state: SiteExtensionsState): {
+  theme: WikiThemeDefinition;
+  colorScheme: WikiColorSchemePolicy;
+} {
+  const ext = state.byId['site-theme'];
+  if (!ext || !ext.enabled) {
+    return {
+      theme: getWikiThemeById(DEFAULT_WIKI_THEME_ID),
+      colorScheme: 'user',
+    };
+  }
+  const theme = getWikiThemeById(
+    typeof ext.settings.themeId === 'string' ? ext.settings.themeId : DEFAULT_WIKI_THEME_ID
+  );
+  const colorScheme: WikiColorSchemePolicy =
+    ext.settings.colorScheme === 'light' || ext.settings.colorScheme === 'dark'
+      ? ext.settings.colorScheme
+      : 'user';
+  return { theme, colorScheme };
 }
 
 /**

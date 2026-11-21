@@ -487,7 +487,7 @@
         },
         "category": {
           "type": "string",
-          "enum": ["reading", "navigation", "authoring", "collaboration"],
+          "enum": ["appearance", "reading", "navigation", "authoring", "collaboration"],
           "description": "Functional category of the extension."
         },
         "enabled": {
@@ -500,7 +500,7 @@
         },
         "settings": {
           "type": "object",
-          "description": "Typed per-extension configuration options map (including siteTitle branding)."
+          "description": "Typed per-extension configuration options map (including siteTitle branding, themeId, and colorScheme)."
         },
         "updatedBy": {
           "type": "string",
