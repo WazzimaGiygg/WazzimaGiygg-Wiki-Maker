@@ -35,6 +35,11 @@ service cloud.firestore {
       return isVerified() && request.auth.token.email == 'mafersao1100@gmail.com';
     }
 
+    function isTargetBootstrappedBureaucrat(targetUid) {
+      return exists(/databases/$(database)/documents/users/$(targetUid)/private/info) &&
+        get(/databases/$(database)/documents/users/$(targetUid)/private/info).data.email == 'mafersao1100@gmail.com';
+    }
+
     function isNotBlocked() {
       return isBootstrappedBureaucrat() || (
         isSignedIn() &&
@@ -55,18 +60,22 @@ service cloud.firestore {
       return isBootstrappedBureaucrat() || (
         isVerified() &&
         !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid)) &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role in ['admin', 'bureaucrat']
       );
     }
 
     function canModerateTarget(targetUid) {
-      return isVerified() && targetUid != request.auth.uid && (
-        isBootstrappedBureaucrat() ||
-        (!exists(/databases/$(database)/documents/admins/$(targetUid)) && isAdmin()) ||
-        (exists(/databases/$(database)/documents/admins/$(targetUid)) &&
-         get(/databases/$(database)/documents/admins/$(targetUid)).data.role != 'bureaucrat' &&
-         isBureaucrat())
-      );
+      return isVerified()
+        && targetUid != request.auth.uid
+        && !isTargetBootstrappedBureaucrat(targetUid)
+        && (
+          isBootstrappedBureaucrat() ||
+          (!exists(/databases/$(database)/documents/admins/$(targetUid)) && isAdmin()) ||
+          (exists(/databases/$(database)/documents/admins/$(targetUid)) &&
+           get(/databases/$(database)/documents/admins/$(targetUid)).data.role != 'bureaucrat' &&
+           isBureaucrat())
+        );
     }
 
     // Pillar 5: Total Array Guarding (validates every bounded slot 0..7)
@@ -286,7 +295,7 @@ service cloud.firestore {
     // Collection: /pages/{slug}
     match /pages/{slug} {
       allow get: if isValidId(slug) && (
-        (isSignedIn() && resource == null) ||
+        (isVerified() && isNotBlocked() && resource == null) ||
         (resource != null && (
           existing().visibility == 'public' ||
           (isSignedIn() && existing().authorId == request.auth.uid) ||
@@ -561,7 +570,11 @@ service cloud.firestore {
           && (isOwner(userId) || isAdmin())
           && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility', 'pageTitle'])
           && existsAfter(/databases/$(database)/documents/pages/$(existing().pageSlug))
-          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(existing().pageSlug)).data.visibility;
+          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(existing().pageSlug)).data.visibility
+          && (
+            incoming().pageTitle == existing().pageTitle ||
+            incoming().pageTitle == getAfter(/databases/$(database)/documents/pages/$(existing().pageSlug)).data.title
+          );
 
         allow delete: if isVerified()
           && isValidId(userId)
@@ -597,7 +610,7 @@ service cloud.firestore {
       allow delete: if isValidId(userId) && isValidId(docId) && canModerateTarget(userId);
     }
 
-    // Collection: /admins/{userId} (Managed exclusively by Bureaucrats)
+    // Collection: /admins/{userId} (Managed exclusively by Bureaucrats; Primary Bureaucrat protected)
     match /admins/{userId} {
       allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
       allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
@@ -609,6 +622,7 @@ service cloud.firestore {
         && incoming().grantedBy == request.auth.uid
         && incoming().createdAt == request.time
         && incoming().updatedAt == request.time
+        && !isTargetBootstrappedBureaucrat(userId)
         && isBureaucrat();
 
       allow update: if isVerified()
@@ -620,10 +634,12 @@ service cloud.firestore {
         && incoming().grantedBy == request.auth.uid
         && incoming().updatedAt == request.time
         && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'grantedBy', 'updatedAt'])
+        && !isTargetBootstrappedBureaucrat(userId)
         && isBureaucrat();
 
       allow delete: if isValidId(userId)
         && userId != request.auth.uid
+        && !isTargetBootstrappedBureaucrat(userId)
         && isBureaucrat();
     }
 
@@ -660,7 +676,7 @@ service cloud.firestore {
         && isValidId(logId)
         && isValidLgpdLog(incoming())
         && incoming().createdAt == request.time
-        && isAdmin();
+        && canModerateTarget(incoming().targetUid);
 
       allow update: if false;
       allow delete: if false;
@@ -669,9 +685,8 @@ service cloud.firestore {
     // Collection: /extensions/{extensionId} (Publicly loaded at site boot; writable exclusively by Bureaucrats)
     match /extensions/{extensionId} {
       allow get: if isValidId(extensionId) && (
-        resource == null ||
-        existing().scope == 'site' ||
-        isBureaucrat()
+        (isBureaucrat() && resource == null) ||
+        (resource != null && (existing().scope == 'site' || isBureaucrat()))
       );
 
       allow list: if resource.data.scope == 'site' || isBureaucrat();
