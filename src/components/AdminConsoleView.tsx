@@ -28,11 +28,20 @@ import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
 import type { SiteExtensionsState } from '../lib/extensionsService';
 import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
 import { updateWikiPage } from '../lib/wikiService';
+import { isTemplatePage } from '../services/templateService';
 import type { GovernanceRole, LgpdErasureMode, WikiPage } from '../types/wiki';
+import { AdminTemplatesPanel } from './AdminTemplatesPanel';
 import { ExtensionsManagerPanel } from './ExtensionsManagerPanel';
 import { RepoUpdatesPanel } from './RepoUpdatesPanel';
 
-type AdminTab = 'users' | 'edits' | 'pages' | 'lgpd' | 'extensions' | 'updates';
+type AdminTab =
+  | 'users'
+  | 'edits'
+  | 'pages'
+  | 'templates'
+  | 'lgpd'
+  | 'extensions'
+  | 'updates';
 
 interface AdminConsoleViewProps {
   currentUser: User;
@@ -143,6 +152,11 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
         p.lastEditorName.toLowerCase().includes(q)
     );
   }, [snapshot?.pages, pageSearch]);
+
+  const templatePages = React.useMemo(
+    () => (snapshot?.pages ?? []).filter((p) => isTemplatePage(p)),
+    [snapshot?.pages]
+  );
 
   const handleRoleChange = async (target: AdminUserRow, nextRole: GovernanceRole) => {
     if (!isBureaucrat || target.isBootstrappedOwner || target.uid === currentUser.uid) return;
@@ -401,6 +415,17 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
             }`}
           >
             All Pages ({snapshot?.pages.length ?? 0})
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('templates')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+              tab === 'templates'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Templates ({templatePages.length})
           </button>
           <button
             type="button"
@@ -988,6 +1013,19 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {/* TAB 3B: COMMUNITY TEMPLATES MANAGEMENT */}
+          {tab === 'templates' && (
+            <AdminTemplatesPanel
+              pages={templatePages}
+              allWikiPages={snapshot?.pages ?? []}
+              currentUser={currentUser}
+              onSelectPage={onSelectPage}
+              onReloadData={loadData}
+              onFeedback={setFeedbackMsg}
+              onError={setErrorMsg}
+            />
           )}
 
           {/* TAB 4: LGPD AUDIT LOG */}
