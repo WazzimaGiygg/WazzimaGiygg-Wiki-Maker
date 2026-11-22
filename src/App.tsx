@@ -69,6 +69,7 @@ import {
   ECOSYSTEM_PAGE_SLUG,
   ECOSYSTEM_PAGE_TAGS,
   ECOSYSTEM_PAGE_TITLE,
+  type EcosystemSubpage,
   WIKIPEDIA_ABUSES_PAGE_CATEGORY,
   WIKIPEDIA_ABUSES_PAGE_CONTENT,
   WIKIPEDIA_ABUSES_PAGE_SLUG,
@@ -88,6 +89,7 @@ import {
 } from './lib/markdownUtils';
 import { exportArticleToPdf } from './lib/pdfExportService';
 import { buildWikiPrintStylesheet, PRINT_STYLESHEET_ID } from './lib/printStyles';
+import { applyDynamicSeo } from './lib/seoManager';
 import {
   ENGLISH_COMMUNITY_TEMPLATES,
   expandTemplatesInWikitext,
@@ -138,16 +140,39 @@ function parseHashRoute(): {
   view: WorkspaceView;
   slug: string;
   legalSection?: LegalSectionTab;
+  ecosystemSubpage?: EcosystemSubpage;
 } {
-  const hash = window.location.hash.replace(/^#\/?/, '');
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
   if (hash === 'privacy' || hash === 'lgpd') {
     return { view: 'legal', slug: 'start', legalSection: 'privacy' };
   }
   if (hash === 'terms' || hash === 'marco-civil') {
     return { view: 'legal', slug: 'start', legalSection: 'terms' };
   }
-  if (hash === 'ecosystem' || hash === 'ecossistema' || hash === 'produtos') {
-    return { view: 'ecosystem', slug: 'start' };
+  if (hash === 'averdade') {
+    return { view: 'ecosystem', slug: 'start', ecosystemSubpage: 'dossier' };
+  }
+  if (
+    hash === 'ecosystem' ||
+    hash === 'ecossistema' ||
+    hash === 'produtos' ||
+    hash.startsWith('ecosystem/') ||
+    hash.startsWith('ecossistema/')
+  ) {
+    const subSegment = hash.split('/')[1] ?? '';
+    let ecosystemSubpage: EcosystemSubpage = 'overview';
+    if (subSegment === 'services' || subSegment === 'servicos' || subSegment === 'produtos') {
+      ecosystemSubpage = 'services';
+    } else if (subSegment === 'dossier' || subSegment === 'dossie' || subSegment === 'averdade') {
+      ecosystemSubpage = 'dossier';
+    } else if (
+      subSegment === 'administrators' ||
+      subSegment === 'administradores' ||
+      subSegment === 'admins'
+    ) {
+      ecosystemSubpage = 'administrators';
+    }
+    return { view: 'ecosystem', slug: 'start', ecosystemSubpage };
   }
   if (hash === 'admin') return { view: 'admin', slug: 'start' };
   if (hash === 'pages' || hash === 'paginas') return { view: 'index', slug: 'start' };
@@ -192,6 +217,9 @@ function WikiWorkspace() {
   const [view, setView] = React.useState<WorkspaceView>(initialRoute.view);
   const [legalSection, setLegalSection] = React.useState<LegalSectionTab>(
     initialRoute.legalSection ?? 'privacy'
+  );
+  const [ecosystemSubpage, setEcosystemSubpage] = React.useState<EcosystemSubpage>(
+    initialRoute.ecosystemSubpage ?? 'overview'
   );
   const [activeSlug, setActiveSlug] = React.useState<string>(initialRoute.slug || 'start');
   const [createPresetSlug, setCreatePresetSlug] = React.useState<string>(
@@ -360,6 +388,9 @@ function WikiWorkspace() {
       setView(next.view);
       if (next.legalSection) {
         setLegalSection(next.legalSection);
+      }
+      if (next.view === 'ecosystem') {
+        setEcosystemSubpage(next.ecosystemSubpage ?? 'overview');
       }
       if (next.view === 'create') {
         setCreatePresetSlug(next.slug);
@@ -869,12 +900,15 @@ function WikiWorkspace() {
     window.location.hash = section === 'terms' ? '#/terms' : '#/privacy';
   };
 
-  const navigateToEcosystem = () => {
+  const navigateToEcosystem = (subpage?: EcosystemSubpage) => {
+    const targetSubpage: EcosystemSubpage = typeof subpage === 'string' ? subpage : 'overview';
+    setEcosystemSubpage(targetSubpage);
     setView('ecosystem');
     setSaveError(null);
     setConfirmDeleteOpen(false);
     setIsPrintView(false);
-    window.location.hash = '#/ecosystem';
+    window.location.hash =
+      targetSubpage === 'overview' ? '#/ecosystem' : `#/ecosystem/${targetSubpage}`;
   };
 
   const navigateToRandomPage = React.useCallback(() => {
@@ -1316,69 +1350,25 @@ function WikiWorkspace() {
     ? WIKI_CATEGORIES.find((c) => c.id === activePage.category)?.label ?? activePage.category
     : '';
 
-  // Sync per-page SEO title, meta description, OpenGraph, and robots indexing directive
+  // Sync per-page SEO title, meta description, keywords, canonical URL, OpenGraph, Twitter, JSON-LD, and robots indexing directive
   React.useEffect(() => {
-    const defaultTitle = `${siteTitle} — Collaborative Markdown Wiki`;
-    const defaultDesc =
-      `Create, edit, and organize collaborative Markdown wiki pages, infoboxes, and revision histories in real time with ${siteTitle}.`;
-
-    let nextTitle = defaultTitle;
-    let nextDesc = defaultDesc;
-    let robotsValue = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
-
-    if (!isWikiBootReady && extensionsBootStatus === 'error') {
-      nextTitle = `Indisponível — ${siteTitle}`;
-      robotsValue = 'noindex, nofollow';
-    } else if (view === 'admin') {
-      nextTitle = `Administration Console — ${siteTitle}`;
-      robotsValue = 'noindex, nofollow';
-    } else if (view === 'ecosystem') {
-      nextTitle = `WazzimaGiygg Ecosystem Products & Dossier — ${siteTitle}`;
-      nextDesc =
-        'Official products of the WazzimaGiygg ecosystem (NotMediaWiki, WikiWazzimaGiygg, Jornal, Core, wazzimagiygg.com) and the Wikipedia dossier at wazzimagiygg.com/averdade/.';
-    } else if (view === 'legal') {
-      nextTitle =
-        legalSection === 'terms'
-          ? `Terms & Marco Civil Compliance — ${siteTitle}`
-          : `Privacy Policy & LGPD — ${siteTitle}`;
-      nextDesc = `LGPD (Law No. 13.709/2018) and Marco Civil da Internet compliance information. DPO: ${LEGAL_GOVERNANCE.dpoName}.`;
-    } else if (view === 'create') {
-      nextTitle = `Create New Page — ${siteTitle}`;
-      robotsValue = 'noindex, follow';
-    } else if (view === 'index') {
-      nextTitle = `All Wiki Pages — ${siteTitle}`;
-      nextDesc = `Browse every collaborative Markdown page published on ${siteTitle}.`;
-    } else if (view === 'recent') {
-      nextTitle = `Recent Wiki Changes — ${siteTitle}`;
-      nextDesc = `Inspect recent collaborative edits and page updates on ${siteTitle}.`;
-    } else if (view === 'page' && activePage) {
-      nextTitle = `${activePage.title} — ${siteTitle}`;
-      const plainExcerpt = activePage.content
-        .replace(/:::(?:infobox|predefinicao)[\s\S]*?:::/g, '')
-        .replace(/<\/?(?:noinclude|includeonly)>/gi, '')
-        .replace(/[#>*_`[\]()]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 155);
-      if (plainExcerpt) {
-        nextDesc = plainExcerpt;
-      }
-      if (activePage.visibility === 'private') {
-        robotsValue = 'noindex, nofollow';
-      }
-    }
-
-    document.title = nextTitle;
-    const setMeta = (selector: string, content: string) => {
-      document.querySelector(selector)?.setAttribute('content', content);
-    };
-    setMeta('meta[name="description"]', nextDesc);
-    setMeta('meta[property="og:title"]', nextTitle);
-    setMeta('meta[property="og:description"]', nextDesc);
-    setMeta('meta[name="twitter:title"]', nextTitle);
-    setMeta('meta[name="twitter:description"]', nextDesc);
-    setMeta('meta[name="robots"]', robotsValue);
-  }, [siteTitle, isWikiBootReady, extensionsBootStatus, view, legalSection, activePage]);
+    applyDynamicSeo({
+      siteTitle,
+      view,
+      ecosystemSubpage,
+      legalSection,
+      activePage,
+      isBootError: !isWikiBootReady && extensionsBootStatus === 'error',
+    });
+  }, [
+    siteTitle,
+    isWikiBootReady,
+    extensionsBootStatus,
+    view,
+    ecosystemSubpage,
+    legalSection,
+    activePage,
+  ]);
 
   const handleRetryExtensionsBoot = () => {
     setExtensionsBootStatus('loading');
@@ -1762,7 +1752,12 @@ function WikiWorkspace() {
               data-wiki-surface="panel"
               className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
             >
-              <EcosystemProductsView siteTitle={siteTitle} onSelectPage={navigateToPage} />
+              <EcosystemProductsView
+                siteTitle={siteTitle}
+                subpage={ecosystemSubpage}
+                onChangeSubpage={navigateToEcosystem}
+                onSelectPage={navigateToPage}
+              />
             </div>
           ) : view === 'legal' ? (
             <div
