@@ -3,6 +3,7 @@ import {
   FileText,
   FolderOpen,
   Keyboard,
+  Layers,
   Lock,
   LogOut,
   MessageSquare,
@@ -31,6 +32,7 @@ interface SidebarProps {
   discussionPageSlug?: string | null;
   governanceRole?: GovernanceRole;
   isAdminViewActive?: boolean;
+  isEcosystemViewActive?: boolean;
   isDark: boolean;
   canToggleTheme?: boolean;
   forcedColorMode?: 'light' | 'dark';
@@ -40,6 +42,7 @@ interface SidebarProps {
   onRandomPage?: () => void;
   onQuickCreateSlug: (slug: string) => void;
   onOpenAdmin?: () => void;
+  onOpenEcosystem?: () => void;
   onOpenShortcuts?: () => void;
   onSignOut: () => void;
   onSignIn: () => void;
@@ -96,6 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   discussionPageSlug,
   governanceRole = 'member',
   isAdminViewActive = false,
+  isEcosystemViewActive = false,
   isDark,
   canToggleTheme = true,
   forcedColorMode,
@@ -105,6 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRandomPage,
   onQuickCreateSlug,
   onOpenAdmin,
+  onOpenEcosystem,
   onOpenShortcuts,
   onSignOut,
   onSignIn,
@@ -441,6 +446,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <Shuffle className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" data-wiki-surface="link" />
               <span>Artigo aleatório</span>
+            </button>
+          )}
+
+          {onOpenEcosystem && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenEcosystem();
+                onCloseMobile();
+              }}
+              data-wiki-surface={isEcosystemViewActive ? 'nav-active' : 'inset'}
+              className={`w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                isEcosystemViewActive
+                  ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
+                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-blue-700/60 dark:hover:border-blue-500/60'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" data-wiki-surface="link" />
+              <span>WazzimaGiygg Ecosystem</span>
             </button>
           )}
         </div>

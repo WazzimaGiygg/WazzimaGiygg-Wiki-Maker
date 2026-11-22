@@ -178,11 +178,11 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
       </a>
 
-      {/* 6. Dossiê Wiki: Investigação LGPD & Marco Civil */}
+      {/* 6. Wiki Dossier: LGPD & Marco Civil Investigation */}
       <button
         type="button"
         onClick={onNavigateDossier}
-        title="Ler o Dossiê Regulatório LGPD & Marco Civil — WMF e Wikipédia"
+        title="Read the LGPD & Marco Civil Regulatory Dossier — WMF and Wikipedia"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-amber-950 via-slate-900 to-black border border-amber-500/60 hover:border-amber-400 rounded transition p-1 shadow-xs group cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
       >
         <div className="w-5 h-5 rounded flex items-center justify-center bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
@@ -192,7 +192,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
         <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
           <span className="text-[5.5px] font-mono tracking-tighter text-amber-400 font-bold uppercase">
-            DOSSIÊ WIKI
+            WIKI DOSSIER
           </span>
           <span className="text-[7.5px] font-sans font-bold text-amber-100 group-hover:text-white tracking-tight">
             A Verdade
@@ -311,7 +311,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         href="https://wazzimagiygg.com/Investiga%C3%A7%C3%A3o%20LGPD%20e%20Marco%20Civ%C3%ADl%20WMF%20e%20Wikip%C3%A9dia.pdf"
         target="_blank"
         rel="noopener noreferrer"
-        title="Download do PDF oficial da Investigação LGPD e Marco Civil (WMF e Wikipédia)"
+        title="Download the official PDF for the LGPD & Marco Civil Investigation (WMF and Wikipedia)"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-rose-950 via-slate-900 to-black border border-rose-500/60 hover:border-rose-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
       >
         <div className="w-5 h-5 rounded flex items-center justify-center bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[7px] font-mono font-bold shrink-0">
@@ -319,10 +319,10 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
         <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
           <span className="text-[5.5px] font-mono tracking-tighter text-rose-400 font-bold uppercase">
-            AUDITORIA
+            LEGAL AUDIT
           </span>
           <span className="text-[7.5px] font-sans font-bold text-rose-100 group-hover:text-white tracking-tight">
-            Dossiê PDF
+            PDF Dossier
           </span>
         </div>
       </a>

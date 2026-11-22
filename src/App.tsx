@@ -29,6 +29,7 @@ import {
   X,
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
+import { EcosystemProductsView } from './components/EcosystemProductsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FooterBadges } from './components/FooterBadges';
 import { LegalComplianceView, type LegalSectionTab } from './components/LegalComplianceView';
@@ -62,6 +63,18 @@ import {
   DOSSIER_PAGE_TAGS,
   DOSSIER_PAGE_TITLE,
 } from './lib/dossierArticle';
+import {
+  ECOSYSTEM_PAGE_CATEGORY,
+  ECOSYSTEM_PAGE_CONTENT,
+  ECOSYSTEM_PAGE_SLUG,
+  ECOSYSTEM_PAGE_TAGS,
+  ECOSYSTEM_PAGE_TITLE,
+  WIKIPEDIA_ABUSES_PAGE_CATEGORY,
+  WIKIPEDIA_ABUSES_PAGE_CONTENT,
+  WIKIPEDIA_ABUSES_PAGE_SLUG,
+  WIKIPEDIA_ABUSES_PAGE_TAGS,
+  WIKIPEDIA_ABUSES_PAGE_TITLE,
+} from './lib/ecosystemContent';
 import { LEGAL_GOVERNANCE } from './lib/legalConfig';
 import {
   extractArticleReferences,
@@ -115,6 +128,9 @@ function parseHashRoute(): {
   }
   if (hash === 'terms' || hash === 'marco-civil') {
     return { view: 'legal', slug: 'start', legalSection: 'terms' };
+  }
+  if (hash === 'ecosystem' || hash === 'ecossistema' || hash === 'produtos') {
+    return { view: 'ecosystem', slug: 'start' };
   }
   if (hash === 'admin') return { view: 'admin', slug: 'start' };
   if (hash === 'pages' || hash === 'paginas') return { view: 'index', slug: 'start' };
@@ -507,6 +523,42 @@ function WikiWorkspace() {
         updatedAt: null,
       });
     }
+    if (pagesLoaded && !bySlug.has(ECOSYSTEM_PAGE_SLUG)) {
+      bySlug.set(ECOSYSTEM_PAGE_SLUG, {
+        slug: ECOSYSTEM_PAGE_SLUG,
+        title: ECOSYSTEM_PAGE_TITLE,
+        content: ECOSYSTEM_PAGE_CONTENT,
+        category: ECOSYSTEM_PAGE_CATEGORY,
+        tags: ECOSYSTEM_PAGE_TAGS,
+        visibility: 'public',
+        isLocked: false,
+        authorId: 'builtin-editorial',
+        authorName: LEGAL_GOVERNANCE.controllerName,
+        lastEditorId: 'builtin-editorial',
+        lastEditorName: LEGAL_GOVERNANCE.controllerName,
+        version: 1,
+        createdAt: null,
+        updatedAt: null,
+      });
+    }
+    if (pagesLoaded && !bySlug.has(WIKIPEDIA_ABUSES_PAGE_SLUG)) {
+      bySlug.set(WIKIPEDIA_ABUSES_PAGE_SLUG, {
+        slug: WIKIPEDIA_ABUSES_PAGE_SLUG,
+        title: WIKIPEDIA_ABUSES_PAGE_TITLE,
+        content: WIKIPEDIA_ABUSES_PAGE_CONTENT,
+        category: WIKIPEDIA_ABUSES_PAGE_CATEGORY,
+        tags: WIKIPEDIA_ABUSES_PAGE_TAGS,
+        visibility: 'public',
+        isLocked: false,
+        authorId: 'builtin-editorial',
+        authorName: LEGAL_GOVERNANCE.controllerName,
+        lastEditorId: 'builtin-editorial',
+        lastEditorName: LEGAL_GOVERNANCE.controllerName,
+        version: 1,
+        createdAt: null,
+        updatedAt: null,
+      });
+    }
     return Array.from(bySlug.values()).sort((a, b) => a.title.localeCompare(b.title, 'en-US'));
   }, [publicPages, privatePages, pagesLoaded]);
 
@@ -740,6 +792,14 @@ function WikiWorkspace() {
     setConfirmDeleteOpen(false);
     setIsPrintView(false);
     window.location.hash = section === 'terms' ? '#/terms' : '#/privacy';
+  };
+
+  const navigateToEcosystem = () => {
+    setView('ecosystem');
+    setSaveError(null);
+    setConfirmDeleteOpen(false);
+    setIsPrintView(false);
+    window.location.hash = '#/ecosystem';
   };
 
   const navigateToRandomPage = React.useCallback(() => {
@@ -1180,6 +1240,10 @@ function WikiWorkspace() {
     } else if (view === 'admin') {
       nextTitle = `Administration Console — ${siteTitle}`;
       robotsValue = 'noindex, nofollow';
+    } else if (view === 'ecosystem') {
+      nextTitle = `WazzimaGiygg Ecosystem Products & Dossier — ${siteTitle}`;
+      nextDesc =
+        'Official products of the WazzimaGiygg ecosystem (NotMediaWiki, WikiWazzimaGiygg, Jornal, Core, wazzimagiygg.com) and the Wikipedia dossier at wazzimagiygg.com/averdade/.';
     } else if (view === 'legal') {
       nextTitle =
         legalSection === 'terms'
@@ -1427,18 +1491,18 @@ function WikiWorkspace() {
               Recent
             </a>
             <a
-              href="#/page/markdown-guide"
+              href="#/ecosystem"
               onClick={(e) => {
                 e.preventDefault();
-                navigateToPage('markdown-guide');
+                navigateToEcosystem();
               }}
               className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
-                view === 'page' && activeSlug === 'markdown-guide'
+                view === 'ecosystem'
                   ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
                   : ''
               }`}
             >
-              Markdown Guide
+              Ecosystem
             </a>
             {randomExt.enabled && randomExt.settings.showInNavbar !== false && (
               <button
@@ -1504,6 +1568,7 @@ function WikiWorkspace() {
           discussionPageSlug={currentCollaborator?.discussionPageSlug}
           governanceRole={governanceRole}
           isAdminViewActive={view === 'admin'}
+          isEcosystemViewActive={view === 'ecosystem'}
           isDark={effectiveIsDark}
           canToggleTheme={themeColorScheme === 'user'}
           forcedColorMode={themeColorScheme === 'user' ? undefined : themeColorScheme}
@@ -1517,6 +1582,7 @@ function WikiWorkspace() {
           }
           onQuickCreateSlug={navigateToCreate}
           onOpenAdmin={navigateToAdmin}
+          onOpenEcosystem={navigateToEcosystem}
           onOpenShortcuts={() => setShortcutsOpen(true)}
           onSignOut={() => void handleSignOut()}
           onSignIn={() => void handleSignIn()}
@@ -1597,6 +1663,13 @@ function WikiWorkspace() {
               <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-800 animate-pulse mt-6" />
               <div className="h-4 w-5/6 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
               <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            </div>
+          ) : view === 'ecosystem' ? (
+            <div
+              data-wiki-surface="panel"
+              className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
+            >
+              <EcosystemProductsView siteTitle={siteTitle} onSelectPage={navigateToPage} />
             </div>
           ) : view === 'legal' ? (
             <div
@@ -2522,6 +2595,16 @@ function WikiWorkspace() {
             </div>
 
             <div className="flex flex-wrap items-center gap-4 shrink-0">
+              <a
+                href="#/ecosystem"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToEcosystem();
+                }}
+                className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
+              >
+                Ecosystem &amp; Products
+              </a>
               <a
                 href={`#/page/${DOSSIER_PAGE_SLUG}`}
                 onClick={(e) => {

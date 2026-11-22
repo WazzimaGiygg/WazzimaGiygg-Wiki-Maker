@@ -29,6 +29,20 @@ import {
   DOSSIER_PAGE_TAGS,
   DOSSIER_PAGE_TITLE,
 } from './dossierArticle';
+import {
+  ECOSYSTEM_PAGE_CATEGORY,
+  ECOSYSTEM_PAGE_CONTENT,
+  ECOSYSTEM_PAGE_SLUG,
+  ECOSYSTEM_PAGE_SUMMARY,
+  ECOSYSTEM_PAGE_TAGS,
+  ECOSYSTEM_PAGE_TITLE,
+  WIKIPEDIA_ABUSES_PAGE_CATEGORY,
+  WIKIPEDIA_ABUSES_PAGE_CONTENT,
+  WIKIPEDIA_ABUSES_PAGE_SLUG,
+  WIKIPEDIA_ABUSES_PAGE_SUMMARY,
+  WIKIPEDIA_ABUSES_PAGE_TAGS,
+  WIKIPEDIA_ABUSES_PAGE_TITLE,
+} from './ecosystemContent';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { isValidWikiSlug, serializeInfoboxBlock, toWikiSlug } from './markdownUtils';
 
@@ -764,6 +778,8 @@ export async function seedStarterWiki(user: User): Promise<void> {
 | [[markdown-guide]] | Markdown syntax and internal links reference | Public |
 | [[best-practices]] | Collaboration and organization conventions | Public |
 | [[${DOSSIER_PAGE_SLUG}|${DOSSIER_PAGE_TITLE}]] | Regulatory dossier on LGPD & Marco Civil compliance | Public |
+| [[${ECOSYSTEM_PAGE_SLUG}|${ECOSYSTEM_PAGE_TITLE}]] | Directory of official WazzimaGiygg ecosystem products | Public |
+| [[${WIKIPEDIA_ABUSES_PAGE_SLUG}|${WIKIPEDIA_ABUSES_PAGE_TITLE}]] | Wikipedia abuses dossier and A Verdade reference | Public |
 
 ## Next Steps
 
@@ -882,6 +898,22 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
       summary: DOSSIER_PAGE_SUMMARY,
       content: DOSSIER_PAGE_CONTENT,
     },
+    {
+      slug: ECOSYSTEM_PAGE_SLUG,
+      title: ECOSYSTEM_PAGE_TITLE,
+      category: ECOSYSTEM_PAGE_CATEGORY,
+      tags: ECOSYSTEM_PAGE_TAGS,
+      summary: ECOSYSTEM_PAGE_SUMMARY,
+      content: ECOSYSTEM_PAGE_CONTENT,
+    },
+    {
+      slug: WIKIPEDIA_ABUSES_PAGE_SLUG,
+      title: WIKIPEDIA_ABUSES_PAGE_TITLE,
+      category: WIKIPEDIA_ABUSES_PAGE_CATEGORY,
+      tags: WIKIPEDIA_ABUSES_PAGE_TAGS,
+      summary: WIKIPEDIA_ABUSES_PAGE_SUMMARY,
+      content: WIKIPEDIA_ABUSES_PAGE_CONTENT,
+    },
   ];
 
   const batch = writeBatch(db);
@@ -950,79 +982,162 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
   }
 }
 
-const DOSSIER_SEED_FLAG = 'wazzimagiygg-dossier-seeded-v1';
+const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v1';
+
+const LEGACY_PORTUGUESE_TITLES: Record<string, string> = {
+  [DOSSIER_PAGE_SLUG]: 'Investigação LGPD e Marco Civil — WMF e Wikipédia',
+  [ECOSYSTEM_PAGE_SLUG]: 'Produtos do Ecossistema WazzimaGiygg',
+  [WIKIPEDIA_ABUSES_PAGE_SLUG]:
+    'Dossiê sobre a Wikipédia — Chronus, LittleSunshine, Conde Edmond Dantès, Teles e Johannnes89',
+};
 
 /**
- * Ensures the regulatory dossier article exists in Firestore for active workspaces
- * when an administrator or bureaucrat signs in, without respawning deleted pages.
+ * Ensures the built-in English reference articles exist in Firestore for active
+ * workspaces when an administrator or bureaucrat signs in, and upgrades unmodified
+ * legacy v1 Portuguese seed documents to their English version without overwriting
+ * user-customized revisions.
  */
 export async function ensureDossierArticlePublished(user: User): Promise<void> {
-  if (typeof window !== 'undefined' && localStorage.getItem(DOSSIER_SEED_FLAG) === '1') {
+  if (typeof window !== 'undefined' && localStorage.getItem(BUILTIN_EN_SYNC_FLAG) === '1') {
     return;
   }
 
-  const pageRef = doc(db, 'pages', DOSSIER_PAGE_SLUG);
-  try {
-    const snap = await getDoc(pageRef);
-    if (snap.exists()) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(DOSSIER_SEED_FLAG, '1');
-      }
-      return;
-    }
-
-    const authorName = getUserDisplayName(user);
-    const batch = writeBatch(db);
-
-    batch.set(pageRef, {
+  const builtinArticles = [
+    {
       slug: DOSSIER_PAGE_SLUG,
       title: DOSSIER_PAGE_TITLE,
       content: DOSSIER_PAGE_CONTENT,
       category: DOSSIER_PAGE_CATEGORY,
       tags: DOSSIER_PAGE_TAGS,
-      visibility: 'public',
-      isLocked: false,
-      authorId: user.uid,
-      authorName,
-      lastEditorId: user.uid,
-      lastEditorName: authorName,
-      version: 1,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-
-    batch.set(doc(db, 'pages', DOSSIER_PAGE_SLUG, 'revisions', 'v_1'), {
-      pageSlug: DOSSIER_PAGE_SLUG,
-      pageVisibility: 'public',
-      pageAuthorId: user.uid,
-      title: DOSSIER_PAGE_TITLE,
-      content: DOSSIER_PAGE_CONTENT,
-      editorId: user.uid,
-      editorName: authorName,
       summary: DOSSIER_PAGE_SUMMARY,
-      version: 1,
-      createdAt: serverTimestamp(),
-    });
+    },
+    {
+      slug: ECOSYSTEM_PAGE_SLUG,
+      title: ECOSYSTEM_PAGE_TITLE,
+      content: ECOSYSTEM_PAGE_CONTENT,
+      category: ECOSYSTEM_PAGE_CATEGORY,
+      tags: ECOSYSTEM_PAGE_TAGS,
+      summary: ECOSYSTEM_PAGE_SUMMARY,
+    },
+    {
+      slug: WIKIPEDIA_ABUSES_PAGE_SLUG,
+      title: WIKIPEDIA_ABUSES_PAGE_TITLE,
+      content: WIKIPEDIA_ABUSES_PAGE_CONTENT,
+      category: WIKIPEDIA_ABUSES_PAGE_CATEGORY,
+      tags: WIKIPEDIA_ABUSES_PAGE_TAGS,
+      summary: WIKIPEDIA_ABUSES_PAGE_SUMMARY,
+    },
+  ];
 
-    batch.set(
-      doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(DOSSIER_PAGE_SLUG, 1)),
-      {
-        editorId: user.uid,
-        pageSlug: DOSSIER_PAGE_SLUG,
-        pageTitle: DOSSIER_PAGE_TITLE,
-        pageVisibility: 'public',
-        summary: DOSSIER_PAGE_SUMMARY,
-        version: 1,
-        createdAt: serverTimestamp(),
+  try {
+    const authorName = getUserDisplayName(user);
+    const batch = writeBatch(db);
+    let pendingWrites = 0;
+
+    for (const item of builtinArticles) {
+      const pageRef = doc(db, 'pages', item.slug);
+      const snap = await getDoc(pageRef);
+
+      if (!snap.exists()) {
+        pendingWrites += 1;
+        batch.set(pageRef, {
+          slug: item.slug,
+          title: item.title,
+          content: item.content,
+          category: item.category,
+          tags: item.tags,
+          visibility: 'public',
+          isLocked: false,
+          authorId: user.uid,
+          authorName,
+          lastEditorId: user.uid,
+          lastEditorName: authorName,
+          version: 1,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+
+        batch.set(doc(db, 'pages', item.slug, 'revisions', 'v_1'), {
+          pageSlug: item.slug,
+          pageVisibility: 'public',
+          pageAuthorId: user.uid,
+          title: item.title,
+          content: item.content,
+          editorId: user.uid,
+          editorName: authorName,
+          summary: item.summary,
+          version: 1,
+          createdAt: serverTimestamp(),
+        });
+
+        batch.set(
+          doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(item.slug, 1)),
+          {
+            editorId: user.uid,
+            pageSlug: item.slug,
+            pageTitle: item.title,
+            pageVisibility: 'public',
+            summary: item.summary,
+            version: 1,
+            createdAt: serverTimestamp(),
+          }
+        );
+      } else {
+        const existing = snap.data() as WikiPage;
+        const legacyTitle = LEGACY_PORTUGUESE_TITLES[item.slug];
+        if (existing.version === 1 && legacyTitle && existing.title === legacyTitle) {
+          const nextVersion = 2;
+          const translationSummary = 'Translated title and description into English';
+          pendingWrites += 1;
+
+          batch.update(pageRef, {
+            title: item.title,
+            content: item.content,
+            category: item.category,
+            tags: item.tags,
+            lastEditorId: user.uid,
+            lastEditorName: authorName,
+            version: nextVersion,
+            updatedAt: serverTimestamp(),
+          });
+
+          batch.set(doc(db, 'pages', item.slug, 'revisions', `v_${nextVersion}`), {
+            pageSlug: item.slug,
+            pageVisibility: existing.visibility,
+            pageAuthorId: existing.authorId,
+            title: item.title,
+            content: item.content,
+            editorId: user.uid,
+            editorName: authorName,
+            summary: translationSummary,
+            version: nextVersion,
+            createdAt: serverTimestamp(),
+          });
+
+          batch.set(
+            doc(db, 'collaborators', user.uid, 'edits', buildEditDocId(item.slug, nextVersion)),
+            {
+              editorId: user.uid,
+              pageSlug: item.slug,
+              pageTitle: item.title,
+              pageVisibility: existing.visibility,
+              summary: translationSummary,
+              version: nextVersion,
+              createdAt: serverTimestamp(),
+            }
+          );
+        }
       }
-    );
+    }
 
-    await batch.commit();
+    if (pendingWrites > 0) {
+      await batch.commit();
+    }
     if (typeof window !== 'undefined') {
-      localStorage.setItem(DOSSIER_SEED_FLAG, '1');
+      localStorage.setItem(BUILTIN_EN_SYNC_FLAG, '1');
     }
   } catch (error) {
-    console.warn('Could not auto-publish dossier article:', error);
+    console.warn('Could not auto-publish or translate built-in reference articles:', error);
   }
 }
 
