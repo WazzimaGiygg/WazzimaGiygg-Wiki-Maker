@@ -114,6 +114,7 @@ import {
   fetchCollaboratorProfile,
   fetchPageRevisions,
   fetchUserEdits,
+  isUserOrDiscussionPage,
   restorePageRevision,
   seedStarterWiki,
   syncUserDocuments,
@@ -921,6 +922,9 @@ function WikiWorkspace() {
         governanceRole === 'bureaucrat')
   );
   const isBlocked = Boolean(blockedRecord);
+  const isActiveUserOrDiscussionPage = Boolean(
+    activePage && isUserOrDiscussionPage(activePage)
+  );
   const canManageActiveMeta = Boolean(
     user && !isBlocked && activePage && (activePage.authorId === user.uid || isAdmin)
   );
@@ -928,7 +932,9 @@ function WikiWorkspace() {
     user &&
       !isBlocked &&
       activePage &&
-      ((activePage.visibility === 'public' && !activePage.isLocked) ||
+      ((activePage.visibility === 'public' &&
+        !activePage.isLocked &&
+        !isActiveUserOrDiscussionPage) ||
         activePage.authorId === user.uid ||
         isAdmin)
   );
@@ -2159,7 +2165,9 @@ function WikiWorkspace() {
                         !user
                           ? 'Sign in with Google to edit (Ctrl+E)'
                           : !canEditActivePage
-                          ? 'This page is locked by the author'
+                          ? isActiveUserOrDiscussionPage
+                            ? 'Only the page owner or an administrator can edit user and discussion pages'
+                            : 'This page is locked by the author'
                           : 'Edit Markdown content (Ctrl+E)'
                       }
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 disabled:opacity-45 disabled:cursor-not-allowed ${
@@ -2168,7 +2176,8 @@ function WikiWorkspace() {
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                       }`}
                     >
-                      {activePage.isLocked && !canEditActivePage ? (
+                      {(activePage.isLocked || isActiveUserOrDiscussionPage) &&
+                      !canEditActivePage ? (
                         <Lock className="w-3.5 h-3.5" />
                       ) : (
                         <Edit3 className="w-3.5 h-3.5" />
@@ -2551,7 +2560,7 @@ function WikiWorkspace() {
                 </div>
               )}
 
-              {activeTab === 'edit' && user && (
+              {activeTab === 'edit' && user && canEditActivePage && (
                 <MarkdownEditor
                   mode="edit"
                   initialSlug={activePage.slug}

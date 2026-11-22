@@ -263,4 +263,19 @@ export const DIRTY_DOZEN_PAYLOADS: DirtyDozenCase[] = [
     },
     expected: 'PERMISSION_DENIED',
   },
+  {
+    id: 16,
+    name: 'Non-Owner Collaborator Attempting to Edit Another User Personal or Discussion Page',
+    operation: 'update',
+    path: '/pages/user-alice-123-discussion',
+    actorUid: 'uid_bob',
+    emailVerified: true,
+    payload: {
+      content: 'Tampered user talk page content',
+      lastEditorId: 'uid_bob',
+      lastEditorName: 'Bob',
+      version: 2,
+    },
+    expected: 'PERMISSION_DENIED',
+  },
 ];

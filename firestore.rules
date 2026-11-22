@@ -78,6 +78,13 @@ service cloud.firestore {
         );
     }
 
+    function isUserOrDiscussionPage(slug, data) {
+      return ('personal' in data.tags)
+        || ('discussion' in data.tags)
+        || slug.matches('^user-.*$')
+        || slug.matches('^.*-discussion$');
+    }
+
     // Pillar 5: Total Array Guarding (validates every bounded slot 0..7)
     function isValidTagItem(tag) {
       return tag is string && tag.size() >= 1 && tag.size() <= 32;
@@ -333,7 +340,7 @@ service cloud.firestore {
             && incoming().authorName == existing().authorName
             && incoming().lastEditorId == request.auth.uid
             && (
-              // Tier 1: Page Author or Admin (full editorial + lock/visibility control)
+              // Tier 1: Page Author or Admin (full editorial + lock/visibility control; exclusive editor for user & discussion pages)
               (
                 (existing().authorId == request.auth.uid || isAdmin())
                 && incoming().diff(existing()).affectedKeys().hasOnly([
@@ -341,10 +348,11 @@ service cloud.firestore {
                   'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
                 ])
               ) ||
-              // Tier 2: Collaborator on public unlocked page (content/metadata edits only)
+              // Tier 2: Collaborator on public unlocked non-personal/non-discussion page (content/metadata edits only)
               (
                 existing().visibility == 'public'
                 && existing().isLocked == false
+                && !isUserOrDiscussionPage(slug, existing())
                 && incoming().visibility == existing().visibility
                 && incoming().isLocked == existing().isLocked
                 && incoming().diff(existing()).affectedKeys().hasOnly([
@@ -401,7 +409,8 @@ service cloud.firestore {
           && getAfter(/databases/$(database)/documents/pages/$(slug)).data.updatedAt == request.time
           && (
             (getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public'
-              && getAfter(/databases/$(database)/documents/pages/$(slug)).data.isLocked == false) ||
+              && getAfter(/databases/$(database)/documents/pages/$(slug)).data.isLocked == false
+              && !isUserOrDiscussionPage(slug, getAfter(/databases/$(database)/documents/pages/$(slug)).data)) ||
             getAfter(/databases/$(database)/documents/pages/$(slug)).data.authorId == request.auth.uid ||
             isAdmin()
           );

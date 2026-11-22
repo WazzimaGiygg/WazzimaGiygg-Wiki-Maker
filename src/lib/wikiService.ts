@@ -103,6 +103,15 @@ export function buildPersonalSlugs(
   return { personalPageSlug, discussionPageSlug };
 }
 
+export function isUserOrDiscussionPage(page: Pick<WikiPage, 'slug' | 'tags'>): boolean {
+  return (
+    page.tags.includes('personal') ||
+    page.tags.includes('discussion') ||
+    page.slug.startsWith('user-') ||
+    page.slug.endsWith('-discussion')
+  );
+}
+
 function buildEditDocId(slug: string, version: number): string {
   const suffix = `_v${version}`;
   const maxSlugLen = Math.max(1, VALIDATION_LIMITS.SLUG_MAX_LENGTH - suffix.length);
@@ -489,6 +498,12 @@ export async function updateWikiPage(
   user: User,
   canManageMeta: boolean
 ): Promise<void> {
+  if (isUserOrDiscussionPage(existing) && !canManageMeta) {
+    throw new Error(
+      'Only administrators or the page owner can edit user pages and discussion pages.'
+    );
+  }
+
   const title = sanitizeString(input.title, VALIDATION_LIMITS.TITLE_MAX_LENGTH);
   if (!title) {
     throw new Error('Page title is required.');
