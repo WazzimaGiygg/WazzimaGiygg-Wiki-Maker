@@ -1,7 +1,9 @@
 import React from 'react';
+import type { User } from 'firebase/auth';
 import {
   Bold,
   BookMarked,
+  Braces,
   Code,
   Eye,
   Heading2,
@@ -20,10 +22,12 @@ import {
   type PageVisibility,
   VALIDATION_LIMITS,
   WIKI_CATEGORIES,
+  type WikiPage,
 } from '../types/wiki';
 import { toWikiSlug } from '../lib/markdownUtils';
+import { ArticleViewer } from './ArticleViewer';
 import { InfoboxBuilderModal } from './InfoboxBuilderModal';
-import { MarkdownRenderer } from './MarkdownRenderer';
+import { TemplatePickerModal } from './TemplatePickerModal';
 
 interface MarkdownEditorProps {
   mode: 'create' | 'edit';
@@ -36,6 +40,9 @@ interface MarkdownEditorProps {
   initialIsLocked: boolean;
   canManageMeta: boolean;
   existingSlugs: Set<string>;
+  wikiPages?: WikiPage[];
+  currentSlug?: string;
+  currentUser?: User | null;
   isSaving: boolean;
   errorMessage: string | null;
   enableInfoboxToolbar?: boolean;
@@ -73,6 +80,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   initialIsLocked,
   canManageMeta,
   existingSlugs,
+  wikiPages,
+  currentSlug,
+  currentUser = null,
   isSaving,
   errorMessage,
   enableInfoboxToolbar = true,
@@ -99,6 +109,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [paneMode, setPaneMode] = React.useState<EditorPaneMode>('split');
   const [localError, setLocalError] = React.useState<string | null>(null);
   const [infoboxModalOpen, setInfoboxModalOpen] = React.useState(false);
+  const [templateModalOpen, setTemplateModalOpen] = React.useState(false);
 
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
@@ -206,7 +217,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.nativeEvent.isComposing || infoboxModalOpen) return;
+    if (e.nativeEvent.isComposing || infoboxModalOpen || templateModalOpen) return;
 
     const isMod = e.metaKey || e.ctrlKey;
     const keyLower = e.key.toLowerCase();
@@ -222,6 +233,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     if (isMod && e.shiftKey && keyLower === 'i' && enableInfoboxToolbar) {
       e.preventDefault();
       setInfoboxModalOpen(true);
+      return;
+    }
+
+    if (isMod && e.shiftKey && keyLower === 't') {
+      e.preventDefault();
+      setTemplateModalOpen(true);
       return;
     }
 
@@ -444,6 +461,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               <span>Infobox</span>
             </button>
           )}
+          <button
+            type="button"
+            title="Inserir Predefinição MediaWiki {{...}} (Ctrl+Shift+T)"
+            onClick={() => setTemplateModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors whitespace-nowrap shrink-0"
+          >
+            <Braces className="w-3.5 h-3.5" />
+            <span>Predefinições</span>
+          </button>
           {enableReferencesToolbar && (
             <button
               type="button"
@@ -549,11 +575,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               value={content}
               maxLength={VALIDATION_LIMITS.CONTENT_MAX_LENGTH}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Write in Markdown... Use [[slug]] for wiki links or :::infobox for infoboxes. Press Ctrl+Enter to save."
+              placeholder="Write in Markdown... Use [[slug]] for links, {{Aviso|...}} for MediaWiki templates, or :::infobox for infoboxes. Press Ctrl+Enter to save."
               className="w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y"
             />
             <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
-              <span>GFM, :::infobox, &lt;ref&gt; &amp; [[internal-links]] · Ctrl+Enter to save</span>
+              <span>GFM, {'{{Predefinições}}'}, :::infobox, &lt;ref&gt; &amp; [[links]] · Ctrl+Enter to save</span>
               <span>
                 {content.length.toLocaleString('en-US')} /{' '}
                 {VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('en-US')}
@@ -567,9 +593,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
               Live preview
             </div>
-            <MarkdownRenderer
+            <ArticleViewer
               content={content}
               existingSlugs={existingSlugs}
+              wikiPages={wikiPages}
+              currentSlug={currentSlug}
               onNavigateSlug={onNavigateSlug}
               showToc={showTocPreview}
               tocDefaultExpanded={tocDefaultExpanded}
@@ -626,6 +654,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         isOpen={infoboxModalOpen}
         existingSlugs={existingSlugs}
         onClose={() => setInfoboxModalOpen(false)}
+        onInsert={insertBlockAtCursor}
+        onNavigateSlug={onNavigateSlug}
+      />
+
+      <TemplatePickerModal
+        isOpen={templateModalOpen}
+        existingSlugs={existingSlugs}
+        wikiPages={wikiPages}
+        currentUser={currentUser}
+        onClose={() => setTemplateModalOpen(false)}
         onInsert={insertBlockAtCursor}
         onNavigateSlug={onNavigateSlug}
       />

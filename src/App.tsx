@@ -29,12 +29,12 @@ import {
   X,
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
+import { ArticleViewer } from './components/ArticleViewer';
 import { EcosystemProductsView } from './components/EcosystemProductsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FooterBadges } from './components/FooterBadges';
 import { LegalComplianceView, type LegalSectionTab } from './components/LegalComplianceView';
 import { MarkdownEditor } from './components/MarkdownEditor';
-import { MarkdownRenderer } from './components/MarkdownRenderer';
 import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
 import { PrivacyNoticeBanner } from './components/PrivacyNoticeBanner';
@@ -88,6 +88,14 @@ import {
 } from './lib/markdownUtils';
 import { exportArticleToPdf } from './lib/pdfExportService';
 import { buildWikiPrintStylesheet, PRINT_STYLESHEET_ID } from './lib/printStyles';
+import {
+  expandTemplatesInWikitext,
+  STARTER_TEMPLATE_CATEGORY,
+  STARTER_TEMPLATE_CONTENT,
+  STARTER_TEMPLATE_SLUG,
+  STARTER_TEMPLATE_TAGS,
+  STARTER_TEMPLATE_TITLE,
+} from './services/templateService';
 import {
   addPageComment,
   buildPersonalSlugs,
@@ -548,6 +556,24 @@ function WikiWorkspace() {
         content: WIKIPEDIA_ABUSES_PAGE_CONTENT,
         category: WIKIPEDIA_ABUSES_PAGE_CATEGORY,
         tags: WIKIPEDIA_ABUSES_PAGE_TAGS,
+        visibility: 'public',
+        isLocked: false,
+        authorId: 'builtin-editorial',
+        authorName: LEGAL_GOVERNANCE.controllerName,
+        lastEditorId: 'builtin-editorial',
+        lastEditorName: LEGAL_GOVERNANCE.controllerName,
+        version: 1,
+        createdAt: null,
+        updatedAt: null,
+      });
+    }
+    if (pagesLoaded && !bySlug.has(STARTER_TEMPLATE_SLUG)) {
+      bySlug.set(STARTER_TEMPLATE_SLUG, {
+        slug: STARTER_TEMPLATE_SLUG,
+        title: STARTER_TEMPLATE_TITLE,
+        content: STARTER_TEMPLATE_CONTENT,
+        category: STARTER_TEMPLATE_CATEGORY,
+        tags: STARTER_TEMPLATE_TAGS,
         visibility: 'public',
         isLocked: false,
         authorId: 'builtin-editorial',
@@ -1165,6 +1191,7 @@ function WikiWorkspace() {
 
       const result = await exportArticleToPdf({
         page: activePage,
+        wikiPages: allPages,
         categoryLabel: activeCategoryLabel,
         siteTitle,
         isDark: effectiveIsDark,
@@ -1201,17 +1228,28 @@ function WikiWorkspace() {
     }
   };
 
+  const expandedActiveContent = React.useMemo(
+    () =>
+      activePage
+        ? expandTemplatesInWikitext(activePage.content, allPages, {
+            currentSlug: activePage.slug,
+            currentTitle: activePage.title,
+          })
+        : '',
+    [activePage, allPages]
+  );
+
   const toc = React.useMemo(
-    () => (activePage ? extractToc(activePage.content) : []),
-    [activePage?.content]
+    () => (activePage ? extractToc(expandedActiveContent) : []),
+    [activePage, expandedActiveContent]
   );
 
   const articleReferences = React.useMemo(
     () =>
       activePage && refsExt.enabled
-        ? extractArticleReferences(activePage.content).references
+        ? extractArticleReferences(expandedActiveContent).references
         : [],
-    [activePage?.content, refsExt.enabled]
+    [activePage, expandedActiveContent, refsExt.enabled]
   );
 
   const tocMinHeadings = Math.max(1, tocExt.settings.minHeadings ?? 1);
@@ -1262,7 +1300,8 @@ function WikiWorkspace() {
     } else if (view === 'page' && activePage) {
       nextTitle = `${activePage.title} — ${siteTitle}`;
       const plainExcerpt = activePage.content
-        .replace(/:::infobox[\s\S]*?:::/g, '')
+        .replace(/:::(?:infobox|predefinicao)[\s\S]*?:::/g, '')
+        .replace(/<\/?(?:noinclude|includeonly)>/gi, '')
         .replace(/[#>*_`[\]()]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
@@ -1736,14 +1775,42 @@ function WikiWorkspace() {
                 <MarkdownEditor
                   mode="create"
                   initialSlug={createPresetSlug}
-                  initialTitle={createPresetSlug ? slugToTitle(createPresetSlug) : ''}
-                  initialContent=""
-                  initialCategory="general"
-                  initialTags={[]}
+                  initialTitle={
+                    createPresetSlug.startsWith('predefinicao-')
+                      ? `Predefinição:${slugToTitle(createPresetSlug.slice('predefinicao-'.length))}`
+                      : createPresetSlug.startsWith('template-')
+                      ? `Template:${slugToTitle(createPresetSlug.slice('template-'.length))}`
+                      : createPresetSlug
+                      ? slugToTitle(createPresetSlug)
+                      : ''
+                  }
+                  initialContent={
+                    createPresetSlug.startsWith('predefinicao-') ||
+                    createPresetSlug.startsWith('template-')
+                      ? `<noinclude>\nDocumentação desta predefinição. Uso: \`{{${
+                          createPresetSlug.replace(/^(predefinicao-|template-)/, '')
+                        }|texto=...}}\`\n</noinclude>{{Aviso|tipo=nota|título=Predefinição|texto={{{texto|Conteúdo da predefinição.}}}}}`
+                      : ''
+                  }
+                  initialCategory={
+                    createPresetSlug.startsWith('predefinicao-') ||
+                    createPresetSlug.startsWith('template-')
+                      ? 'reference'
+                      : 'general'
+                  }
+                  initialTags={
+                    createPresetSlug.startsWith('predefinicao-') ||
+                    createPresetSlug.startsWith('template-')
+                      ? ['predefinicao', 'template']
+                      : []
+                  }
                   initialVisibility="public"
                   initialIsLocked={false}
                   canManageMeta={true}
                   existingSlugs={existingSlugs}
+                  wikiPages={allPages}
+                  currentSlug={createPresetSlug || undefined}
+                  currentUser={user}
                   isSaving={isSaving}
                   errorMessage={saveError}
                   enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}
@@ -2208,7 +2275,7 @@ function WikiWorkspace() {
                       {isPersonalProfilePage &&
                         infoboxExt.enabled &&
                         infoboxExt.settings.allowAutoProfileCard !== false &&
-                        !parseMarkdownWithInfoboxes(activePage.content).some(
+                        !parseMarkdownWithInfoboxes(expandedActiveContent).some(
                           (seg) => seg.kind === 'infobox'
                         ) && (
                           <WikiInfobox
@@ -2251,9 +2318,12 @@ function WikiWorkspace() {
                           />
                         )}
 
-                      <MarkdownRenderer
+                      <ArticleViewer
                         content={activePage.content}
                         existingSlugs={existingSlugs}
+                        wikiPages={allPages}
+                        currentSlug={activePage.slug}
+                        currentTitle={activePage.title}
                         onNavigateSlug={navigateToPage}
                         showToc={tocExt.enabled}
                         tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
@@ -2445,6 +2515,9 @@ function WikiWorkspace() {
                   initialIsLocked={activePage.isLocked}
                   canManageMeta={canManageActiveMeta}
                   existingSlugs={existingSlugs}
+                  wikiPages={allPages}
+                  currentSlug={activePage.slug}
+                  currentUser={user}
                   isSaving={isSaving}
                   errorMessage={saveError}
                   enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}

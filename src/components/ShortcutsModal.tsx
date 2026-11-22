@@ -30,6 +30,7 @@ const SHORTCUT_GROUPS: {
       { keys: ['Ctrl', 'Shift', 'L'], description: 'Insert [[slug|Label]] internal wiki link' },
       { keys: ['Ctrl', 'Shift', 'R'], description: 'Insert <ref>...</ref> bibliographic citation' },
       { keys: ['Ctrl', 'Shift', 'I'], description: 'Open Insert Infobox builder' },
+      { keys: ['Ctrl', 'Shift', 'T'], description: 'Open Insert MediaWiki Predefinição picker' },
       { keys: ['Ctrl', 'Shift', 'P'], description: 'Cycle Write / Split / Preview panes' },
     ],
   },

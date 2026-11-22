@@ -11,12 +11,17 @@ import {
   scrollToWikiAnchor,
   type TocItem,
 } from '../lib/markdownUtils';
+import type { WikiPage } from '../types/wiki';
+import { expandTemplatesInWikitext } from '../services/templateService';
 import { ReferencesFooter } from './ReferencesFooter';
 import { WikiInfobox } from './WikiInfobox';
+import { WikiTemplateBlock } from './WikiTemplateBlock';
 
 interface MarkdownRendererProps {
   content: string;
   existingSlugs: Set<string>;
+  wikiPages?: WikiPage[];
+  currentSlug?: string;
   onNavigateSlug: (slug: string) => void;
   showToc?: boolean;
   tocDefaultExpanded?: boolean;
@@ -24,6 +29,7 @@ interface MarkdownRendererProps {
   enableReferences?: boolean;
   referencesTitle?: string;
   enableInfoboxes?: boolean;
+  enableTemplates?: boolean;
   showReferencesFooter?: boolean;
 }
 
@@ -57,6 +63,8 @@ function getTocIndentClass(level: TocItem['level'], minLevel: 1 | 2 | 3): string
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   existingSlugs,
+  wikiPages,
+  currentSlug,
   onNavigateSlug,
   showToc = true,
   tocDefaultExpanded = true,
@@ -64,6 +72,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   enableReferences = true,
   referencesTitle = 'Referências',
   enableInfoboxes = true,
+  enableTemplates = true,
   showReferencesFooter = true,
 }) => {
   const [tocExpanded, setTocExpanded] = React.useState(tocDefaultExpanded);
@@ -72,19 +81,27 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     setTocExpanded(tocDefaultExpanded);
   }, [tocDefaultExpanded]);
 
+  const expandedContent = React.useMemo(
+    () =>
+      enableTemplates
+        ? expandTemplatesInWikitext(content, wikiPages, { currentSlug })
+        : content,
+    [content, wikiPages, currentSlug, enableTemplates]
+  );
+
   const { processedMarkdown, references } = React.useMemo(
     () =>
       enableReferences
-        ? extractArticleReferences(content)
-        : { processedMarkdown: content, references: [] },
-    [content, enableReferences]
+        ? extractArticleReferences(expandedContent)
+        : { processedMarkdown: expandedContent, references: [] },
+    [expandedContent, enableReferences]
   );
   const segments = React.useMemo(
     () =>
-      enableInfoboxes
+      enableInfoboxes || enableTemplates
         ? parseMarkdownWithInfoboxes(processedMarkdown)
         : [{ kind: 'markdown' as const, content: processedMarkdown }],
-    [processedMarkdown, enableInfoboxes]
+    [processedMarkdown, enableInfoboxes, enableTemplates]
   );
   const tocItems = React.useMemo(
     () => extractToc(processedMarkdown),
@@ -200,6 +217,19 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               {leadingToc}
               <WikiInfobox
                 infobox={segment.infobox}
+                existingSlugs={existingSlugs}
+                onNavigateSlug={onNavigateSlug}
+              />
+            </React.Fragment>
+          );
+        }
+
+        if (segment.kind === 'predefinicao') {
+          return (
+            <React.Fragment key={`predef-${index}-${segment.template.variant}`}>
+              {leadingToc}
+              <WikiTemplateBlock
+                template={segment.template}
                 existingSlugs={existingSlugs}
                 onNavigateSlug={onNavigateSlug}
               />

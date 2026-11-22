@@ -1,5 +1,6 @@
 import type { Timestamp } from 'firebase/firestore';
 import { VALIDATION_LIMITS } from '../types/wiki';
+import type { TemplateBlockVariant } from './templateEngine';
 
 export interface TocItem {
   id: string;
@@ -80,7 +81,7 @@ const REF_TAG_REGEX =
   /<ref(?:\s+name\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s/>]+)))?\s*(?:\/>|>([\s\S]*?)<\/ref>)/gi;
 
 const INFOBOX_SKIP_REGEX =
-  /(^:::infobox(?:[ \t]+[a-zA-Z0-9_-]+)?[ \t]*\r?\n[\s\S]*?^:::[ \t]*$)/gm;
+  /(^:::(?:infobox|predefinicao)(?:[ \t]+[a-zA-Z0-9_-]+)?[ \t]*\r?\n[\s\S]*?^:::[ \t]*$)/gm;
 
 function normalizeRefBody(raw: string): string {
   return raw
@@ -319,13 +320,85 @@ const VALID_INFOBOX_TYPES = new Set<InfoboxType>([
   'project',
 ]);
 
+export interface PredefinicaoBlock {
+  variant: TemplateBlockVariant;
+  kicker: string;
+  title?: string;
+  body: string;
+  author?: string;
+  source?: string;
+  meta?: string;
+}
+
+const VALID_TEMPLATE_VARIANTS = new Set<TemplateBlockVariant>([
+  'info',
+  'warning',
+  'alert',
+  'success',
+  'stub',
+  'wip',
+  'disambiguation',
+  'navigation',
+  'quote',
+  'ecosystem',
+]);
+
 export type MarkdownSegment =
   | { kind: 'markdown'; content: string }
-  | { kind: 'infobox'; infobox: InfoboxBlock };
+  | { kind: 'infobox'; infobox: InfoboxBlock }
+  | { kind: 'predefinicao'; template: PredefinicaoBlock };
 
 function normalizeInfoboxType(raw?: string): InfoboxType {
   const candidate = (raw ?? 'general').trim().toLowerCase() as InfoboxType;
   return VALID_INFOBOX_TYPES.has(candidate) ? candidate : 'general';
+}
+
+function normalizeTemplateVariant(raw?: string): TemplateBlockVariant {
+  const candidate = (raw ?? 'info').trim().toLowerCase() as TemplateBlockVariant;
+  return VALID_TEMPLATE_VARIANTS.has(candidate) ? candidate : 'info';
+}
+
+function parsePredefinicaoBody(rawVariant: string | undefined, bodyText: string): PredefinicaoBlock {
+  const variant = normalizeTemplateVariant(rawVariant);
+  let kicker = 'Predefinição';
+  let title: string | undefined;
+  let body = '';
+  let author: string | undefined;
+  let source: string | undefined;
+  let meta: string | undefined;
+
+  for (const rawLine of bodyText.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx <= 0) continue;
+    const key = line.slice(0, colonIdx).trim().toLowerCase();
+    const val = line.slice(colonIdx + 1).trim();
+
+    if (key === 'kicker') {
+      kicker = val || kicker;
+    } else if (key === 'title') {
+      title = val || undefined;
+    } else if (key === 'body') {
+      body = val;
+    } else if (key === 'author') {
+      author = val || undefined;
+    } else if (key === 'source') {
+      source = val || undefined;
+    } else if (key === 'meta') {
+      meta = val || undefined;
+    }
+  }
+
+  return {
+    variant,
+    kicker,
+    title,
+    body,
+    author,
+    source,
+    meta,
+  };
 }
 
 function parseInfoboxBody(rawType: string | undefined, body: string): InfoboxBlock {
@@ -382,8 +455,8 @@ function parseInfoboxBody(rawType: string | undefined, body: string): InfoboxBlo
 }
 
 /**
- * Splits Markdown into plain Markdown segments and structured :::infobox blocks,
- * preserving fenced code blocks (``` ... ```) intact.
+ * Splits Markdown into plain Markdown segments, structured :::infobox blocks,
+ * and :::predefinicao blocks, preserving fenced code blocks (``` ... ```) intact.
  */
 export function parseMarkdownWithInfoboxes(markdown: string): MarkdownSegment[] {
   const codeChunks = markdown.split(/(```[\s\S]*?```)/g);
@@ -399,7 +472,8 @@ export function parseMarkdownWithInfoboxes(markdown: string): MarkdownSegment[] 
     }
   };
 
-  const infoboxRegex = /^:::infobox(?:[ \t]+([a-zA-Z0-9_-]+))?[ \t]*\r?\n([\s\S]*?)^:::[ \t]*$/gm;
+  const directiveRegex =
+    /^:::(infobox|predefinicao)(?:[ \t]+([a-zA-Z0-9_-]+))?[ \t]*\r?\n([\s\S]*?)^:::[ \t]*$/gm;
 
   for (let i = 0; i < codeChunks.length; i++) {
     const chunk = codeChunks[i];
@@ -412,18 +486,25 @@ export function parseMarkdownWithInfoboxes(markdown: string): MarkdownSegment[] 
     }
 
     let lastIndex = 0;
-    infoboxRegex.lastIndex = 0;
+    directiveRegex.lastIndex = 0;
     let match: RegExpExecArray | null;
 
-    while ((match = infoboxRegex.exec(chunk)) !== null) {
+    while ((match = directiveRegex.exec(chunk)) !== null) {
       const before = chunk.slice(lastIndex, match.index);
       if (before) {
         pushMarkdown(before);
       }
-      segments.push({
-        kind: 'infobox',
-        infobox: parseInfoboxBody(match[1], match[2]),
-      });
+      if (match[1] === 'predefinicao') {
+        segments.push({
+          kind: 'predefinicao',
+          template: parsePredefinicaoBody(match[2], match[3]),
+        });
+      } else {
+        segments.push({
+          kind: 'infobox',
+          infobox: parseInfoboxBody(match[2], match[3]),
+        });
+      }
       lastIndex = match.index + match[0].length;
     }
 
@@ -516,7 +597,7 @@ export function extractToc(markdown: string): TocItem[] {
     }
     if (inCodeFence) continue;
 
-    if (!inInfobox && /^:::infobox(?:\s+[a-zA-Z0-9_-]+)?$/.test(trimmed)) {
+    if (!inInfobox && /^:::(?:infobox|predefinicao)(?:\s+[a-zA-Z0-9_-]+)?$/.test(trimmed)) {
       inInfobox = true;
       continue;
     }

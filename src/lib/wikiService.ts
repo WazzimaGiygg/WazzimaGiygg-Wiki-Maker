@@ -45,6 +45,14 @@ import {
 } from './ecosystemContent';
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { isValidWikiSlug, serializeInfoboxBlock, toWikiSlug } from './markdownUtils';
+import {
+  STARTER_TEMPLATE_CATEGORY,
+  STARTER_TEMPLATE_CONTENT,
+  STARTER_TEMPLATE_SLUG,
+  STARTER_TEMPLATE_SUMMARY,
+  STARTER_TEMPLATE_TAGS,
+  STARTER_TEMPLATE_TITLE,
+} from './templateEngine';
 
 function sanitizeString(value: string, maxLen: number): string {
   return value.trim().slice(0, maxLen);
@@ -780,11 +788,13 @@ export async function seedStarterWiki(user: User): Promise<void> {
 | [[${DOSSIER_PAGE_SLUG}|${DOSSIER_PAGE_TITLE}]] | Regulatory dossier on LGPD & Marco Civil compliance | Public |
 | [[${ECOSYSTEM_PAGE_SLUG}|${ECOSYSTEM_PAGE_TITLE}]] | Directory of official WazzimaGiygg ecosystem products | Public |
 | [[${WIKIPEDIA_ABUSES_PAGE_SLUG}|${WIKIPEDIA_ABUSES_PAGE_TITLE}]] | Wikipedia abuses dossier and A Verdade reference | Public |
+| [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]] | Reusable MediaWiki-style community template example | Public |
 
 ## Next Steps
 
 - [x] Sign in with Google to collaborate
 - [ ] Explore the [[markdown-guide|Markdown Guide]]
+- [ ] Try inserting MediaWiki templates with \`Ctrl+Shift+T\` (\`{{Aviso}}\`, \`{{Esboço}}\`, \`{{Info}}\`)
 - [ ] Create your first custom page like [[team-notes|Team Notes]]`,
     },
     {
@@ -847,6 +857,24 @@ Stack: TypeScript, React, Firebase
 :::
 \`\`\`
 
+## Predefinições MediaWiki (\`{{...}}\`)
+
+Use braces just like MediaWiki to insert notices, maintenance banners, navigation strips, quotes, infoboxes, and custom transcluded templates (\`Ctrl+Shift+T\` opens the template picker):
+
+\`\`\`markdown
+{{Aviso|tipo=cuidado|título=Conteúdo em revisão|texto=Seção em verificação colaborativa.}}
+{{Esboço|Governança Digital}}
+{{Em construção}}
+{{Carece de fontes|data=November 2026}}
+{{Principal|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products}}
+{{Ver também|dossie-wikipedia-abusos|investigacao-lgpd-marco-civil-wmf-wikipedia}}
+{{Citação|texto=Open knowledge thrives on verifiable records.|autor=Editorial}}
+{{Info|tipo=project|título=Meu Projeto|Status=Active}}
+{{Ecossistema WazzimaGiygg}}
+\`\`\`
+
+You can also create reusable community templates at slugs starting with \`predefinicao-\` (for example, [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]]). Use \`<noinclude>...</noinclude>\` for template documentation, \`<includeonly>...</includeonly>\`, and \`{{{parametro|valor padrão}}}\` placeholders.
+
 ## Bibliographic References (\`<ref>\`)
 
 Cite sources anywhere in your article using \`<ref>...</ref>\` tags. Citations are numbered automatically and collected into a formatted **Referências** section at the bottom of the page with bidirectional jump links:
@@ -862,6 +890,7 @@ Second mention of the same source.<ref name="mci" />
 
 - \`Ctrl+E\` — Switch from **Read** to **Edit** mode
 - \`Ctrl+Enter\` / \`Ctrl+S\` — Save revision in the Markdown editor
+- \`Ctrl+Shift+T\` — Open **Predefinições MediaWiki** picker
 - \`Ctrl+Shift+R\` — Insert a \`<ref>...</ref>\` bibliographic citation
 - \`Ctrl+K\` — Focus the sidebar page filter
 - \`?\` — Open the full keyboard shortcuts guide`,
@@ -913,6 +942,14 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
       tags: WIKIPEDIA_ABUSES_PAGE_TAGS,
       summary: WIKIPEDIA_ABUSES_PAGE_SUMMARY,
       content: WIKIPEDIA_ABUSES_PAGE_CONTENT,
+    },
+    {
+      slug: STARTER_TEMPLATE_SLUG,
+      title: STARTER_TEMPLATE_TITLE,
+      category: STARTER_TEMPLATE_CATEGORY,
+      tags: STARTER_TEMPLATE_TAGS,
+      summary: STARTER_TEMPLATE_SUMMARY,
+      content: STARTER_TEMPLATE_CONTENT,
     },
   ];
 
@@ -982,7 +1019,7 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
   }
 }
 
-const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v1';
+const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v2';
 
 const LEGACY_PORTUGUESE_TITLES: Record<string, string> = {
   [DOSSIER_PAGE_SLUG]: 'Investigação LGPD e Marco Civil — WMF e Wikipédia',
@@ -1026,6 +1063,14 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
       category: WIKIPEDIA_ABUSES_PAGE_CATEGORY,
       tags: WIKIPEDIA_ABUSES_PAGE_TAGS,
       summary: WIKIPEDIA_ABUSES_PAGE_SUMMARY,
+    },
+    {
+      slug: STARTER_TEMPLATE_SLUG,
+      title: STARTER_TEMPLATE_TITLE,
+      content: STARTER_TEMPLATE_CONTENT,
+      category: STARTER_TEMPLATE_CATEGORY,
+      tags: STARTER_TEMPLATE_TAGS,
+      summary: STARTER_TEMPLATE_SUMMARY,
     },
   ];
 

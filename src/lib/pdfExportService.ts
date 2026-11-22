@@ -23,8 +23,10 @@ import {
   preprocessWikiLinks,
   type InfoboxBlock,
   type InfoboxType,
+  type PredefinicaoBlock,
   type WikiReferenceItem,
 } from './markdownUtils';
+import { expandTemplatesInWikitext } from '../services/templateService';
 
 import {
   DEFAULT_WIKI_THEME_ID,
@@ -34,6 +36,7 @@ import {
 
 export interface ExportArticlePdfOptions {
   page: WikiPage;
+  wikiPages?: WikiPage[];
   categoryLabel: string;
   siteTitle: string;
   isDark: boolean;
@@ -912,6 +915,129 @@ class WikiPdfWriter {
     this.y += 14;
   }
 
+  private inlineRunsFromMarkdown(raw: string): InlineRun[] {
+    const ast = parseMarkdownAst(preprocessWikiLinks(raw));
+    const runs: InlineRun[] = [];
+    for (let i = 0; i < ast.children.length; i++) {
+      const c = ast.children[i];
+      if ('children' in c) {
+        if (i > 0) runs.push({ text: ' ' });
+        runs.push(...collectInlineRuns(c.children as PhrasingContent[], this.existingSlugs));
+      }
+    }
+    return runs.length > 0 ? runs : [{ text: raw }];
+  }
+
+  renderPredefinicaoBlock(template: PredefinicaoBlock): void {
+    const boxWidth = CONTENT_WIDTH;
+    const padX = 12;
+    const padY = 9;
+    const innerWidth = boxWidth - padX * 2;
+
+    const kickerText = toPdfSafeText(template.kicker || 'Template');
+    const titleLines = template.title
+      ? this.layoutRuns(
+          this.inlineRunsFromMarkdown(template.title),
+          innerWidth,
+          10.5,
+          1.32,
+          this.theme.heading,
+          true
+        )
+      : [];
+    const bodyLines = template.body
+      ? this.layoutRuns(
+          this.inlineRunsFromMarkdown(template.body),
+          innerWidth,
+          9,
+          1.42,
+          this.theme.body,
+          false,
+          template.variant === 'quote' || template.variant === 'navigation'
+        )
+      : [];
+
+    const footerRaw = [
+      template.author ? `— ${template.author}` : '',
+      template.source ? template.source : '',
+      template.meta ? template.meta : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
+    const footerLines = footerRaw
+      ? this.layoutRuns(
+          this.inlineRunsFromMarkdown(footerRaw),
+          innerWidth,
+          8,
+          1.32,
+          this.theme.muted
+        )
+      : [];
+
+    const kickerH = 12;
+    const titleH = titleLines.reduce((acc, l) => acc + l.height, 0);
+    const bodyH = bodyLines.reduce((acc, l) => acc + l.height, 0);
+    const footerH = footerLines.reduce((acc, l) => acc + l.height, 0);
+    const totalH =
+      padY * 2 +
+      kickerH +
+      (titleLines.length > 0 ? titleH + 3 : 0) +
+      (bodyLines.length > 0 ? bodyH + 2 : 0) +
+      (footerLines.length > 0 ? footerH + 4 : 0);
+
+    this.ensureSpace(Math.min(totalH, MAX_Y - MARGIN_TOP - 8));
+
+    const startY = this.y;
+    const isWarn =
+      template.variant === 'warning' || template.variant === 'alert';
+    const boxBg: Rgb = isWarn ? this.theme.blockquoteBg : this.theme.surfaceBg;
+    const kickerColor: Rgb =
+      template.variant === 'alert' ? this.theme.missingLink : this.theme.accent;
+
+    this.doc.setFillColor(...boxBg);
+    this.doc.setDrawColor(...this.theme.border);
+    this.doc.setLineWidth(0.75);
+    this.doc.roundedRect(
+      MARGIN_X,
+      startY,
+      boxWidth,
+      Math.min(totalH, MAX_Y - startY),
+      5,
+      5,
+      'FD'
+    );
+
+    let cy = startY + padY;
+    this.doc.setFont('courier', 'bold');
+    this.doc.setFontSize(7.5);
+    this.doc.setTextColor(...kickerColor);
+    this.doc.text(kickerText, MARGIN_X + padX, cy + 7);
+    cy += kickerH;
+
+    for (const line of titleLines) {
+      this.drawLaidOutLine(line, MARGIN_X + padX, cy + 8.5);
+      cy += line.height;
+    }
+    if (titleLines.length > 0) cy += 3;
+
+    for (const line of bodyLines) {
+      this.drawLaidOutLine(line, MARGIN_X + padX, cy + 7.5);
+      cy += line.height;
+    }
+    if (bodyLines.length > 0) cy += 2;
+
+    if (footerLines.length > 0) {
+      cy += 2;
+      for (const line of footerLines) {
+        this.drawLaidOutLine(line, MARGIN_X + padX, cy + 6.5);
+        cy += line.height;
+      }
+    }
+
+    this.y = startY + Math.min(totalH, MAX_Y - startY) + 10;
+  }
+
   private renderHeading(node: Heading): void {
     const sizes: Record<number, number> = {
       1: 16.5,
@@ -1459,6 +1585,7 @@ export async function exportArticleToPdf(
 ): Promise<{ filename: string; pageCount: number }> {
   const {
     page,
+    wikiPages,
     siteTitle,
     isDark,
     theme: providedTheme,
@@ -1481,9 +1608,13 @@ export async function exportArticleToPdf(
 
   writer.renderHeaderSheet(opts);
 
+  const expandedContent = expandTemplatesInWikitext(page.content, wikiPages, {
+    currentSlug: page.slug,
+  });
+
   const { processedMarkdown, references } = enableReferences
-    ? extractArticleReferences(page.content)
-    : { processedMarkdown: page.content, references: [] };
+    ? extractArticleReferences(expandedContent)
+    : { processedMarkdown: expandedContent, references: [] };
 
   const segments = enableInfoboxes
     ? parseMarkdownWithInfoboxes(processedMarkdown)
@@ -1496,6 +1627,8 @@ export async function exportArticleToPdf(
   for (const segment of segments) {
     if (segment.kind === 'infobox') {
       await writer.renderInfobox(segment.infobox);
+    } else if (segment.kind === 'predefinicao') {
+      writer.renderPredefinicaoBlock(segment.template);
     } else if (segment.content.trim()) {
       await writer.renderMarkdownBody(segment.content);
     }
