@@ -154,6 +154,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
       return (
         item.name.toLowerCase().includes(normalizedQuery) ||
         item.description.toLowerCase().includes(normalizedQuery) ||
+        (item.language ?? 'pt').includes(normalizedQuery) ||
+        (normalizedQuery === 'english' && item.language === 'en') ||
         item.aliases.some((a) => a.includes(normalizedQuery))
       );
     });
@@ -228,7 +230,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   };
 
   const generatedSnippet = selectedCustom
-    ? buildTemplateInvocation(selectedCustom.name, customParamValues, true)
+    ? buildTemplateInvocation(selectedCustom.title, customParamValues, true)
     : buildSnippetFromCatalog(selectedBuiltin, paramValues);
 
   const handleInsertClick = () => {
@@ -430,7 +432,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                           {`{{${item.name}}}`}
                         </span>
                         <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                          {item.params.length} param{item.params.length === 1 ? '' : 's'}
+                          {(item.language ?? 'pt').toUpperCase()} · {item.params.length} param{item.params.length === 1 ? '' : 's'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">

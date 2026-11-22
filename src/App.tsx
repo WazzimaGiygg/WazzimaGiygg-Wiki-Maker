@@ -89,6 +89,7 @@ import {
 import { exportArticleToPdf } from './lib/pdfExportService';
 import { buildWikiPrintStylesheet, PRINT_STYLESHEET_ID } from './lib/printStyles';
 import {
+  ENGLISH_COMMUNITY_TEMPLATES,
   expandTemplatesInWikitext,
   STARTER_TEMPLATE_CATEGORY,
   STARTER_TEMPLATE_CONTENT,
@@ -609,6 +610,28 @@ function WikiWorkspace() {
         createdAt: null,
         updatedAt: null,
       });
+    }
+    if (pagesLoaded) {
+      for (const tpl of ENGLISH_COMMUNITY_TEMPLATES) {
+        if (!bySlug.has(tpl.slug)) {
+          bySlug.set(tpl.slug, {
+            slug: tpl.slug,
+            title: tpl.title,
+            content: tpl.content,
+            category: tpl.category,
+            tags: tpl.tags,
+            visibility: 'public',
+            isLocked: false,
+            authorId: 'builtin-editorial',
+            authorName: LEGAL_GOVERNANCE.controllerName,
+            lastEditorId: 'builtin-editorial',
+            lastEditorName: LEGAL_GOVERNANCE.controllerName,
+            version: 1,
+            createdAt: null,
+            updatedAt: null,
+          });
+        }
+      }
     }
     return Array.from(bySlug.values()).sort((a, b) => a.title.localeCompare(b.title, 'en-US'));
   }, [publicPages, privatePages, pagesLoaded]);

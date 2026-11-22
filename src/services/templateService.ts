@@ -10,6 +10,7 @@ import {
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { toWikiSlug } from '../lib/markdownUtils';
 import {
+  ENGLISH_COMMUNITY_TEMPLATES,
   listCustomWikiTemplates,
   prepareTemplateSourceForDirectView,
   resolveWikiTemplates,
@@ -21,6 +22,7 @@ import {
   STARTER_TEMPLATE_TAGS,
   STARTER_TEMPLATE_TITLE,
   WIKI_TEMPLATE_CATALOG,
+  type StarterTemplateSeed,
   type TemplateBlockVariant,
   type TemplateExpansionOptions,
   type WikiTemplateCatalogItem,
@@ -34,6 +36,7 @@ import {
 } from '../types/wiki';
 
 export {
+  ENGLISH_COMMUNITY_TEMPLATES,
   prepareTemplateSourceForDirectView,
   resolveWikiTemplates,
   serializePredefinicaoBlock,
@@ -47,6 +50,7 @@ export {
 };
 
 export type {
+  StarterTemplateSeed,
   TemplateBlockVariant,
   TemplateExpansionOptions,
   WikiTemplateCatalogItem,
@@ -179,8 +183,11 @@ export function buildTemplateInvocation(
   params: Record<string, string> = {},
   useNamespace = true
 ): string {
+  const isEnglishNs = /^template\s*:/i.test(templateName.trim());
   const cleanName = templateName.replace(/^(predefini[cç][aã]o|predefinicao|template)\s*:\s*/i, '').trim();
-  const displayName = useNamespace ? `Predefinição:${cleanName}` : cleanName;
+  const displayName = useNamespace
+    ? `${isEnglishNs ? 'Template' : 'Predefinição'}:${cleanName}`
+    : cleanName;
 
   const positionalEntries: Array<[number, string]> = [];
   const namedEntries: Array<[string, string]> = [];

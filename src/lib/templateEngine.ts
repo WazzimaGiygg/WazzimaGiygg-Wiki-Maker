@@ -26,6 +26,7 @@ export interface WikiTemplateCatalogItem {
   name: string;
   aliases: string[];
   category: 'notices' | 'navigation' | 'infobox' | 'ecosystem';
+  language?: 'pt' | 'en';
   description: string;
   exampleSnippet: string;
   params: WikiTemplateParamSpec[];
@@ -262,6 +263,543 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
       'Caixa institucional padrão conectando os 5 portais WazzimaGiygg e o dossiê A Verdade sobre a Wikipédia.',
     exampleSnippet: '{{Ecossistema WazzimaGiygg}}',
     params: [],
+  },
+  // --- English MediaWiki Templates ---
+  {
+    id: 'notice-en',
+    name: 'Notice',
+    aliases: ['notice', 'ambox', 'aviso', 'alert'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'English MediaWiki editorial banner (Ambox) for notes, warnings, critical alerts, or verified confirmations.',
+    exampleSnippet:
+      '{{Notice|type=warning|title=Under Editorial Review|text=Claims in this section are undergoing collaborative source verification.|date=November 2026}}',
+    params: [
+      {
+        key: 'type',
+        label: 'Type (note, warning, alert, success)',
+        placeholder: 'warning',
+        defaultValue: 'warning',
+      },
+      {
+        key: 'title',
+        label: 'Banner title',
+        placeholder: 'Editorial Notice',
+        defaultValue: 'Editorial Notice',
+      },
+      {
+        key: 'text',
+        label: 'Message',
+        placeholder: 'Describe the editorial notice...',
+        defaultValue: 'This section is currently under collaborative review.',
+        required: true,
+      },
+      {
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
+      },
+    ],
+  },
+  {
+    id: 'stub-en',
+    name: 'Stub',
+    aliases: ['stub', 'esboco'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Marks an article as a short stub in standard English Wikipedia style, inviting contributors to expand it.',
+    exampleSnippet: '{{Stub|Digital Governance}}',
+    params: [
+      {
+        key: '1',
+        label: 'Topic or subject area',
+        placeholder: 'Digital Governance',
+        defaultValue: 'Wiki Documentation',
+      },
+    ],
+  },
+  {
+    id: 'under-construction-en',
+    name: 'Under construction',
+    aliases: ['under construction', 'wip', 'em construcao'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Informs readers that an English article is currently undergoing major drafting or structural expansion.',
+    exampleSnippet: '{{Under construction|Expected completion: this week.}}',
+    params: [
+      {
+        key: '1',
+        label: 'Status note (optional)',
+        placeholder: 'Expected completion or scope...',
+        defaultValue: 'Sections are actively being drafted and sourced.',
+      },
+    ],
+  },
+  {
+    id: 'citation-needed-en',
+    name: 'Citation needed',
+    aliases: ['citation needed', 'cn', 'carece de fontes'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Renders an inline ^[citation needed]^ marker mid-sentence, or a standalone verification banner with optional date.',
+    exampleSnippet: '{{Citation needed|date=November 2026}}',
+    params: [
+      {
+        key: 'date',
+        label: 'Date tagged (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
+      },
+    ],
+  },
+  {
+    id: 'cleanup-en',
+    name: 'Cleanup',
+    aliases: ['cleanup', 'clean up', 'wikify'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Classic Wikipedia cleanup banner flagging formatting, structure, or copy-editing improvements needed.',
+    exampleSnippet:
+      '{{Cleanup|section=Overview|reason=Convert bullet lists into clear encyclopedic prose and add section links.|date=November 2026}}',
+    params: [
+      {
+        key: 'reason',
+        label: 'Reason for cleanup',
+        placeholder: 'Explain what needs formatting or copy-editing...',
+        defaultValue: 'Improve formatting, headings, and encyclopedic prose clarity.',
+      },
+      {
+        key: 'section',
+        label: 'Section (optional)',
+        placeholder: 'Overview',
+        defaultValue: '',
+      },
+      {
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
+      },
+    ],
+  },
+  {
+    id: 'outdated-en',
+    name: 'Outdated',
+    aliases: ['outdated', 'update', 'obsolete'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Flags technical documentation or reference entries whose figures, APIs, or timelines need updating.',
+    exampleSnippet:
+      '{{Outdated|reason=Reflects platform policies prior to the 2026 revision.|date=November 2026}}',
+    params: [
+      {
+        key: 'reason',
+        label: 'Update needed',
+        placeholder: 'Describe what changed or became outdated...',
+        defaultValue: 'Please update figures and references to reflect current developments.',
+      },
+      {
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
+      },
+    ],
+  },
+  {
+    id: 'disputed-en',
+    name: 'Disputed',
+    aliases: ['disputed', 'pov', 'neutrality', 'factual accuracy'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Alerts readers when factual accuracy or neutrality is contested and refers editors to the Discussion tab.',
+    exampleSnippet:
+      '{{Disputed|section=Timeline|reason=Conflicting primary records cited in talk page discussion.|date=November 2026}}',
+    params: [
+      {
+        key: 'reason',
+        label: 'Dispute summary',
+        placeholder: 'Describe the contested claims or neutrality concern...',
+        defaultValue: 'Factual accuracy or neutrality is under review on the discussion tab.',
+      },
+      {
+        key: 'section',
+        label: 'Section (optional)',
+        placeholder: 'Timeline',
+        defaultValue: '',
+      },
+      {
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
+      },
+    ],
+  },
+  {
+    id: 'verify-en',
+    name: 'Verify',
+    aliases: ['verify', 'fact check', 'verification'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Editorial fact-check callout indicating whether citations and claims have been verified or are pending.',
+    exampleSnippet:
+      '{{Verify|status=verified|reviewer=Editorial Board|date=November 2026|note=All primary statutory links and citations checked.}}',
+    params: [
+      {
+        key: 'status',
+        label: 'Status (verified or pending)',
+        placeholder: 'verified',
+        defaultValue: 'verified',
+      },
+      {
+        key: 'reviewer',
+        label: 'Reviewer',
+        placeholder: 'Editorial Board',
+        defaultValue: 'Editorial Board',
+      },
+      {
+        key: 'date',
+        label: 'Date',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
+      },
+      {
+        key: 'note',
+        label: 'Verification note',
+        placeholder: 'Sources and citations checked...',
+        defaultValue: 'Claims and citations have been checked against primary sources.',
+      },
+    ],
+  },
+  {
+    id: 'spoiler-en',
+    name: 'Spoiler',
+    aliases: ['spoiler', 'aviso spoiler'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'Standard plot spoiler warning banner before narrative details, quests, or story endings.',
+    exampleSnippet: '{{Spoiler|Genshin Impact Archon Quest}}',
+    params: [
+      {
+        key: '1',
+        label: 'Work or storyline title (optional)',
+        placeholder: 'Story title',
+        defaultValue: 'this storyline',
+      },
+    ],
+  },
+  {
+    id: 'disambiguation-en',
+    name: 'Disambiguation',
+    aliases: ['disambiguation', 'disambig', 'desambiguacao'],
+    category: 'notices',
+    language: 'en',
+    description:
+      'English disambiguation page header listing distinct articles that share an ambiguous term or acronym.',
+    exampleSnippet: '{{Disambiguation|WazzimaGiygg}}',
+    params: [
+      {
+        key: '1',
+        label: 'Ambiguous term',
+        placeholder: 'Term or acronym',
+        defaultValue: 'WazzimaGiygg',
+      },
+    ],
+  },
+  {
+    id: 'main-en',
+    name: 'Main',
+    aliases: ['main', 'principal'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'Classic Wikipedia hatnote pointing readers to the full main article for a summary section.',
+    exampleSnippet: '{{Main|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products}}',
+    params: [
+      {
+        key: '1',
+        label: 'Target article slug',
+        placeholder: 'ecossistema-wazzimagiygg',
+        defaultValue: 'ecossistema-wazzimagiygg',
+        required: true,
+      },
+      {
+        key: '2',
+        label: 'Display title (optional)',
+        placeholder: 'WazzimaGiygg Ecosystem Products',
+        defaultValue: 'WazzimaGiygg Ecosystem Products',
+      },
+    ],
+  },
+  {
+    id: 'see-also-en',
+    name: 'See also',
+    aliases: ['see also', 'ver tambem'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'Cross-reference navigation hatnote connecting closely related wiki articles.',
+    exampleSnippet: '{{See also|dossie-wikipedia-abusos|investigacao-lgpd-marco-civil-wmf-wikipedia}}',
+    params: [
+      {
+        key: '1',
+        label: 'First slug',
+        placeholder: 'dossie-wikipedia-abusos',
+        defaultValue: 'dossie-wikipedia-abusos',
+        required: true,
+      },
+      {
+        key: '2',
+        label: 'Second slug (optional)',
+        placeholder: 'investigacao-lgpd-marco-civil-wmf-wikipedia',
+        defaultValue: 'investigacao-lgpd-marco-civil-wmf-wikipedia',
+      },
+    ],
+  },
+  {
+    id: 'distinguish-en',
+    name: 'Distinguish',
+    aliases: ['distinguish', 'not to be confused'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'Wikipedia hatnote ("Not to be confused with...") helping readers distinguish similarly named topics.',
+    exampleSnippet: '{{Distinguish|notmediawiki|NotMediaWiki Platform}}',
+    params: [
+      {
+        key: '1',
+        label: 'Target article slug',
+        placeholder: 'ecossistema-wazzimagiygg',
+        defaultValue: 'ecossistema-wazzimagiygg',
+        required: true,
+      },
+      {
+        key: '2',
+        label: 'Display label (optional)',
+        placeholder: 'Distinct Topic Title',
+        defaultValue: 'WazzimaGiygg Ecosystem Products',
+      },
+    ],
+  },
+  {
+    id: 'further-en',
+    name: 'Further',
+    aliases: ['further', 'further information', 'more info'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'Wikipedia hatnote ("Further information: ...") pointing to in-depth background reading.',
+    exampleSnippet: '{{Further|markdown-guide|best-practices}}',
+    params: [
+      {
+        key: '1',
+        label: 'Primary background slug',
+        placeholder: 'markdown-guide',
+        defaultValue: 'markdown-guide',
+        required: true,
+      },
+      {
+        key: '2',
+        label: 'Secondary slug (optional)',
+        placeholder: 'best-practices',
+        defaultValue: 'best-practices',
+      },
+    ],
+  },
+  {
+    id: 'redirect-en',
+    name: 'Redirect',
+    aliases: ['redirect', 'redirect here'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'Wikipedia redirect hatnote ("X redirects here. For other uses, see...") linking alternative targets.',
+    exampleSnippet: '{{Redirect|A Verdade|dossie-wikipedia-abusos|Wikipedia Abuses Dossier}}',
+    params: [
+      {
+        key: '1',
+        label: 'Redirected term',
+        placeholder: 'Alias or shortcut term',
+        defaultValue: 'A Verdade',
+        required: true,
+      },
+      {
+        key: '2',
+        label: 'Other-uses slug',
+        placeholder: 'dossie-wikipedia-abusos',
+        defaultValue: 'dossie-wikipedia-abusos',
+        required: true,
+      },
+      {
+        key: '3',
+        label: 'Other-uses label (optional)',
+        placeholder: 'Wikipedia Abuses Dossier',
+        defaultValue: 'Wikipedia Abuses Dossier',
+      },
+    ],
+  },
+  {
+    id: 'portal-en',
+    name: 'Portal',
+    aliases: ['portal', 'related portal'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'Highlighted portal link card directing readers to a curated thematic hub.',
+    exampleSnippet:
+      '{{Portal|Governance & Compliance|investigacao-lgpd-marco-civil-wmf-wikipedia|description=Legal dossiers, privacy audits, and statutory references.}}',
+    params: [
+      {
+        key: '1',
+        label: 'Portal name',
+        placeholder: 'Governance & Compliance',
+        defaultValue: 'Governance & Compliance',
+        required: true,
+      },
+      {
+        key: '2',
+        label: 'Portal page slug',
+        placeholder: 'investigacao-lgpd-marco-civil-wmf-wikipedia',
+        defaultValue: 'investigacao-lgpd-marco-civil-wmf-wikipedia',
+      },
+      {
+        key: 'description',
+        label: 'Short portal description',
+        placeholder: 'Curated articles and references...',
+        defaultValue: 'Explore curated dossiers, guides, and primary documentation.',
+      },
+    ],
+  },
+  {
+    id: 'quote-en',
+    name: 'Quote',
+    aliases: ['quote', 'cquote', 'citacao'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'English editorial blockquote box with author and source attribution.',
+    exampleSnippet:
+      '{{Quote|text=Open knowledge thrives when documentation remains verifiable and independent.|author=WazzimaGiygg Editorial|source=Project Charter}}',
+    params: [
+      {
+        key: 'text',
+        label: 'Quoted text',
+        placeholder: 'Enter the quotation...',
+        defaultValue: 'Open knowledge thrives when documentation remains verifiable and independent.',
+        required: true,
+      },
+      {
+        key: 'author',
+        label: 'Author',
+        placeholder: 'Author name',
+        defaultValue: 'WazzimaGiygg Editorial',
+      },
+      {
+        key: 'source',
+        label: 'Source / Work (optional)',
+        placeholder: 'Book, dossier, or report',
+        defaultValue: 'Project Charter',
+      },
+    ],
+  },
+  {
+    id: 'cite-web-en',
+    name: 'Cite web',
+    aliases: ['cite web', 'cite', 'web ref'],
+    category: 'navigation',
+    language: 'en',
+    description:
+      'Classic Wikipedia {{Cite web}} citation template; expands to an automatic numbered <ref> footnote in the References footer.',
+    exampleSnippet:
+      '{{Cite web|title=A Verdade Dossier|url=https://wazzimagiygg.com/averdade/|author=WazzimaGiygg Research|publisher=wazzimagiygg.com|date=November 2026}}',
+    params: [
+      {
+        key: 'title',
+        label: 'Page or document title',
+        placeholder: 'Document title',
+        defaultValue: 'A Verdade Dossier',
+        required: true,
+      },
+      {
+        key: 'url',
+        label: 'URL',
+        placeholder: 'https://...',
+        defaultValue: 'https://wazzimagiygg.com/averdade/',
+      },
+      {
+        key: 'author',
+        label: 'Author (optional)',
+        placeholder: 'Author or organization',
+        defaultValue: 'WazzimaGiygg Research',
+      },
+      {
+        key: 'publisher',
+        label: 'Publisher / Website (optional)',
+        placeholder: 'Website name',
+        defaultValue: 'wazzimagiygg.com',
+      },
+      {
+        key: 'date',
+        label: 'Publication date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
+      },
+    ],
+  },
+  {
+    id: 'infobox-en',
+    name: 'Infobox',
+    aliases: ['infobox', 'info', 'ficha'],
+    category: 'infobox',
+    language: 'en',
+    description:
+      'English MediaWiki {{Infobox}} template accepting key-value fields to render a structured summary sidebar card.',
+    exampleSnippet:
+      '{{Infobox|type=project|title=WikiWazzimaGiygg|subtitle=Independent Encyclopedia|Status=Active|Portal=[wazzimagiygg.com](https://wazzimagiygg.com/)}}',
+    params: [
+      {
+        key: 'type',
+        label: 'Type (general, project, organization, character, location, item, user)',
+        placeholder: 'project',
+        defaultValue: 'project',
+      },
+      {
+        key: 'title',
+        label: 'Title',
+        placeholder: 'Entry title',
+        defaultValue: 'Wiki Project',
+        required: true,
+      },
+      {
+        key: 'subtitle',
+        label: 'Subtitle',
+        placeholder: 'Brief classification',
+        defaultValue: 'Reference entry',
+      },
+      {
+        key: 'Status',
+        label: 'Status',
+        placeholder: 'Active',
+        defaultValue: 'Active',
+      },
+      {
+        key: 'Portal',
+        label: 'Portal / Link',
+        placeholder: '[wazzimagiygg.com](https://wazzimagiygg.com/)',
+        defaultValue: '[wazzimagiygg.com](https://wazzimagiygg.com/)',
+      },
+    ],
   },
 ];
 
@@ -550,9 +1088,15 @@ function resolveBuiltinTemplate(
     });
   }
 
-  // 3. {{Em construção}} / {{WIP}}
-  if (key === 'em construcao' || key === 'wip' || key === 'construcao' || key === 'manutencao') {
-    const note = pickParam(call, ['texto', 'nota', '1']);
+  // 3. {{Em construção}} / {{WIP}} / {{Under construction}}
+  if (
+    key === 'em construcao' ||
+    key === 'wip' ||
+    key === 'under construction' ||
+    key === 'construcao' ||
+    key === 'manutencao'
+  ) {
+    const note = pickParam(call, ['texto', 'text', 'nota', 'note', '1']);
     const body = note
       ? `This page is actively being drafted and updated. ${note}`
       : 'This page is currently under active construction and may undergo structural edits soon.';
@@ -653,6 +1197,185 @@ function resolveBuiltinTemplate(
       author: author || undefined,
       source: source || undefined,
     });
+  }
+
+  // 9b. {{Cleanup}} / {{Clean up}} / {{Wikify}}
+  if (key === 'cleanup' || key === 'clean up' || key === 'wikify') {
+    const reason = pickParam(
+      call,
+      ['reason', 'motivo', 'text', 'texto', '1'],
+      'This article may require cleanup to meet editorial formatting and clarity standards.'
+    );
+    const section = pickParam(call, ['section', 'secao']);
+    const dateVal = pickParam(call, ['date', 'data']);
+    return serializePredefinicaoBlock({
+      variant: 'warning',
+      kicker: 'Template · Cleanup',
+      title: section
+        ? `The "${section}" section may require cleanup`
+        : 'This article may require cleanup',
+      body: reason,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
+    });
+  }
+
+  // 9c. {{Outdated}} / {{Update}} / {{Obsolete}}
+  if (key === 'outdated' || key === 'update' || key === 'obsolete') {
+    const reason = pickParam(
+      call,
+      ['reason', 'motivo', 'text', 'texto', '1'],
+      'Parts of this article may no longer reflect current information or recent updates.'
+    );
+    const dateVal = pickParam(call, ['date', 'data']);
+    return serializePredefinicaoBlock({
+      variant: 'warning',
+      kicker: 'Template · Outdated',
+      title: 'This article may contain outdated information',
+      body: reason,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
+    });
+  }
+
+  // 9d. {{Disputed}} / {{POV}} / {{Neutrality}} / {{Factual accuracy}}
+  if (key === 'disputed' || key === 'pov' || key === 'neutrality' || key === 'factual accuracy') {
+    const reason = pickParam(
+      call,
+      ['reason', 'motivo', 'text', 'texto', '1'],
+      'The factual accuracy or neutrality of this content is under discussion on the talk page.'
+    );
+    const section = pickParam(call, ['section', 'secao']);
+    const dateVal = pickParam(call, ['date', 'data']);
+    return serializePredefinicaoBlock({
+      variant: 'alert',
+      kicker: 'Template · Disputed',
+      title: section
+        ? `Disputed content in "${section}"`
+        : 'Factual accuracy or neutrality is disputed',
+      body: reason,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
+    });
+  }
+
+  // 9e. {{Verify}} / {{Fact check}} / {{Verification}}
+  if (key === 'verify' || key === 'fact check' || key === 'verification') {
+    const statusRaw = normalizeTemplateKey(pickParam(call, ['status', '1'], 'verified'));
+    const isVerified =
+      statusRaw === 'verified' ||
+      statusRaw === 'passed' ||
+      statusRaw === 'ok' ||
+      statusRaw === 'checked';
+    const reviewer = pickParam(call, ['reviewer', 'by', 'editor']);
+    const dateVal = pickParam(call, ['date', 'data']);
+    const note = pickParam(
+      call,
+      ['note', 'text', 'texto', '2'],
+      isVerified
+        ? 'Claims and citations in this entry have been verified against cited primary sources.'
+        : 'This entry is queued for independent fact-checking and source verification.'
+    );
+    const metaParts = [
+      reviewer ? `Reviewer: ${reviewer}` : '',
+      dateVal ? `Date: ${dateVal}` : '',
+    ].filter(Boolean);
+    return serializePredefinicaoBlock({
+      variant: isVerified ? 'success' : 'info',
+      kicker: 'Template · Verification',
+      title: isVerified ? 'Fact-checked & Verified' : 'Pending Verification',
+      body: note,
+      meta: metaParts.length > 0 ? metaParts.join(' · ') : undefined,
+    });
+  }
+
+  // 9f. {{Distinguish}} / {{Not to be confused}}
+  if (key === 'distinguish' || key === 'not to be confused') {
+    const slugRaw = pickParam(call, ['1', 'page', 'slug']);
+    const label = pickParam(call, ['2', 'label', 'title']);
+    const targetLink = slugRaw
+      ? label
+        ? `[[${toWikiSlug(slugRaw)}|${label}]]`
+        : `[[${toWikiSlug(slugRaw)}]]`
+      : '[[start|Home]]';
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Distinguish',
+      body: `Not to be confused with ${targetLink}.`,
+    });
+  }
+
+  // 9g. {{Further}} / {{Further information}} / {{More info}}
+  if (key === 'further' || key === 'further information' || key === 'more info') {
+    const slugs = call.positional
+      .filter(Boolean)
+      .map((item) => `[[${toWikiSlug(item)}|${item.trim()}]]`);
+    const body =
+      slugs.length > 0
+        ? `Further information: ${slugs.join(' · ')}`
+        : 'Further information: [[start|Home]]';
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Further Information',
+      body,
+    });
+  }
+
+  // 9h. {{Redirect}} / {{Redirect here}}
+  if (key === 'redirect' || key === 'redirect here') {
+    const term = pickParam(call, ['1', 'term'], options?.currentTitle || 'This title');
+    const targetRaw = pickParam(call, ['2', 'target', 'page']);
+    const targetLabel = pickParam(call, ['3', 'label']);
+    const targetLink = targetRaw
+      ? targetLabel
+        ? `[[${toWikiSlug(targetRaw)}|${targetLabel}]]`
+        : `[[${toWikiSlug(targetRaw)}]]`
+      : '[[start|the main article index]]';
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Redirect Notice',
+      body: `"${term}" redirects here. For other uses, see ${targetLink}.`,
+    });
+  }
+
+  // 9i. {{Portal}} / {{Related portal}}
+  if (key === 'portal' || key === 'related portal') {
+    const portalName = pickParam(call, ['1', 'name', 'topic'], 'Documentation');
+    const targetRaw = pickParam(call, ['2', 'slug', 'page']);
+    const desc = pickParam(
+      call,
+      ['description', 'text', '3'],
+      `Explore curated guides, dossiers, and references in the ${portalName} portal.`
+    );
+    const portalLink = targetRaw
+      ? `[[${toWikiSlug(targetRaw)}|Open ${portalName} Portal]]`
+      : '[[start|Browse Wiki Home]]';
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Template · Portal',
+      title: `${portalName} Portal`,
+      body: `${desc} — ${portalLink}`,
+    });
+  }
+
+  // 9j. {{Cite web}} / {{Cite}} / {{Web ref}}
+  if (key === 'cite web' || key === 'cite' || key === 'web ref') {
+    const title = pickParam(call, ['title', '1'], 'Referenced Web Source');
+    const url = pickParam(call, ['url', '2', 'link']);
+    const author = pickParam(call, ['author', 'last']);
+    const publisher = pickParam(call, ['publisher', 'work', 'website']);
+    const dateVal = pickParam(call, ['date', 'year']);
+    const refName = pickParam(call, ['name']).replace(/["<>]/g, '').trim();
+
+    const formattedTitle =
+      url && (url.startsWith('https://') || url.startsWith('http://'))
+        ? `[${title}](${url})`
+        : `"${title}"`;
+    const segments: string[] = [];
+    if (author) segments.push(`${author}.`);
+    segments.push(formattedTitle);
+    if (publisher) segments.push(`— ${publisher}`);
+    if (dateVal) segments.push(`(${dateVal})`);
+
+    const body = segments.join(' ').trim();
+    return refName ? `<ref name="${refName}">${body}</ref>` : `<ref>${body}</ref>`;
   }
 
   // 10. {{Ecossistema WazzimaGiygg}} / {{WazzimaGiygg}} / {{A Verdade}}
@@ -1157,6 +1880,15 @@ function findMatchingDoubleBraceEnd(text: string, openIdx: number): number {
   return -1;
 }
 
+export interface StarterTemplateSeed {
+  slug: string;
+  title: string;
+  category: string;
+  tags: string[];
+  summary: string;
+  content: string;
+}
+
 export const STARTER_TEMPLATE_SLUG = 'predefinicao-boas-vindas';
 export const STARTER_TEMPLATE_TITLE = 'Predefinição:Boas-vindas';
 export const STARTER_TEMPLATE_CATEGORY = 'reference';
@@ -1175,3 +1907,64 @@ This page defines a reusable **MediaWiki-style Predefinição** (\`{{Predefiniç
 ## Example output
 
 </noinclude>{{Aviso|tipo=sucesso|título=Welcome, {{{colaborador|Collaborator}}}!|texto=Thank you for contributing to {{{tema|WazzimaGiygg Maker}}}. Check the [[markdown-guide|Markdown & Templates Guide]] or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].}}`;
+
+export const ENGLISH_COMMUNITY_TEMPLATES: StarterTemplateSeed[] = [
+  {
+    slug: 'template-welcome',
+    title: 'Template:Welcome',
+    category: 'reference',
+    tags: ['template', 'predefinicao', 'mediawiki', 'onboarding'],
+    summary:
+      'Reusable English MediaWiki welcome notice template with contributor and topic parameters',
+    content: `<noinclude>
+Reusable English **MediaWiki-style template** (\`{{Template:Welcome|contributor=...|topic=...}}\`). Content inside \`<noinclude>\` is displayed only as documentation on this template page.
+
+## Usage
+
+\`\`\`markdown
+{{Template:Welcome|contributor=Jane Doe|topic=Open Documentation}}
+\`\`\`
+
+## Live preview
+
+</noinclude>{{Notice|type=success|title=Welcome, {{{contributor|Collaborator}}}!|text=Thank you for contributing to {{{topic|WazzimaGiygg Maker}}}. Check the [[markdown-guide|Markdown & Templates Guide]] or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].}}`,
+  },
+  {
+    slug: 'template-editorial-review',
+    title: 'Template:Editorial Review',
+    category: 'reference',
+    tags: ['template', 'predefinicao', 'editorial', 'verification'],
+    summary: 'Reusable English peer-review and source verification banner template',
+    content: `<noinclude>
+Reusable **English editorial verification template** (\`{{Template:Editorial Review|status=...|reviewer=...|date=...|notes=...}}\`) for dossiers, technical references, and audited articles.
+
+## Usage
+
+\`\`\`markdown
+{{Template:Editorial Review|status=verified|reviewer=Editorial Board|date=November 2026|notes=Primary sources and citations checked.}}
+\`\`\`
+
+## Live preview
+
+</noinclude>{{Verify|status={{{status|verified}}}|reviewer={{{reviewer|Editorial Board}}}|date={{{date|November 2026}}}|note={{{notes|Primary sources, internal links, and bibliographic references have been verified.}}}}}`,
+  },
+  {
+    slug: 'template-release-notes',
+    title: 'Template:Release Notes',
+    category: 'reference',
+    tags: ['template', 'predefinicao', 'release', 'changelog'],
+    summary: 'Reusable English project release summary infobox template',
+    content: `<noinclude>
+Reusable **English release summary template** (\`{{Template:Release Notes|project=...|version=...|date=...|status=...|highlights=...}}\`) rendering a standardized project release card.
+
+## Usage
+
+\`\`\`markdown
+{{Template:Release Notes|project=WazzimaGiygg Core|version=v2.4.0|date=November 2026|status=Stable|highlights=MediaWiki template engine with dynamic parameters.}}
+\`\`\`
+
+## Live preview
+
+</noinclude>{{Infobox|type=project|title={{{project|Project Release}}}|subtitle={{{version|v1.0.0}}} · {{{date|November 2026}}}|Status={{{status|Stable}}}|Highlights={{{highlights|See the changelog section for detailed release notes.}}}}}`,
+  },
+];

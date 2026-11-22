@@ -46,6 +46,7 @@ import {
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { isValidWikiSlug, serializeInfoboxBlock, toWikiSlug } from './markdownUtils';
 import {
+  ENGLISH_COMMUNITY_TEMPLATES,
   STARTER_TEMPLATE_CATEGORY,
   STARTER_TEMPLATE_CONTENT,
   STARTER_TEMPLATE_SLUG,
@@ -880,9 +881,18 @@ Use braces just like MediaWiki to insert notices, maintenance banners, navigatio
 {{Citação|texto=Open knowledge thrives on verifiable records.|autor=Editorial}}
 {{Info|tipo=project|título=Meu Projeto|Status=Active}}
 {{Ecossistema WazzimaGiygg}}
+
+<!-- English MediaWiki syntax also supported -->
+{{Notice|type=warning|title=Editorial Review|text=Claims undergoing verification.|date=November 2026}}
+{{Stub|Digital Governance}}
+{{Cleanup|reason=Add citations and convert bullet notes to prose.|date=November 2026}}
+{{Verify|status=verified|reviewer=Editorial Board|date=November 2026}}
+{{Main|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products}}
+{{Distinguish|start|Wiki Home}}
+{{Cite web|title=A Verdade|url=https://wazzimagiygg.com/averdade/|publisher=wazzimagiygg.com|date=November 2026}}
 \`\`\`
 
-You can also create reusable community templates at slugs starting with \`predefinicao-\` (for example, [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]]). Use \`<noinclude>...</noinclude>\` for template documentation, \`<includeonly>...</includeonly>\`, and \`{{{parametro|valor padrão}}}\` placeholders. See [[${TEMPLATE_EXAMPLE_PAGE_SLUG}|${TEMPLATE_EXAMPLE_PAGE_TITLE}]] for a full live example article.
+You can also create reusable community templates at slugs starting with \`predefinicao-\` or \`template-\` (for example, [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]] or [[template-welcome|Template:Welcome]]). Use \`<noinclude>...</noinclude>\` for template documentation, \`<includeonly>...</includeonly>\`, and \`{{{parametro|valor padrão}}}\` placeholders. See [[${TEMPLATE_EXAMPLE_PAGE_SLUG}|${TEMPLATE_EXAMPLE_PAGE_TITLE}]] for a full live example article.
 
 ## Bibliographic References (\`<ref>\`)
 
@@ -968,6 +978,7 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
       summary: TEMPLATE_EXAMPLE_PAGE_SUMMARY,
       content: TEMPLATE_EXAMPLE_PAGE_CONTENT,
     },
+    ...ENGLISH_COMMUNITY_TEMPLATES,
   ];
 
   const batch = writeBatch(db);
@@ -1036,7 +1047,7 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
   }
 }
 
-const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v3';
+const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v4';
 
 const LEGACY_PORTUGUESE_TITLES: Record<string, string> = {
   [DOSSIER_PAGE_SLUG]: 'Investigação LGPD e Marco Civil — WMF e Wikipédia',
@@ -1097,6 +1108,7 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
       tags: TEMPLATE_EXAMPLE_PAGE_TAGS,
       summary: TEMPLATE_EXAMPLE_PAGE_SUMMARY,
     },
+    ...ENGLISH_COMMUNITY_TEMPLATES,
   ];
 
   try {
