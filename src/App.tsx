@@ -97,6 +97,13 @@ import {
   STARTER_TEMPLATE_TITLE,
 } from './services/templateService';
 import {
+  TEMPLATE_EXAMPLE_PAGE_CATEGORY,
+  TEMPLATE_EXAMPLE_PAGE_CONTENT,
+  TEMPLATE_EXAMPLE_PAGE_SLUG,
+  TEMPLATE_EXAMPLE_PAGE_TAGS,
+  TEMPLATE_EXAMPLE_PAGE_TITLE,
+} from './lib/templateExampleArticle';
+import {
   addPageComment,
   buildPersonalSlugs,
   createWikiPage,
@@ -574,6 +581,24 @@ function WikiWorkspace() {
         content: STARTER_TEMPLATE_CONTENT,
         category: STARTER_TEMPLATE_CATEGORY,
         tags: STARTER_TEMPLATE_TAGS,
+        visibility: 'public',
+        isLocked: false,
+        authorId: 'builtin-editorial',
+        authorName: LEGAL_GOVERNANCE.controllerName,
+        lastEditorId: 'builtin-editorial',
+        lastEditorName: LEGAL_GOVERNANCE.controllerName,
+        version: 1,
+        createdAt: null,
+        updatedAt: null,
+      });
+    }
+    if (pagesLoaded && !bySlug.has(TEMPLATE_EXAMPLE_PAGE_SLUG)) {
+      bySlug.set(TEMPLATE_EXAMPLE_PAGE_SLUG, {
+        slug: TEMPLATE_EXAMPLE_PAGE_SLUG,
+        title: TEMPLATE_EXAMPLE_PAGE_TITLE,
+        content: TEMPLATE_EXAMPLE_PAGE_CONTENT,
+        category: TEMPLATE_EXAMPLE_PAGE_CATEGORY,
+        tags: TEMPLATE_EXAMPLE_PAGE_TAGS,
         visibility: 'public',
         isLocked: false,
         authorId: 'builtin-editorial',

@@ -53,6 +53,14 @@ import {
   STARTER_TEMPLATE_TAGS,
   STARTER_TEMPLATE_TITLE,
 } from './templateEngine';
+import {
+  TEMPLATE_EXAMPLE_PAGE_CATEGORY,
+  TEMPLATE_EXAMPLE_PAGE_CONTENT,
+  TEMPLATE_EXAMPLE_PAGE_SLUG,
+  TEMPLATE_EXAMPLE_PAGE_SUMMARY,
+  TEMPLATE_EXAMPLE_PAGE_TAGS,
+  TEMPLATE_EXAMPLE_PAGE_TITLE,
+} from './templateExampleArticle';
 
 function sanitizeString(value: string, maxLen: number): string {
   return value.trim().slice(0, maxLen);
@@ -789,6 +797,7 @@ export async function seedStarterWiki(user: User): Promise<void> {
 | [[${ECOSYSTEM_PAGE_SLUG}|${ECOSYSTEM_PAGE_TITLE}]] | Directory of official WazzimaGiygg ecosystem products | Public |
 | [[${WIKIPEDIA_ABUSES_PAGE_SLUG}|${WIKIPEDIA_ABUSES_PAGE_TITLE}]] | Wikipedia abuses dossier and A Verdade reference | Public |
 | [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]] | Reusable MediaWiki-style community template example | Public |
+| [[${TEMPLATE_EXAMPLE_PAGE_SLUG}|${TEMPLATE_EXAMPLE_PAGE_TITLE}]] | Live practical examples of MediaWiki templates in action | Public |
 
 ## Next Steps
 
@@ -873,7 +882,7 @@ Use braces just like MediaWiki to insert notices, maintenance banners, navigatio
 {{Ecossistema WazzimaGiygg}}
 \`\`\`
 
-You can also create reusable community templates at slugs starting with \`predefinicao-\` (for example, [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]]). Use \`<noinclude>...</noinclude>\` for template documentation, \`<includeonly>...</includeonly>\`, and \`{{{parametro|valor padrão}}}\` placeholders.
+You can also create reusable community templates at slugs starting with \`predefinicao-\` (for example, [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]]). Use \`<noinclude>...</noinclude>\` for template documentation, \`<includeonly>...</includeonly>\`, and \`{{{parametro|valor padrão}}}\` placeholders. See [[${TEMPLATE_EXAMPLE_PAGE_SLUG}|${TEMPLATE_EXAMPLE_PAGE_TITLE}]] for a full live example article.
 
 ## Bibliographic References (\`<ref>\`)
 
@@ -951,6 +960,14 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
       summary: STARTER_TEMPLATE_SUMMARY,
       content: STARTER_TEMPLATE_CONTENT,
     },
+    {
+      slug: TEMPLATE_EXAMPLE_PAGE_SLUG,
+      title: TEMPLATE_EXAMPLE_PAGE_TITLE,
+      category: TEMPLATE_EXAMPLE_PAGE_CATEGORY,
+      tags: TEMPLATE_EXAMPLE_PAGE_TAGS,
+      summary: TEMPLATE_EXAMPLE_PAGE_SUMMARY,
+      content: TEMPLATE_EXAMPLE_PAGE_CONTENT,
+    },
   ];
 
   const batch = writeBatch(db);
@@ -1019,7 +1036,7 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
   }
 }
 
-const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v2';
+const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v3';
 
 const LEGACY_PORTUGUESE_TITLES: Record<string, string> = {
   [DOSSIER_PAGE_SLUG]: 'Investigação LGPD e Marco Civil — WMF e Wikipédia',
@@ -1071,6 +1088,14 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
       category: STARTER_TEMPLATE_CATEGORY,
       tags: STARTER_TEMPLATE_TAGS,
       summary: STARTER_TEMPLATE_SUMMARY,
+    },
+    {
+      slug: TEMPLATE_EXAMPLE_PAGE_SLUG,
+      title: TEMPLATE_EXAMPLE_PAGE_TITLE,
+      content: TEMPLATE_EXAMPLE_PAGE_CONTENT,
+      category: TEMPLATE_EXAMPLE_PAGE_CATEGORY,
+      tags: TEMPLATE_EXAMPLE_PAGE_TAGS,
+      summary: TEMPLATE_EXAMPLE_PAGE_SUMMARY,
     },
   ];
 
