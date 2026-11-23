@@ -37,7 +37,7 @@ export const ArticleViewer: React.FC<ArticleViewerProps> = ({
   onNavigateSlug,
   showToc = true,
   tocDefaultExpanded = true,
-  tocMinHeadings = 1,
+  tocMinHeadings = 2,
   enableReferences = true,
   referencesTitle = 'Referências',
   enableInfoboxes = true,

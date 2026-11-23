@@ -126,8 +126,8 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
     },
     {
       key: 'minHeadings',
-      label: 'Mínimo de seções (H1–H3)',
-      hint: 'Quantidade mínima de títulos no artigo para exibir o sumário.',
+      label: 'Mínimo de seções (H2–H3)',
+      hint: 'Quantidade mínima de títulos H2 e H3 no artigo para exibir o sumário.',
       type: 'number',
       min: VALIDATION_LIMITS.EXTENSION_MIN_HEADINGS_MIN,
       max: VALIDATION_LIMITS.EXTENSION_MIN_HEADINGS_MAX,
@@ -293,13 +293,13 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     scope: 'site',
     name: 'Sumário Automático (TOC)',
     description:
-      'Extrai automaticamente títulos H1–H3 do artigo para montar o sumário navegável e o índice lateral.',
+      'Extrai automaticamente títulos H2 e H3 do artigo para montar o sumário navegável e o índice lateral.',
     category: 'reading',
     enabled: true,
     sortOrder: 1,
     settings: {
       defaultExpanded: true,
-      minHeadings: 1,
+      minHeadings: 2,
     },
     updatedBy: 'system-default',
     updatedByName: 'Built-in Default',

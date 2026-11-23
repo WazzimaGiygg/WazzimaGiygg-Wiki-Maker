@@ -2,8 +2,10 @@ import React from 'react';
 import type { User } from 'firebase/auth';
 import {
   AlertTriangle,
+  Archive,
   Ban,
   ExternalLink,
+  Loader2,
   Lock,
   MessageSquare,
   RefreshCw,
@@ -29,6 +31,7 @@ import {
   setUserGovernanceRole,
   unblockUserAccount,
 } from '../lib/adminService';
+import { exportPublicWikiArchiveZip } from '../lib/archiveExportService';
 import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
 import {
   resolveExternalLinkConfig,
@@ -55,6 +58,8 @@ interface AdminConsoleViewProps {
   currentUser: User;
   currentUserRole: GovernanceRole;
   extensionsState: SiteExtensionsState;
+  siteTitle?: string;
+  allPublicPages?: WikiPage[];
   onSelectPage: (slug: string) => void;
   onRefreshGlobalPages?: () => void;
 }
@@ -63,6 +68,8 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
   currentUser,
   currentUserRole,
   extensionsState,
+  siteTitle,
+  allPublicPages,
   onSelectPage,
 }) => {
   const isBureaucrat = currentUserRole === 'bureaucrat';
@@ -184,6 +191,36 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     () => (snapshot?.pages ?? []).filter((p) => isTemplatePage(p)),
     [snapshot?.pages]
   );
+
+  const exportSourcePages = React.useMemo(
+    () => (allPublicPages && allPublicPages.length > 0 ? allPublicPages : snapshot?.pages ?? []),
+    [allPublicPages, snapshot?.pages]
+  );
+
+  const publicArchiveCount = React.useMemo(
+    () => exportSourcePages.filter((p) => p.visibility === 'public').length,
+    [exportSourcePages]
+  );
+
+  const handleExportPublicZip = async () => {
+    setBusyKey('export:zip');
+    setErrorMsg(null);
+    setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
+    try {
+      const result = await exportPublicWikiArchiveZip(exportSourcePages, siteTitle);
+      const sizeKb = Math.max(1, Math.round(result.byteSize / 1024));
+      setFeedbackMsg(
+        `Exported ${result.pageCount} public Markdown ${
+          result.pageCount === 1 ? 'file' : 'files'
+        } into ${result.fileName} (${sizeKb} KB).`
+      );
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to create ZIP archive.');
+    } finally {
+      setBusyKey(null);
+    }
+  };
 
   const handleRoleChange = async (target: AdminUserRow, nextRole: GovernanceRole) => {
     if (!isBureaucrat || target.isBootstrappedOwner || target.uid === currentUser.uid) return;
@@ -1087,15 +1124,36 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                   personal pages.
                 </p>
 
-                <div className="relative w-full sm:w-72">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="search"
-                    value={pageSearch}
-                    onChange={(e) => setPageSearch(e.target.value)}
-                    placeholder="Filter pages by title, :slug, or author..."
-                    className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
-                  />
+                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    disabled={busyKey === 'export:zip' || publicArchiveCount === 0}
+                    onClick={() => void handleExportPublicZip()}
+                    title="Export all public wiki pages into a ZIP archive of Markdown files"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    {busyKey === 'export:zip' ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                    ) : (
+                      <Archive className="w-3.5 h-3.5 shrink-0 text-blue-700 dark:text-blue-400" />
+                    )}
+                    <span className="tabular-nums">
+                      {busyKey === 'export:zip'
+                        ? 'Archiving...'
+                        : `Export Public ZIP (${publicArchiveCount})`}
+                    </span>
+                  </button>
+
+                  <div className="relative w-full sm:w-72">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="search"
+                      value={pageSearch}
+                      onChange={(e) => setPageSearch(e.target.value)}
+                      placeholder="Filter pages by title, :slug, or author..."
+                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                    />
+                  </div>
                 </div>
               </div>
 

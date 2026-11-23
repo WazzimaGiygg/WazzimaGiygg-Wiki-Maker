@@ -15,6 +15,7 @@ import {
 import {
   type CollaboratorProfile,
   type PageComment,
+  type PageRating,
   type PageRevision,
   type PageVisibility,
   type UserEdit,
@@ -576,7 +577,7 @@ export async function updateWikiPage(
   // Keep denormalized pageVisibility in sync if the author/admin changed visibility
   if (canManageMeta && nextVisibility !== existing.visibility) {
     try {
-      const [revsSnap, commentsSnap, ownerEditsSnap] = await Promise.all([
+      const [revsSnap, commentsSnap, ratingsSnap, ownerEditsSnap] = await Promise.all([
         getDocs(
           query(
             collection(db, 'pages', existing.slug, 'revisions'),
@@ -586,6 +587,12 @@ export async function updateWikiPage(
         getDocs(
           query(
             collection(db, 'pages', existing.slug, 'comments'),
+            where('pageVisibility', '==', existing.visibility)
+          )
+        ),
+        getDocs(
+          query(
+            collection(db, 'pages', existing.slug, 'ratings'),
             where('pageVisibility', '==', existing.visibility)
           )
         ),
@@ -602,6 +609,9 @@ export async function updateWikiPage(
         batch.update(d.ref, { pageVisibility: nextVisibility });
       });
       commentsSnap.forEach((d) => {
+        batch.update(d.ref, { pageVisibility: nextVisibility });
+      });
+      ratingsSnap.forEach((d) => {
         batch.update(d.ref, { pageVisibility: nextVisibility });
       });
       ownerEditsSnap?.forEach((d) => {
@@ -651,7 +661,7 @@ export async function deleteWikiPage(page: WikiPage): Promise<void> {
   const filterValue = page.visibility === 'public' ? 'public' : page.authorId;
 
   try {
-    const [revsSnap, commentsSnap] = await Promise.all([
+    const [revsSnap, commentsSnap, ratingsSnap] = await Promise.all([
       getDocs(
         query(
           collection(db, 'pages', page.slug, 'revisions'),
@@ -664,10 +674,17 @@ export async function deleteWikiPage(page: WikiPage): Promise<void> {
           where(filterField, '==', filterValue)
         )
       ),
+      getDocs(
+        query(
+          collection(db, 'pages', page.slug, 'ratings'),
+          where(filterField, '==', filterValue)
+        )
+      ),
     ]);
 
     revsSnap.forEach((d) => batch.delete(d.ref));
     commentsSnap.forEach((d) => batch.delete(d.ref));
+    ratingsSnap.forEach((d) => batch.delete(d.ref));
     batch.delete(doc(db, 'pages', page.slug));
 
     await batch.commit();
@@ -728,6 +745,112 @@ export async function deletePageComment(slug: string, commentId: string): Promis
     await deleteDoc(doc(db, 'pages', slug, 'comments', commentId));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, commentPath);
+  }
+}
+
+export async function upsertPageRating(
+  page: WikiPage,
+  score: number,
+  user: User
+): Promise<void> {
+  if (
+    !Number.isInteger(score) ||
+    score < VALIDATION_LIMITS.RATING_MIN_SCORE ||
+    score > VALIDATION_LIMITS.RATING_MAX_SCORE
+  ) {
+    throw new Error(
+      `Rating must be a whole number between ${VALIDATION_LIMITS.RATING_MIN_SCORE} and ${VALIDATION_LIMITS.RATING_MAX_SCORE}.`
+    );
+  }
+
+  const slug = page.slug;
+  if (!isValidWikiSlug(slug)) {
+    throw new Error('Invalid article identifier.');
+  }
+
+  const pageRef = doc(db, 'pages', slug);
+  const ratingRef = doc(db, 'pages', slug, 'ratings', user.uid);
+  const ratingPath = `pages/${slug}/ratings/${user.uid}`;
+  const userName = getUserDisplayName(user);
+
+  let pageSnap;
+  try {
+    pageSnap = await getDoc(pageRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, `pages/${slug}`);
+  }
+
+  if (!pageSnap.exists()) {
+    if (page.authorId === 'builtin-editorial') {
+      await createWikiPage(
+        {
+          slug: page.slug,
+          title: page.title,
+          content: page.content,
+          category: page.category,
+          tags: page.tags,
+          visibility: 'public',
+          isLocked: false,
+          summary: 'Initial publication of built-in article',
+        },
+        user
+      );
+      try {
+        pageSnap = await getDoc(pageRef);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.GET, `pages/${slug}`);
+      }
+    } else {
+      throw new Error('This article no longer exists.');
+    }
+  }
+
+  const livePage = pageSnap.data() as WikiPage;
+
+  let existingRatingSnap;
+  try {
+    existingRatingSnap = await getDoc(ratingRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, ratingPath);
+  }
+
+  if (existingRatingSnap.exists()) {
+    try {
+      await updateDoc(ratingRef, {
+        score,
+        userName,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, ratingPath);
+    }
+  } else {
+    try {
+      await setDoc(ratingRef, {
+        pageSlug: slug,
+        pageVisibility: livePage.visibility,
+        pageAuthorId: livePage.authorId,
+        userId: user.uid,
+        userName,
+        score,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, ratingPath);
+    }
+  }
+}
+
+export async function deletePageRating(slug: string, userId: string): Promise<void> {
+  if (!isValidWikiSlug(slug) || !isValidWikiSlug(userId)) {
+    throw new Error('Invalid rating identifier.');
+  }
+  const ratingPath = `pages/${slug}/ratings/${userId}`;
+  try {
+    await deleteDoc(doc(db, 'pages', slug, 'ratings', userId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, ratingPath);
   }
 }
 
@@ -1238,4 +1361,4 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
   }
 }
 
-export type { PageComment };
+export type { PageComment, PageRating };

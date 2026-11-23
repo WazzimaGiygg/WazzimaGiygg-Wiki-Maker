@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ChevronDown, ChevronUp, ExternalLink, FilePlus2, List } from 'lucide-react';
+import { ExternalLink, FilePlus2 } from 'lucide-react';
 import {
   createHeadingIdAllocator,
   extractArticleReferences,
@@ -9,7 +9,6 @@ import {
   parseMarkdownWithInfoboxes,
   preprocessWikiLinks,
   scrollToWikiAnchor,
-  type TocItem,
 } from '../lib/markdownUtils';
 import type { WikiPage } from '../types/wiki';
 import { expandTemplatesInWikitext } from '../services/templateService';
@@ -18,6 +17,7 @@ import {
   DEFAULT_EXTERNAL_LINK_PREFIX,
 } from '../lib/extensionsService';
 import { ReferencesFooter } from './ReferencesFooter';
+import { TableOfContents } from './TableOfContents';
 import { WikiInfobox } from './WikiInfobox';
 import { WikiTemplateBlock } from './WikiTemplateBlock';
 
@@ -59,13 +59,6 @@ function scrollToAnchor(id: string): void {
   }
 }
 
-function getTocIndentClass(level: TocItem['level'], minLevel: 1 | 2 | 3): string {
-  const depth = Math.max(0, level - minLevel);
-  if (depth === 0) return 'pl-0 font-medium text-slate-800 dark:text-slate-100';
-  if (depth === 1) return 'pl-3.5 text-slate-700 dark:text-slate-300';
-  return 'pl-7 text-slate-600 dark:text-slate-400';
-}
-
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   existingSlugs,
@@ -74,7 +67,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   onNavigateSlug,
   showToc = true,
   tocDefaultExpanded = true,
-  tocMinHeadings = 1,
+  tocMinHeadings = 2,
   enableReferences = true,
   referencesTitle = 'Referências',
   enableInfoboxes = true,
@@ -83,12 +76,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
   encodeExternalLinkTarget = false,
 }) => {
-  const [tocExpanded, setTocExpanded] = React.useState(tocDefaultExpanded);
-
-  React.useEffect(() => {
-    setTocExpanded(tocDefaultExpanded);
-  }, [tocDefaultExpanded]);
-
   const expandedContent = React.useMemo(
     () =>
       enableTemplates
@@ -112,18 +99,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     [processedMarkdown, enableInfoboxes, enableTemplates]
   );
   const tocItems = React.useMemo(
-    () => extractToc(processedMarkdown),
+    () => extractToc(processedMarkdown, { levels: [2, 3] }),
     [processedMarkdown]
   );
   const hasInfobox = React.useMemo(
     () => segments.some((seg) => seg.kind === 'infobox'),
     [segments]
   );
-
-  const minHeadingLevel = React.useMemo<1 | 2 | 3>(() => {
-    if (tocItems.length === 0) return 2;
-    return Math.min(...tocItems.map((item) => item.level)) as 1 | 2 | 3;
-  }, [tocItems]);
 
   if (!content.trim()) {
     return (
@@ -136,62 +118,23 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   // Allocate deterministic deduplicated heading IDs across all Markdown segments in render order
   const allocateHeadingId = createHeadingIdAllocator();
 
-  // Place the inline Table of Contents immediately after any leading infoboxes so it sits beside right-floated cards cleanly
-  const firstMarkdownIndex = segments.findIndex((seg) => seg.kind === 'markdown');
-  const tocInsertIndex = firstMarkdownIndex === -1 ? segments.length : firstMarkdownIndex;
-  const shouldRenderToc = showToc && tocItems.length >= Math.max(1, tocMinHeadings);
+  // Inject Table of Contents at the top of the reading view (right after any leading floated infoboxes)
+  let tocInsertIndex = 0;
+  while (tocInsertIndex < segments.length) {
+    const seg = segments[tocInsertIndex];
+    if (seg.kind === 'infobox' && seg.infobox.layout !== 'full') {
+      tocInsertIndex += 1;
+    } else {
+      break;
+    }
+  }
 
-  const tocNode = shouldRenderToc ? (
-    <nav
-      aria-label="Table of contents"
-      className="mb-6 max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0b0f17] p-4"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-100">
-          <List className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
-          <span>Contents</span>
-          <span className="font-mono font-normal tabular-nums text-slate-500 dark:text-slate-400">
-            · {tocItems.length}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setTocExpanded((prev) => !prev)}
-          aria-expanded={tocExpanded}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer print:hidden"
-        >
-          <span>{tocExpanded ? 'Hide' : 'Show'}</span>
-          {tocExpanded ? (
-            <ChevronUp className="w-3 h-3 shrink-0" />
-          ) : (
-            <ChevronDown className="w-3 h-3 shrink-0" />
-          )}
-        </button>
-      </div>
-
-      {tocExpanded && (
-        <ol className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80 space-y-1 max-h-72 overflow-y-auto print:max-h-none print:overflow-visible pr-1 text-xs list-none pl-0">
-          {tocItems.map((item) => (
-            <li key={item.id} className={getTocIndentClass(item.level, minHeadingLevel)}>
-              <a
-                href={`#${item.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollToAnchor(item.id);
-                }}
-                className="flex items-baseline gap-1.5 py-0.5 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-              >
-                <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500 shrink-0 select-none">
-                  #
-                </span>
-                <span className="leading-snug">{item.text}</span>
-              </a>
-            </li>
-          ))}
-        </ol>
-      )}
-    </nav>
+  const tocNode = showToc ? (
+    <TableOfContents
+      items={tocItems}
+      minHeadings={tocMinHeadings}
+      defaultExpanded={tocDefaultExpanded}
+    />
   ) : null;
 
   const renderHeading = (Tag: 'h1' | 'h2' | 'h3', children: React.ReactNode) => {

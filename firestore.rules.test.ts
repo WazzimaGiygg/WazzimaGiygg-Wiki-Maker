@@ -300,4 +300,21 @@ export const DIRTY_DOZEN_PAYLOADS: DirtyDozenCase[] = [
     },
     expected: 'PERMISSION_DENIED',
   },
+  {
+    id: 18,
+    name: 'Out-of-Bounds Rating Score or Cross-User Vote Spoofing',
+    operation: 'create',
+    path: '/pages/start/ratings/uid_victim',
+    actorUid: 'uid_attacker',
+    emailVerified: true,
+    payload: {
+      pageSlug: 'start',
+      pageVisibility: 'public',
+      pageAuthorId: 'uid_owner',
+      userId: 'uid_attacker',
+      userName: 'Attacker',
+      score: 99,
+    },
+    expected: 'PERMISSION_DENIED',
+  },
 ];

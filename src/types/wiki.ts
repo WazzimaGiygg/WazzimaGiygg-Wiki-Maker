@@ -40,6 +40,8 @@ export const VALIDATION_LIMITS = {
   EXTENSION_MIN_HEADINGS_MIN: 1,
   EXTENSION_MIN_HEADINGS_MAX: 10,
   EXTENSION_EXTERNAL_LINK_PREFIX_MAX_LENGTH: 300,
+  RATING_MIN_SCORE: 1,
+  RATING_MAX_SCORE: 5,
 } as const;
 
 export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
@@ -176,6 +178,18 @@ export interface PageComment {
   authorName: string;
   body: string;
   createdAt: Timestamp | null;
+}
+
+export interface PageRating {
+  id: string;
+  pageSlug: string;
+  pageVisibility: PageVisibility;
+  pageAuthorId: string;
+  userId: string;
+  userName: string;
+  score: number;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
 }
 
 export interface CollaboratorProfile {

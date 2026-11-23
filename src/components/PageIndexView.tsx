@@ -1,10 +1,12 @@
 import React from 'react';
-import { Lock, Plus, Search } from 'lucide-react';
+import { Archive, Check, Loader2, Lock, Plus, Search } from 'lucide-react';
 import { WIKI_CATEGORIES, type WikiPage } from '../types/wiki';
+import { exportPublicWikiArchiveZip } from '../lib/archiveExportService';
 import { formatRelativeTime } from '../lib/markdownUtils';
 
 interface PageIndexViewProps {
   mode: 'index' | 'recent';
+  siteTitle?: string;
   pages: WikiPage[];
   isSignedIn: boolean;
   onSelectPage: (slug: string) => void;
@@ -13,6 +15,7 @@ interface PageIndexViewProps {
 
 export const PageIndexView: React.FC<PageIndexViewProps> = ({
   mode,
+  siteTitle,
   pages,
   isSignedIn,
   onSelectPage,
@@ -20,6 +23,33 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
 }) => {
   const [search, setSearch] = React.useState('');
   const [categoryFilter, setCategoryFilter] = React.useState<string>('all');
+  const [exportingZip, setExportingZip] = React.useState(false);
+  const [exportNotice, setExportNotice] = React.useState<string | null>(null);
+  const [exportError, setExportError] = React.useState<string | null>(null);
+
+  const publicPagesCount = React.useMemo(
+    () => pages.filter((p) => p.visibility === 'public').length,
+    [pages]
+  );
+
+  const handleExportArchive = async () => {
+    setExportingZip(true);
+    setExportNotice(null);
+    setExportError(null);
+    try {
+      const result = await exportPublicWikiArchiveZip(pages, siteTitle);
+      const sizeKb = Math.max(1, Math.round(result.byteSize / 1024));
+      setExportNotice(
+        `Exported ${result.pageCount} public Markdown ${
+          result.pageCount === 1 ? 'file' : 'files'
+        } into ${result.fileName} (${sizeKb} KB).`
+      );
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Failed to create ZIP archive.');
+    } finally {
+      setExportingZip(false);
+    }
+  };
 
   const sortedAndFiltered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -61,17 +91,55 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
           </p>
         </div>
 
-        {isSignedIn && (
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={onNewPage}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0"
+            disabled={exportingZip || publicPagesCount === 0}
+            onClick={() => void handleExportArchive()}
+            title="Download all public wiki pages as individual Markdown files in a ZIP archive"
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Plus className="w-4 h-4" />
-            <span>New Page</span>
+            {exportingZip ? (
+              <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+            ) : (
+              <Archive className="w-4 h-4 shrink-0 text-blue-700 dark:text-blue-400" />
+            )}
+            <span className="tabular-nums">
+              {exportingZip ? 'Archiving...' : `Export Public ZIP (${publicPagesCount})`}
+            </span>
           </button>
-        )}
+
+          {isSignedIn && (
+            <button
+              type="button"
+              onClick={onNewPage}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Page</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {exportNotice && (
+        <div
+          role="status"
+          className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/70 dark:bg-emerald-950/30 text-xs text-emerald-900 dark:text-emerald-200"
+        >
+          <Check className="w-4 h-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+          <span>{exportNotice}</span>
+        </div>
+      )}
+
+      {exportError && (
+        <div
+          role="alert"
+          className="px-3.5 py-2.5 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/30 text-xs text-red-900 dark:text-red-200"
+        >
+          {exportError}
+        </div>
+      )}
 
       {/* Filters Row */}
       <div className="flex flex-wrap items-center justify-between gap-3">

@@ -37,6 +37,7 @@ import { LegalComplianceView, type LegalSectionTab } from './components/LegalCom
 import { MarkdownEditor } from './components/MarkdownEditor';
 import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
+import { PageRatingPanel } from './components/PageRatingPanel';
 import { PrivacyNoticeBanner } from './components/PrivacyNoticeBanner';
 import { ReadingProgressBar } from './components/ReadingProgressBar';
 import { ReferencesFooter } from './components/ReferencesFooter';
@@ -113,6 +114,7 @@ import {
   buildPersonalSlugs,
   createWikiPage,
   deletePageComment,
+  deletePageRating,
   deleteWikiPage,
   ensureDossierArticlePublished,
   fetchCollaboratorProfile,
@@ -123,12 +125,14 @@ import {
   seedStarterWiki,
   syncUserDocuments,
   updateWikiPage,
+  upsertPageRating,
 } from './lib/wikiService';
 import {
   type BlockedUser,
   type CollaboratorProfile,
   type GovernanceRole,
   type PageComment,
+  type PageRating,
   type PageRevision,
   type PageTab,
   type PageVisibility,
@@ -232,6 +236,7 @@ function WikiWorkspace() {
   const [revisions, setRevisions] = React.useState<PageRevision[]>([]);
   const [revisionsLoading, setRevisionsLoading] = React.useState(false);
   const [comments, setComments] = React.useState<PageComment[]>([]);
+  const [ratings, setRatings] = React.useState<PageRating[]>([]);
   const [personalAuthorProfile, setPersonalAuthorProfile] = React.useState<CollaboratorProfile | null>(null);
   const [personalUserEdits, setPersonalUserEdits] = React.useState<UserEdit[]>([]);
   const [personalEditsLoading, setPersonalEditsLoading] = React.useState(false);
@@ -789,6 +794,35 @@ function WikiWorkspace() {
       },
       (error) => {
         handleFirestoreError(error, OperationType.LIST, commentsPath);
+      }
+    );
+    return unsub;
+  }, [authReady, view, activePage?.slug, activePage?.visibility, activePage?.authorId]);
+
+  // Subscribe to active page ratings
+  React.useEffect(() => {
+    if (!authReady || view !== 'page' || !activePage) {
+      setRatings([]);
+      return;
+    }
+    const ratingsPath = `pages/${activePage.slug}/ratings`;
+    const filterField = activePage.visibility === 'public' ? 'pageVisibility' : 'pageAuthorId';
+    const filterValue = activePage.visibility === 'public' ? 'public' : activePage.authorId;
+    const q = query(
+      collection(db, 'pages', activePage.slug, 'ratings'),
+      where(filterField, '==', filterValue)
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<PageRating, 'id'>),
+        }));
+        setRatings(list);
+      },
+      (error) => {
+        handleFirestoreError(error, OperationType.LIST, ratingsPath);
       }
     );
     return unsub;
@@ -1497,7 +1531,7 @@ function WikiWorkspace() {
     [activePage, expandedActiveContent, refsExt.enabled]
   );
 
-  const tocMinHeadings = Math.max(1, tocExt.settings.minHeadings ?? 1);
+  const tocMinHeadings = Math.max(1, tocExt.settings.minHeadings ?? 2);
   const outlineToc = tocExt.enabled && toc.length >= tocMinHeadings ? toc : [];
   const outlineRefs =
     refsExt.enabled && refsExt.settings.showOutlineLink !== false ? articleReferences : [];
@@ -1945,6 +1979,8 @@ function WikiWorkspace() {
                     user.email === ADMIN_EMAIL && user.emailVerified ? 'bureaucrat' : governanceRole
                   }
                   extensionsState={extensionsState}
+                  siteTitle={siteTitle}
+                  allPublicPages={allPages}
                   onSelectPage={navigateToPage}
                 />
               ) : (
@@ -2063,6 +2099,7 @@ function WikiWorkspace() {
             >
               <PageIndexView
                 mode={view}
+                siteTitle={siteTitle}
                 pages={allPages}
                 isSignedIn={Boolean(user && !isBlocked)}
                 onSelectPage={navigateToPage}
@@ -2563,6 +2600,23 @@ function WikiWorkspace() {
                       />
                     )}
 
+                    <PageRatingPanel
+                      pageSlug={activePage.slug}
+                      ratings={ratings}
+                      currentUserId={user?.uid ?? null}
+                      isSignedIn={Boolean(user)}
+                      isBlocked={isBlocked}
+                      onRate={async (score) => {
+                        if (!user || isBlocked) return;
+                        await upsertPageRating(activePage, score, user);
+                      }}
+                      onRemoveRating={async () => {
+                        if (!user || isBlocked) return;
+                        await deletePageRating(activePage.slug, user.uid);
+                      }}
+                      onSignIn={() => void handleSignIn()}
+                    />
+
                     {isPersonalProfilePage && (
                       <UserEditsPanel
                         authorName={activePage.authorName}
@@ -2673,11 +2727,7 @@ function WikiWorkspace() {
                           <li
                             key={item.id}
                             className={
-                              item.level === 1
-                                ? 'pl-0 font-medium'
-                                : item.level === 2
-                                ? 'pl-2'
-                                : 'pl-4'
+                              item.level <= 2 ? 'pl-0 font-medium' : 'pl-3'
                             }
                           >
                             <a

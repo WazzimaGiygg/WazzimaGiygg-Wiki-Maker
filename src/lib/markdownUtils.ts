@@ -579,10 +579,15 @@ export function createHeadingIdAllocator(): (rawText: string) => string {
 }
 
 /**
- * Extracts H1-H3 headings from Markdown (ignoring fenced code blocks and :::infobox blocks)
- * with deduplicated anchor IDs for Table of Contents navigation.
+ * Extracts Table of Contents headings (H2 and H3 by default) from Markdown
+ * outside fenced code blocks and :::infobox blocks, allocating anchor IDs
+ * across H1–H3 in document order so anchors always match rendered heading IDs.
  */
-export function extractToc(markdown: string): TocItem[] {
+export function extractToc(
+  markdown: string,
+  options?: { levels?: readonly (1 | 2 | 3)[] }
+): TocItem[] {
+  const allowedLevels = options?.levels ?? [2, 3];
   const lines = markdown.split(/\r?\n/);
   const items: TocItem[] = [];
   const allocateId = createHeadingIdAllocator();
@@ -614,7 +619,9 @@ export function extractToc(markdown: string): TocItem[] {
       const text = cleanHeadingDisplayText(match[2]);
       if (!text) continue;
       const id = allocateId(text);
-      items.push({ id, text, level });
+      if (allowedLevels.includes(level)) {
+        items.push({ id, text, level });
+      }
     }
   }
 

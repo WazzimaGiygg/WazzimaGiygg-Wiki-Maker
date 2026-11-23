@@ -222,6 +222,64 @@
         "createdAt"
       ]
     },
+    "PageRating": {
+      "title": "PageRating",
+      "description": "5-star reader rating for a wiki article, keyed by rater UID (one rating per user per page).",
+      "type": "object",
+      "properties": {
+        "pageSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pageVisibility": {
+          "type": "string",
+          "enum": ["public", "private"]
+        },
+        "pageAuthorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "5-star rating score from 1 to 5."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "pageSlug",
+        "pageVisibility",
+        "pageAuthorId",
+        "userId",
+        "userName",
+        "score",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
     "CollaboratorProfile": {
       "title": "CollaboratorProfile",
       "description": "Public display profile for wiki collaborators without PII.",
@@ -554,6 +612,10 @@
     "/pages/{slug}/comments/{commentId}": {
       "schema": { "$ref": "#/entities/PageComment" },
       "description": "Discussion comments on each wiki page."
+    },
+    "/pages/{slug}/ratings/{userId}": {
+      "schema": { "$ref": "#/entities/PageRating" },
+      "description": "Per-user 5-star ratings for each wiki page."
     },
     "/collaborators/{userId}": {
       "schema": { "$ref": "#/entities/CollaboratorProfile" },

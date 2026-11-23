@@ -102,7 +102,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   enableReferencesPreview = true,
   showTocPreview = true,
   tocDefaultExpanded = true,
-  tocMinHeadings = 1,
+  tocMinHeadings = 2,
   referencesTitle = 'Referências',
   externalLinkPrefix,
   encodeExternalLinkTarget = false,

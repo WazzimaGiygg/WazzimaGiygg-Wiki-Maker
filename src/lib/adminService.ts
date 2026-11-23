@@ -19,6 +19,7 @@ import {
   type LgpdErasureLog,
   type LgpdErasureMode,
   type PageComment,
+  type PageRating,
   type PageRevision,
   VALIDATION_LIMITS,
   type WikiPage,
@@ -831,10 +832,11 @@ export async function deletePageAsAdmin(
   let deletedPageData: WikiPage | null = null;
 
   try {
-    const [pageSnap, revsSnap, commentsSnap] = await Promise.all([
+    const [pageSnap, revsSnap, commentsSnap, ratingsSnap] = await Promise.all([
       getDoc(doc(db, 'pages', slug)),
       getDocs(collection(db, 'pages', slug, 'revisions')),
       getDocs(collection(db, 'pages', slug, 'comments')),
+      getDocs(collection(db, 'pages', slug, 'ratings')),
     ]);
 
     if (pageSnap.exists()) {
@@ -846,6 +848,9 @@ export async function deletePageAsAdmin(
       ops.push({ type: 'delete', ref: d.ref });
     });
     commentsSnap.forEach((d) => {
+      ops.push({ type: 'delete', ref: d.ref });
+    });
+    ratingsSnap.forEach((d) => {
       ops.push({ type: 'delete', ref: d.ref });
     });
     ops.push({ type: 'delete', ref: doc(db, 'pages', slug) });
@@ -1029,6 +1034,7 @@ export async function executeLgpdUserRemoval(
   let anonymizedPages = 0;
   let affectedRevisions = 0;
   let affectedComments = 0;
+  let affectedRatings = 0;
   let deletedEditLogs = 0;
 
   try {
@@ -1074,15 +1080,16 @@ export async function executeLgpdUserRemoval(
 
     const subcollectionSnaps = await Promise.all(
       pages.map(async ({ ref, data }) => {
-        const [revsSnap, commentsSnap] = await Promise.all([
+        const [revsSnap, commentsSnap, ratingsSnap] = await Promise.all([
           getDocs(collection(db, 'pages', data.slug, 'revisions')),
           getDocs(collection(db, 'pages', data.slug, 'comments')),
+          getDocs(collection(db, 'pages', data.slug, 'ratings')),
         ]);
-        return { ref, data, revsSnap, commentsSnap };
+        return { ref, data, revsSnap, commentsSnap, ratingsSnap };
       })
     );
 
-    for (const { ref, data, revsSnap, commentsSnap } of subcollectionSnaps) {
+    for (const { ref, data, revsSnap, commentsSnap, ratingsSnap } of subcollectionSnaps) {
       const isPersonalOrPrivatePage =
         data.slug === collabData?.personalPageSlug ||
         data.slug === collabData?.discussionPageSlug ||
@@ -1100,6 +1107,10 @@ export async function executeLgpdUserRemoval(
         commentsSnap.forEach((d) => {
           ops.push({ type: 'delete', ref: d.ref });
           affectedComments += 1;
+        });
+        ratingsSnap.forEach((d) => {
+          ops.push({ type: 'delete', ref: d.ref });
+          affectedRatings += 1;
         });
         ops.push({ type: 'delete', ref });
         if (isPersonalOrPrivatePage) {
@@ -1165,10 +1176,32 @@ export async function executeLgpdUserRemoval(
           affectedComments += 1;
         }
       });
+
+      ratingsSnap.forEach((ratingDoc) => {
+        const rating = ratingDoc.data() as Omit<PageRating, 'id'>;
+        if (rating.userId === targetUid || rating.pageAuthorId === targetUid) {
+          if (mode === 'purge' && rating.userId === targetUid) {
+            ops.push({ type: 'delete', ref: ratingDoc.ref });
+          } else {
+            ops.push({
+              type: 'update',
+              ref: ratingDoc.ref,
+              data: {
+                userId: rating.userId === targetUid ? 'lgpd-anonymized' : rating.userId,
+                userName:
+                  rating.userId === targetUid ? 'Removed User (LGPD)' : rating.userName,
+                pageAuthorId:
+                  rating.pageAuthorId === targetUid ? 'lgpd-anonymized' : rating.pageAuthorId,
+              },
+            });
+          }
+          affectedRatings += 1;
+        }
+      });
     }
 
     const summary = sanitizeString(
-      `LGPD ${mode}: ${deletedPiiCount} identity/PII records, ${deletedPersonalPages} personal/private pages, ${deletedPages} authored pages deleted, ${anonymizedPages} shared pages anonymized, ${affectedRevisions} revisions, ${affectedComments} comments, ${deletedEditLogs} activity logs`,
+      `LGPD ${mode}: ${deletedPiiCount} PII records, ${deletedPersonalPages} personal pages, ${deletedPages} authored pages deleted, ${anonymizedPages} pages anonymized, ${affectedRevisions} revisions, ${affectedComments} comments, ${affectedRatings} ratings, ${deletedEditLogs} edit logs`,
       VALIDATION_LIMITS.LGPD_SUMMARY_MAX_LENGTH
     );
 
