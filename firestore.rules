@@ -1,16 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Pillar 4.1: Global default-deny safety net
+
+    // Global Safety Net (Default Deny)
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Pillar 3: Global hardened primitives
-    function isValidId(id) {
-      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
+    // --- Helper Primitives ---
     function incoming() {
       return request.resource.data;
     }
@@ -27,843 +24,234 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.email_verified == true;
     }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
     }
 
-    function isBootstrappedBureaucrat() {
-      return isVerified() && request.auth.token.email == 'mafersao1100@gmail.com';
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function isTargetBootstrappedBureaucrat(targetUid) {
-      return exists(/databases/$(database)/documents/users/$(targetUid)/private/info) &&
-        get(/databases/$(database)/documents/users/$(targetUid)/private/info).data.email == 'mafersao1100@gmail.com';
+    function isValidRoomId(id) {
+      return id is string && id.size() >= 2 && id.size() <= 32 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function isNotBlocked() {
-      return isBootstrappedBureaucrat() || (
-        isSignedIn() &&
-        !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid))
-      );
+    function roomExists(roomId) {
+      return exists(/databases/$(database)/documents/rooms/$(roomId));
     }
 
-    function isBureaucrat() {
-      return isBootstrappedBureaucrat() || (
-        isVerified() &&
-        !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid)) &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'bureaucrat'
-      );
+    function getRoom(roomId) {
+      return get(/databases/$(database)/documents/rooms/$(roomId)).data;
     }
 
-    function isAdmin() {
-      return isBootstrappedBureaucrat() || (
-        isVerified() &&
-        !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid)) &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role in ['admin', 'bureaucrat']
-      );
+    function roomIsActive(roomId) {
+      return roomExists(roomId) && getRoom(roomId).status != 'closed';
     }
 
-    function canModerateTarget(targetUid) {
-      return isVerified()
-        && targetUid != request.auth.uid
-        && !isTargetBootstrappedBureaucrat(targetUid)
-        && (
-          isBootstrappedBureaucrat() ||
-          (!exists(/databases/$(database)/documents/admins/$(targetUid)) && isAdmin()) ||
-          (exists(/databases/$(database)/documents/admins/$(targetUid)) &&
-           get(/databases/$(database)/documents/admins/$(targetUid)).data.role != 'bureaucrat' &&
-           isBureaucrat())
-        );
+    function isRoomHost(roomId) {
+      return roomExists(roomId) && getRoom(roomId).hostUid == request.auth.uid;
     }
 
-    function isUserOrDiscussionPage(slug, data) {
-      return ('personal' in data.tags)
-        || ('discussion' in data.tags)
-        || slug.matches('^user-.*$')
-        || slug.matches('^.*-discussion$');
+    function isRoomExpiredOrClosed(roomId) {
+      return !roomExists(roomId)
+        || getRoom(roomId).status == 'closed'
+        || request.time > getRoom(roomId).updatedAt + duration.value(5, 'm');
     }
 
-    // Pillar 5: Total Array Guarding (validates every bounded slot 0..7)
-    function isValidTagItem(tag) {
-      return tag is string && tag.size() >= 1 && tag.size() <= 32;
-    }
-
-    function isValidTagList(tags) {
-      return tags is list
-        && tags.size() <= 8
-        && (tags.size() <= 0 || isValidTagItem(tags[0]))
-        && (tags.size() <= 1 || isValidTagItem(tags[1]))
-        && (tags.size() <= 2 || isValidTagItem(tags[2]))
-        && (tags.size() <= 3 || isValidTagItem(tags[3]))
-        && (tags.size() <= 4 || isValidTagItem(tags[4]))
-        && (tags.size() <= 5 || isValidTagItem(tags[5]))
-        && (tags.size() <= 6 || isValidTagItem(tags[6]))
-        && (tags.size() <= 7 || isValidTagItem(tags[7]));
-    }
-
-    function isValidHeaderImageUrl(url) {
-      return url is string
-        && url.size() <= 200000
-        && (
-          url == '' ||
-          (url.size() <= 1000 && url.matches('^https?://.*$')) ||
-          url.matches('^data:image/(png|jpeg|jpg|webp|gif|avif);base64,[A-Za-z0-9+/=]+$')
-        );
-    }
-
-    function isValidRecentEditorItem(item) {
-      return item is map
-        && item.keys().hasAll(['uid', 'name'])
-        && item.keys().hasOnly(['uid', 'name'])
-        && item.uid is string && isValidId(item.uid)
-        && item.name is string && item.name.size() >= 1 && item.name.size() <= 80;
-    }
-
-    function isValidRecentEditorsList(editors) {
-      return editors is list
-        && editors.size() >= 1
-        && editors.size() <= 3
-        && (editors.size() <= 0 || isValidRecentEditorItem(editors[0]))
-        && (editors.size() <= 1 || isValidRecentEditorItem(editors[1]))
-        && (editors.size() <= 2 || isValidRecentEditorItem(editors[2]));
-    }
-
-    // Pillar 2: Validation Blueprints (never use existing() or diff() inside these helpers)
-    function isValidWikiPage(data, slug) {
-      return data.keys().hasAll([
-          'slug', 'title', 'content', 'category', 'tags', 'visibility',
-          'isLocked', 'authorId', 'authorName', 'lastEditorId',
-          'lastEditorName', 'version', 'createdAt', 'updatedAt'
-        ])
-        && data.keys().hasOnly([
-          'slug', 'title', 'content', 'category', 'tags', 'visibility',
-          'isLocked', 'headerImageUrl', 'authorId', 'authorName', 'lastEditorId',
-          'lastEditorName', 'recentEditors', 'version', 'createdAt', 'updatedAt'
-        ])
-        && data.slug is string && data.slug == slug && isValidId(data.slug)
-        && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
-        && data.content is string && data.content.size() <= 200000
-        && data.category is string && data.category.size() >= 1 && data.category.size() <= 40 && data.category.matches('^[a-z0-9\\-]+$')
-        && isValidTagList(data.tags)
-        && data.visibility in ['public', 'private']
-        && data.isLocked is bool
-        && (!('headerImageUrl' in data) || isValidHeaderImageUrl(data.headerImageUrl))
-        && data.authorId is string && isValidId(data.authorId)
-        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
-        && data.lastEditorId is string && isValidId(data.lastEditorId)
-        && data.lastEditorName is string && data.lastEditorName.size() >= 1 && data.lastEditorName.size() <= 80
-        && (!('recentEditors' in data) || isValidRecentEditorsList(data.recentEditors))
-        && data.version is int && data.version >= 1 && data.version <= 1000000
+    // --- Validation Blueprints ---
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'preferredCharacter', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'email', 'photoUrl', 'preferredCharacter', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 50
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 120
+        && (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 300))
+        && data.preferredCharacter in ['mario', 'wazzima']
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
 
-    function isValidRevision(data, slug) {
-      return data.keys().hasAll([
-          'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
-          'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
-        ])
-        && data.keys().hasOnly([
-          'pageSlug', 'pageVisibility', 'pageAuthorId', 'title',
-          'content', 'editorId', 'editorName', 'summary', 'version', 'createdAt'
-        ])
-        && data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
-        && data.pageVisibility in ['public', 'private']
-        && data.pageAuthorId is string && isValidId(data.pageAuthorId)
-        && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
-        && data.content is string && data.content.size() <= 200000
-        && data.editorId is string && isValidId(data.editorId)
-        && data.editorName is string && data.editorName.size() >= 1 && data.editorName.size() <= 80
-        && data.summary is string && data.summary.size() <= 200
-        && data.version is int && data.version >= 1 && data.version <= 1000000
-        && data.createdAt is timestamp;
-    }
-
-    function isValidComment(data, slug) {
-      return data.keys().hasAll([
-          'pageSlug', 'pageVisibility', 'pageAuthorId',
-          'authorId', 'authorName', 'body', 'createdAt'
-        ])
-        && data.keys().hasOnly([
-          'pageSlug', 'pageVisibility', 'pageAuthorId',
-          'authorId', 'authorName', 'body', 'createdAt'
-        ])
-        && data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
-        && data.pageVisibility in ['public', 'private']
-        && data.pageAuthorId is string && isValidId(data.pageAuthorId)
-        && data.authorId is string && isValidId(data.authorId)
-        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
-        && data.body is string && data.body.size() >= 1 && data.body.size() <= 2000
-        && data.createdAt is timestamp;
-    }
-
-    function isValidPageRating(data, slug, userId) {
-      return data.keys().hasAll([
-          'pageSlug', 'pageVisibility', 'pageAuthorId',
-          'userId', 'userName', 'score', 'createdAt', 'updatedAt'
-        ])
-        && data.keys().hasOnly([
-          'pageSlug', 'pageVisibility', 'pageAuthorId',
-          'userId', 'userName', 'score', 'createdAt', 'updatedAt'
-        ])
-        && data.pageSlug is string && data.pageSlug == slug && isValidId(data.pageSlug)
-        && data.pageVisibility in ['public', 'private']
-        && data.pageAuthorId is string && isValidId(data.pageAuthorId)
-        && data.userId is string && isValidId(data.userId)
-        && (data.userId == userId || data.userId == 'lgpd-anonymized')
-        && data.userName is string && data.userName.size() >= 1 && data.userName.size() <= 80
-        && data.score is int && data.score >= 1 && data.score <= 5
+    function isValidRoom(data) {
+      return data.keys().hasAll(['roomId', 'hostUid', 'hostName', 'levelId', 'endlessStage', 'seed', 'matchGeneration', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['roomId', 'hostUid', 'hostName', 'levelId', 'endlessStage', 'seed', 'matchGeneration', 'status', 'createdAt', 'updatedAt'])
+        && isValidRoomId(data.roomId)
+        && isValidId(data.hostUid)
+        && data.hostName is string && data.hostName.size() >= 1 && data.hostName.size() <= 40
+        && data.levelId is string && data.levelId.size() >= 1 && data.levelId.size() <= 64
+        && data.endlessStage is int && data.endlessStage >= 0 && data.endlessStage <= 9999
+        && data.seed is int && data.seed >= 0
+        && data.matchGeneration is int && data.matchGeneration >= 1 && data.matchGeneration <= 999999
+        && data.status in ['open', 'playing', 'closed']
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
 
-    function isValidCollaborator(data, userId) {
+    function isValidRoomPlayer(data) {
       return data.keys().hasAll([
-          'uid', 'displayName', 'photoURL', 'personalPageSlug',
-          'discussionPageSlug', 'createdAt', 'updatedAt'
+          'uid', 'roomId', 'name', 'photoUrl', 'character',
+          'x', 'y', 'vx', 'vy', 'facing', 'power', 'state', 'animFrame',
+          'isStatue', 'tailWhipTimer', 'isFluttering', 'invulnerable',
+          'score', 'lives', 'coins', 'stageCleared', 'levelId', 'updatedAt'
         ])
         && data.keys().hasOnly([
-          'uid', 'displayName', 'photoURL', 'personalPageSlug',
-          'discussionPageSlug', 'createdAt', 'updatedAt'
+          'uid', 'roomId', 'name', 'photoUrl', 'character',
+          'x', 'y', 'vx', 'vy', 'facing', 'power', 'state', 'animFrame',
+          'isStatue', 'tailWhipTimer', 'isFluttering', 'invulnerable',
+          'score', 'lives', 'coins', 'stageCleared', 'levelId', 'updatedAt'
         ])
-        && data.uid is string && data.uid == userId && isValidId(data.uid)
-        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
-        && data.photoURL is string && data.photoURL.size() <= 500
-        && (data.photoURL == '' || data.photoURL.matches('^https?://.*$'))
-        && data.personalPageSlug is string && isValidId(data.personalPageSlug)
-        && data.discussionPageSlug is string && isValidId(data.discussionPageSlug)
-        && data.createdAt is timestamp
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && isValidRoomId(data.roomId)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 32
+        && data.photoUrl is string && data.photoUrl.size() <= 300
+        && data.character in ['mario', 'wazzima']
+        && data.x is number && data.x >= -100 && data.x <= 20000
+        && data.y is number && data.y >= -200 && data.y <= 1000
+        && data.vx is number && data.vx >= -50 && data.vx <= 50
+        && data.vy is number && data.vy >= -50 && data.vy <= 50
+        && data.facing in ['left', 'right']
+        && data.power in ['small', 'super', 'fire', 'tanooki', 'femboy']
+        && data.state is string && data.state.size() >= 1 && data.state.size() <= 32
+        && data.animFrame is int && data.animFrame >= 0 && data.animFrame <= 10
+        && data.isStatue is bool
+        && data.tailWhipTimer is int && data.tailWhipTimer >= 0 && data.tailWhipTimer <= 100
+        && data.isFluttering is bool
+        && data.invulnerable is bool
+        && data.score is int && data.score >= 0
+        && data.lives is int && data.lives >= 0 && data.lives <= 999
+        && data.coins is int && data.coins >= 0 && data.coins <= 999
+        && data.stageCleared is bool
+        && data.levelId is string && data.levelId.size() >= 1 && data.levelId.size() <= 64
         && data.updatedAt is timestamp;
     }
 
-    function isValidUserEdit(data, userId) {
-      return data.keys().hasAll([
-          'editorId', 'pageSlug', 'pageTitle', 'pageVisibility',
-          'summary', 'version', 'createdAt'
-        ])
-        && data.keys().hasOnly([
-          'editorId', 'pageSlug', 'pageTitle', 'pageVisibility',
-          'summary', 'version', 'createdAt'
-        ])
-        && data.editorId is string && data.editorId == userId && isValidId(data.editorId)
-        && data.pageSlug is string && isValidId(data.pageSlug)
-        && data.pageTitle is string && data.pageTitle.size() >= 1 && data.pageTitle.size() <= 160
-        && data.pageVisibility in ['public', 'private']
-        && data.summary is string && data.summary.size() <= 200
-        && data.version is int && data.version >= 1 && data.version <= 1000000
+    function isValidRoomMessage(data) {
+      return data.keys().hasAll(['uid', 'roomId', 'name', 'character', 'text', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'roomId', 'name', 'character', 'text', 'createdAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && isValidRoomId(data.roomId)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 32
+        && data.character in ['mario', 'wazzima']
+        && data.text is string && data.text.size() >= 1 && data.text.size() <= 120
         && data.createdAt is timestamp;
     }
 
-    function isValidUserPrivateInfo(data, userId) {
-      return data.keys().hasAll(['uid', 'email', 'updatedAt'])
-        && data.keys().hasOnly(['uid', 'email', 'updatedAt'])
-        && data.uid is string && data.uid == userId && isValidId(data.uid)
-        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
-        && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
-        && data.updatedAt is timestamp;
-    }
-
-    function isValidAdminRecord(data, userId) {
-      return data.keys().hasAll(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['uid', 'role', 'grantedBy', 'createdAt', 'updatedAt'])
-        && data.uid is string && data.uid == userId && isValidId(data.uid)
-        && data.role in ['admin', 'bureaucrat']
-        && data.grantedBy is string && isValidId(data.grantedBy)
-        && data.createdAt is timestamp
-        && data.updatedAt is timestamp;
-    }
-
-    function isValidBlockedUser(data, userId) {
-      return data.keys().hasAll(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
-        && data.keys().hasOnly(['uid', 'displayName', 'reason', 'blockedBy', 'blockedByName', 'createdAt'])
-        && data.uid is string && data.uid == userId && isValidId(data.uid)
-        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80
-        && data.reason is string && data.reason.size() >= 1 && data.reason.size() <= 300
-        && data.blockedBy is string && isValidId(data.blockedBy)
-        && data.blockedByName is string && data.blockedByName.size() >= 1 && data.blockedByName.size() <= 80
+    function isValidRoomEvent(data) {
+      return data.keys().hasAll(['uid', 'roomId', 'eventType', 'x', 'y', 'meta', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'roomId', 'eventType', 'x', 'y', 'meta', 'createdAt'])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && isValidRoomId(data.roomId)
+        && data.eventType in ['enemy_defeat', 'coin_collect', 'brick_break', 'level_change']
+        && data.x is number
+        && data.y is number
+        && data.meta is string && data.meta.size() <= 64
         && data.createdAt is timestamp;
     }
 
-    function isValidLgpdLog(data) {
-      return data.keys().hasAll(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
-        && data.keys().hasOnly(['targetUid', 'mode', 'summary', 'executedBy', 'executedByName', 'createdAt'])
-        && data.targetUid is string && isValidId(data.targetUid)
-        && data.mode in ['anonymize', 'purge']
-        && data.summary is string && data.summary.size() >= 1 && data.summary.size() <= 300
-        && data.executedBy is string && data.executedBy == request.auth.uid && isValidId(data.executedBy)
-        && data.executedByName is string && data.executedByName.size() >= 1 && data.executedByName.size() <= 80
-        && data.createdAt is timestamp;
-    }
+    // --- Collection Rules ---
 
-    function isValidExtensionSettings(settings) {
-      return settings is map
-        && settings.keys().hasOnly([
-          'siteTitle', 'themeId', 'colorScheme', 'defaultExpanded', 'minHeadings',
-          'footerTitle', 'showOutlineLink', 'allowEditorToolbar', 'allowAutoProfileCard',
-          'showInNavbar', 'showInSidebar', 'excludeDiscussions', 'showInHeader',
-          'showToastFeedback', 'notifyWhileEditing', 'allowAnonymousRead',
-          'autoExitOnNavigate', 'externalLinkPrefix', 'encodeTargetUrl'
-        ])
-        && (!('siteTitle' in settings) || (settings.siteTitle is string && settings.siteTitle.size() >= 1 && settings.siteTitle.size() <= 80))
-        && (!('themeId' in settings) || (settings.themeId is string && settings.themeId.size() >= 1 && settings.themeId.size() <= 40 && settings.themeId.matches('^[a-z0-9\\-]+$')))
-        && (!('colorScheme' in settings) || settings.colorScheme in ['user', 'light', 'dark'])
-        && (!('defaultExpanded' in settings) || settings.defaultExpanded is bool)
-        && (!('minHeadings' in settings) || (settings.minHeadings is int && settings.minHeadings >= 1 && settings.minHeadings <= 10))
-        && (!('footerTitle' in settings) || (settings.footerTitle is string && settings.footerTitle.size() >= 1 && settings.footerTitle.size() <= 80))
-        && (!('showOutlineLink' in settings) || settings.showOutlineLink is bool)
-        && (!('allowEditorToolbar' in settings) || settings.allowEditorToolbar is bool)
-        && (!('allowAutoProfileCard' in settings) || settings.allowAutoProfileCard is bool)
-        && (!('showInNavbar' in settings) || settings.showInNavbar is bool)
-        && (!('showInSidebar' in settings) || settings.showInSidebar is bool)
-        && (!('excludeDiscussions' in settings) || settings.excludeDiscussions is bool)
-        && (!('showInHeader' in settings) || settings.showInHeader is bool)
-        && (!('showToastFeedback' in settings) || settings.showToastFeedback is bool)
-        && (!('notifyWhileEditing' in settings) || settings.notifyWhileEditing is bool)
-        && (!('allowAnonymousRead' in settings) || settings.allowAnonymousRead is bool)
-        && (!('autoExitOnNavigate' in settings) || settings.autoExitOnNavigate is bool)
-        && (!('externalLinkPrefix' in settings) || (
-          settings.externalLinkPrefix is string
-          && settings.externalLinkPrefix.size() <= 300
-          && (
-            settings.externalLinkPrefix == '' ||
-            settings.externalLinkPrefix.matches('^https?://.*') ||
-            (settings.externalLinkPrefix.matches('^/.*') && !settings.externalLinkPrefix.matches('^//.*'))
-          )
-        ))
-        && (!('encodeTargetUrl' in settings) || settings.encodeTargetUrl is bool);
-    }
-
-    function isValidWikiExtension(data, extensionId) {
-      return data.keys().hasAll([
-          'id', 'scope', 'name', 'description', 'category', 'enabled',
-          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
-        ])
-        && data.keys().hasOnly([
-          'id', 'scope', 'name', 'description', 'category', 'enabled',
-          'sortOrder', 'settings', 'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
-        ])
-        && data.id is string && data.id == extensionId && isValidId(data.id)
-        && data.scope == 'site'
-        && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
-        && data.description is string && data.description.size() >= 1 && data.description.size() <= 300
-        && data.category in ['appearance', 'reading', 'navigation', 'authoring', 'collaboration']
-        && data.enabled is bool
-        && data.sortOrder is int && data.sortOrder >= 0 && data.sortOrder <= 100
-        && isValidExtensionSettings(data.settings)
-        && data.updatedBy is string && isValidId(data.updatedBy)
-        && data.updatedByName is string && data.updatedByName.size() >= 1 && data.updatedByName.size() <= 80
-        && data.createdAt is timestamp
-        && data.updatedAt is timestamp;
-    }
-
-    // Collection: /pages/{slug}
-    match /pages/{slug} {
-      allow get: if isValidId(slug) && (
-        (isVerified() && isNotBlocked() && resource == null) ||
-        (resource != null && (
-          existing().visibility == 'public' ||
-          (isSignedIn() && existing().authorId == request.auth.uid) ||
-          isAdmin()
-        ))
-      );
-
-      allow list: if resource.data.visibility == 'public' ||
-        (isSignedIn() && resource.data.authorId == request.auth.uid) ||
-        isAdmin();
-
-      // Pillar 10: Auth -> Static Validation -> DB Lookups
-      allow create: if isVerified()
-        && isValidId(slug)
-        && isValidWikiPage(incoming(), slug)
-        && incoming().authorId == request.auth.uid
-        && incoming().lastEditorId == request.auth.uid
-        && (!('recentEditors' in incoming()) || (incoming().recentEditors.size() == 1 && incoming().recentEditors[0].uid == request.auth.uid))
-        && incoming().version == 1
+    // Private User Profile (PII isolated strictly to owner)
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isVerified() && isOwner(userId) && isValidId(userId)
+        && isValidUserProfile(incoming())
         && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time
-        && isNotBlocked();
-
-      allow update: if isVerified()
-        && isValidId(slug)
-        && isValidWikiPage(incoming(), slug)
-        && incoming().slug == existing().slug
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isOwner(userId) && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().email == existing().email
         && incoming().createdAt == existing().createdAt
         && incoming().updatedAt == request.time
-        && isNotBlocked()
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoUrl', 'preferredCharacter', 'updatedAt']);
+      allow delete: if isOwner(userId) && isValidId(userId);
+    }
+
+    // Multiplayer Rooms
+    match /rooms/{roomId} {
+      allow get: if isSignedIn() && isValidRoomId(roomId);
+      allow list: if isSignedIn() && resource.data.status in ['open', 'playing'];
+      allow create: if isVerified() && isValidRoomId(roomId)
+        && isValidRoom(incoming())
+        && incoming().roomId == roomId
+        && incoming().hostUid == request.auth.uid
+        && incoming().matchGeneration == 1
+        && incoming().status in ['open', 'playing']
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidRoomId(roomId)
+        && isValidRoom(incoming())
+        && existing().status != 'closed'
+        && existing().hostUid == request.auth.uid
+        && incoming().roomId == existing().roomId
+        && incoming().hostUid == existing().hostUid
+        && incoming().createdAt == existing().createdAt
+        && incoming().matchGeneration >= existing().matchGeneration
+        && incoming().updatedAt == request.time
         && (
-          // Standard editorial / moderation update
-          (
-            incoming().version == existing().version + 1
-            && incoming().authorId == existing().authorId
-            && incoming().authorName == existing().authorName
-            && incoming().lastEditorId == request.auth.uid
-            && (!('recentEditors' in incoming()) || incoming().recentEditors[0].uid == request.auth.uid)
-            && (
-              // Tier 1: Page Author or Admin (full editorial + lock/visibility control; exclusive editor for user & discussion pages)
-              (
-                (existing().authorId == request.auth.uid || isAdmin())
-                && incoming().diff(existing()).affectedKeys().hasOnly([
-                  'title', 'content', 'category', 'tags', 'headerImageUrl', 'visibility', 'isLocked',
-                  'lastEditorId', 'lastEditorName', 'recentEditors', 'version', 'updatedAt'
-                ])
-              ) ||
-              // Tier 2: Collaborator on public unlocked non-personal/non-discussion page (content/metadata edits only)
-              (
-                existing().visibility == 'public'
-                && existing().isLocked == false
-                && !isUserOrDiscussionPage(slug, existing())
-                && incoming().visibility == existing().visibility
-                && incoming().isLocked == existing().isLocked
-                && incoming().diff(existing()).affectedKeys().hasOnly([
-                  'title', 'content', 'category', 'tags', 'headerImageUrl',
-                  'lastEditorId', 'lastEditorName', 'recentEditors', 'version', 'updatedAt'
-                ])
-              )
-            )
-          ) ||
-          // Tier Admin: LGPD Anonymization of author/lastEditor/recentEditors metadata without altering content
-          (
-            isAdmin()
-            && incoming().version == existing().version
-            && incoming().diff(existing()).affectedKeys().hasOnly([
-              'authorId', 'authorName', 'lastEditorId', 'lastEditorName', 'recentEditors', 'updatedAt'
-            ])
-            && ((incoming().authorId == existing().authorId && incoming().authorName == existing().authorName) || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
-            && ((incoming().lastEditorId == existing().lastEditorId && incoming().lastEditorName == existing().lastEditorName) || (incoming().lastEditorId == 'lgpd-anonymized' && incoming().lastEditorName == 'Removed User (LGPD)'))
-          )
+          (incoming().diff(existing()).affectedKeys().hasOnly(['levelId', 'endlessStage', 'seed', 'matchGeneration', 'status', 'updatedAt']) && incoming().status in ['open', 'playing']) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) && incoming().status == 'closed')
         );
+      allow delete: if isVerified() && isValidRoomId(roomId) && (
+        existing().hostUid == request.auth.uid ||
+        existing().status == 'closed' ||
+        request.time > existing().updatedAt + duration.value(5, 'm')
+      );
 
-      allow delete: if isVerified()
-        && isValidId(slug)
-        && isNotBlocked()
-        && (existing().authorId == request.auth.uid || isAdmin());
-
-      // Subcollection: /pages/{slug}/revisions/{revisionId}
-      match /revisions/{revisionId} {
-        allow get: if isValidId(slug) && isValidId(revisionId) && (
-          existing().pageVisibility == 'public' ||
-          (isSignedIn() && existing().pageAuthorId == request.auth.uid) ||
-          isAdmin()
-        );
-
-        allow list: if resource.data.pageVisibility == 'public' ||
-          (isSignedIn() && resource.data.pageAuthorId == request.auth.uid) ||
-          isAdmin();
-
-        allow create: if isVerified()
-          && isValidId(slug)
-          && isValidId(revisionId)
-          && isValidRevision(incoming(), slug)
-          && incoming().editorId == request.auth.uid
-          && incoming().createdAt == request.time
-          && revisionId == 'v_' + string(incoming().version)
-          && isNotBlocked()
-          && existsAfter(/databases/$(database)/documents/pages/$(slug))
-          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
-          && incoming().pageAuthorId == getAfter(/databases/$(database)/documents/pages/$(slug)).data.authorId
-          && incoming().version == getAfter(/databases/$(database)/documents/pages/$(slug)).data.version
-          && incoming().title == getAfter(/databases/$(database)/documents/pages/$(slug)).data.title
-          && incoming().content == getAfter(/databases/$(database)/documents/pages/$(slug)).data.content
-          && incoming().editorId == getAfter(/databases/$(database)/documents/pages/$(slug)).data.lastEditorId
-          && getAfter(/databases/$(database)/documents/pages/$(slug)).data.updatedAt == request.time
-          && (
-            (getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public'
-              && getAfter(/databases/$(database)/documents/pages/$(slug)).data.isLocked == false
-              && !isUserOrDiscussionPage(slug, getAfter(/databases/$(database)/documents/pages/$(slug)).data)) ||
-            getAfter(/databases/$(database)/documents/pages/$(slug)).data.authorId == request.auth.uid ||
-            isAdmin()
-          );
-
-        allow update: if isVerified()
-          && isValidId(slug)
-          && isValidId(revisionId)
-          && isValidRevision(incoming(), slug)
-          && incoming().pageSlug == existing().pageSlug
-          && incoming().version == existing().version
-          && incoming().createdAt == existing().createdAt
-          && isNotBlocked()
-          && (
-            (
-              (existing().pageAuthorId == request.auth.uid || isAdmin())
-              && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
-              && existsAfter(/databases/$(database)/documents/pages/$(slug))
-              && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
-            ) ||
-            (
-              isAdmin()
-              && incoming().diff(existing()).affectedKeys().hasOnly(['editorId', 'editorName', 'pageAuthorId'])
-              && ((incoming().editorId == existing().editorId && incoming().editorName == existing().editorName) || (incoming().editorId == 'lgpd-anonymized' && incoming().editorName == 'Removed User (LGPD)'))
-              && (incoming().pageAuthorId == existing().pageAuthorId || incoming().pageAuthorId == 'lgpd-anonymized')
-            )
-          );
-
-        allow delete: if isVerified()
-          && isValidId(slug)
-          && isValidId(revisionId)
-          && isNotBlocked()
-          && (existing().pageAuthorId == request.auth.uid || isAdmin());
-      }
-
-      // Subcollection: /pages/{slug}/comments/{commentId}
-      match /comments/{commentId} {
-        allow get: if isValidId(slug) && isValidId(commentId) && (
-          existing().pageVisibility == 'public' ||
-          (isSignedIn() && existing().pageAuthorId == request.auth.uid) ||
-          isAdmin()
-        );
-
-        allow list: if resource.data.pageVisibility == 'public' ||
-          (isSignedIn() && resource.data.pageAuthorId == request.auth.uid) ||
-          isAdmin();
-
-        allow create: if isVerified()
-          && isValidId(slug)
-          && isValidId(commentId)
-          && isValidComment(incoming(), slug)
-          && incoming().authorId == request.auth.uid
-          && incoming().createdAt == request.time
-          && isNotBlocked()
-          && exists(/databases/$(database)/documents/pages/$(slug))
-          && incoming().pageVisibility == get(/databases/$(database)/documents/pages/$(slug)).data.visibility
-          && incoming().pageAuthorId == get(/databases/$(database)/documents/pages/$(slug)).data.authorId
-          && (
-            get(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public' ||
-            get(/databases/$(database)/documents/pages/$(slug)).data.authorId == request.auth.uid ||
-            isAdmin()
-          );
-
-        allow update: if isVerified()
-          && isValidId(slug)
-          && isValidId(commentId)
-          && isValidComment(incoming(), slug)
-          && incoming().pageSlug == existing().pageSlug
-          && incoming().createdAt == existing().createdAt
-          && isNotBlocked()
-          && (
-            (
-              (existing().pageAuthorId == request.auth.uid || isAdmin())
-              && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
-              && existsAfter(/databases/$(database)/documents/pages/$(slug))
-              && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
-            ) ||
-            (
-              isAdmin()
-              && incoming().diff(existing()).affectedKeys().hasOnly(['authorId', 'authorName', 'pageAuthorId'])
-              && ((incoming().authorId == existing().authorId && incoming().authorName == existing().authorName) || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
-              && (incoming().pageAuthorId == existing().pageAuthorId || incoming().pageAuthorId == 'lgpd-anonymized')
-            )
-          );
-
-        allow delete: if isVerified()
-          && isValidId(slug)
-          && isValidId(commentId)
-          && isNotBlocked()
-          && (
-            existing().authorId == request.auth.uid ||
-            existing().pageAuthorId == request.auth.uid ||
-            isAdmin()
-          );
-      }
-
-      // Subcollection: /pages/{slug}/ratings/{userId}
-      match /ratings/{userId} {
-        allow get: if isValidId(slug) && isValidId(userId) && (
-          (isVerified() && isNotBlocked() && isOwner(userId) && resource == null) ||
-          (
-            resource != null && (
-              existing().pageVisibility == 'public' ||
-              (isSignedIn() && (existing().pageAuthorId == request.auth.uid || existing().userId == request.auth.uid)) ||
-              isAdmin()
-            )
-          )
-        );
-
-        allow list: if resource.data.pageVisibility == 'public' ||
-          (isSignedIn() && (resource.data.pageAuthorId == request.auth.uid || resource.data.userId == request.auth.uid)) ||
-          isAdmin();
-
-        allow create: if isVerified()
-          && isValidId(slug)
-          && isValidId(userId)
-          && isOwner(userId)
-          && isValidPageRating(incoming(), slug, userId)
-          && incoming().userId == request.auth.uid
-          && incoming().createdAt == request.time
+      // Active Players in Room
+      match /players/{playerId} {
+        allow get: if isSignedIn() && isValidRoomId(roomId) && isValidId(playerId);
+        allow list: if isSignedIn() && resource.data.roomId == roomId;
+        allow create: if isVerified() && isValidRoomId(roomId) && isValidId(playerId)
+          && playerId == request.auth.uid
+          && isValidRoomPlayer(incoming())
+          && incoming().roomId == roomId
+          && roomIsActive(roomId)
+          && incoming().updatedAt == request.time;
+        allow update: if isVerified() && isValidRoomId(roomId) && isValidId(playerId)
+          && playerId == request.auth.uid
+          && isValidRoomPlayer(incoming())
+          && roomIsActive(roomId)
+          && incoming().uid == existing().uid
+          && incoming().roomId == existing().roomId
           && incoming().updatedAt == request.time
-          && isNotBlocked()
-          && exists(/databases/$(database)/documents/pages/$(slug))
-          && incoming().pageVisibility == get(/databases/$(database)/documents/pages/$(slug)).data.visibility
-          && incoming().pageAuthorId == get(/databases/$(database)/documents/pages/$(slug)).data.authorId
-          && (
-            get(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public' ||
-            get(/databases/$(database)/documents/pages/$(slug)).data.authorId == request.auth.uid ||
-            isAdmin()
-          );
-
-        allow update: if isVerified()
-          && isValidId(slug)
-          && isValidId(userId)
-          && isValidPageRating(incoming(), slug, userId)
-          && incoming().pageSlug == existing().pageSlug
-          && incoming().createdAt == existing().createdAt
-          && isNotBlocked()
-          && (
-            (
-              isOwner(userId)
-              && incoming().userId == existing().userId
-              && incoming().updatedAt == request.time
-              && incoming().diff(existing()).affectedKeys().hasOnly(['score', 'userName', 'updatedAt'])
-              && exists(/databases/$(database)/documents/pages/$(slug))
-              && (
-                get(/databases/$(database)/documents/pages/$(slug)).data.visibility == 'public' ||
-                get(/databases/$(database)/documents/pages/$(slug)).data.authorId == request.auth.uid ||
-                isAdmin()
-              )
-            ) ||
-            (
-              (existing().pageAuthorId == request.auth.uid || isAdmin())
-              && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility'])
-              && existsAfter(/databases/$(database)/documents/pages/$(slug))
-              && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(slug)).data.visibility
-            ) ||
-            (
-              isAdmin()
-              && incoming().diff(existing()).affectedKeys().hasOnly(['userId', 'userName', 'pageAuthorId'])
-              && ((incoming().userId == existing().userId && incoming().userName == existing().userName) || (incoming().userId == 'lgpd-anonymized' && incoming().userName == 'Removed User (LGPD)'))
-              && (incoming().pageAuthorId == existing().pageAuthorId || incoming().pageAuthorId == 'lgpd-anonymized')
-            )
-          );
-
-        allow delete: if isVerified()
-          && isValidId(slug)
-          && isValidId(userId)
-          && isNotBlocked()
-          && (
-            isOwner(userId) ||
-            existing().pageAuthorId == request.auth.uid ||
-            isAdmin()
-          );
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'photoUrl', 'character', 'x', 'y', 'vx', 'vy', 'facing',
+            'power', 'state', 'animFrame', 'isStatue', 'tailWhipTimer',
+            'isFluttering', 'invulnerable', 'score', 'lives', 'coins', 'stageCleared', 'levelId', 'updatedAt'
+          ]);
+        allow delete: if isVerified() && isValidRoomId(roomId) && isValidId(playerId)
+          && (playerId == request.auth.uid || isRoomHost(roomId) || isRoomExpiredOrClosed(roomId));
       }
-    }
 
-    // Collection: /collaborators/{userId} (Non-PII public profile)
-    match /collaborators/{userId} {
-      allow get: if isValidId(userId);
-      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-
-      allow create: if isVerified()
-        && isValidId(userId)
-        && isOwner(userId)
-        && isValidCollaborator(incoming(), userId)
-        && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time
-        && isNotBlocked();
-
-      allow update: if isVerified()
-        && isValidId(userId)
-        && isOwner(userId)
-        && isValidCollaborator(incoming(), userId)
-        && incoming().createdAt == existing().createdAt
-        && incoming().updatedAt == request.time
-        && isNotBlocked()
-        && (
-          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']) ||
-          (
-            !('personalPageSlug' in existing())
-            && incoming().diff(existing()).affectedKeys().hasOnly([
-              'displayName', 'photoURL', 'personalPageSlug', 'discussionPageSlug', 'updatedAt'
-            ])
-          )
-        );
-
-      allow delete: if isValidId(userId) && canModerateTarget(userId);
-
-      // Subcollection: /collaborators/{userId}/edits/{editId}
-      match /edits/{editId} {
-        allow get: if isValidId(userId) && isValidId(editId) && (
-          existing().pageVisibility == 'public' ||
-          (isSignedIn() && existing().editorId == request.auth.uid) ||
-          isAdmin()
-        );
-
-        allow list: if resource.data.pageVisibility == 'public' ||
-          (isSignedIn() && resource.data.editorId == request.auth.uid) ||
-          isAdmin();
-
-        allow create: if isVerified()
-          && isValidId(userId)
-          && isValidId(editId)
-          && isOwner(userId)
-          && isValidUserEdit(incoming(), userId)
-          && incoming().createdAt == request.time
-          && isNotBlocked()
-          && existsAfter(/databases/$(database)/documents/collaborators/$(userId))
-          && existsAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug))
-          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.visibility
-          && incoming().version == getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.version
-          && incoming().pageTitle == getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.title
-          && getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.lastEditorId == userId
-          && getAfter(/databases/$(database)/documents/pages/$(incoming().pageSlug)).data.updatedAt == request.time;
-
-        allow update: if isVerified()
-          && isValidId(userId)
-          && isValidId(editId)
-          && isValidUserEdit(incoming(), userId)
-          && incoming().editorId == existing().editorId
-          && incoming().pageSlug == existing().pageSlug
-          && incoming().version == existing().version
-          && incoming().summary == existing().summary
-          && incoming().createdAt == existing().createdAt
-          && isNotBlocked()
-          && (isOwner(userId) || isAdmin())
-          && incoming().diff(existing()).affectedKeys().hasOnly(['pageVisibility', 'pageTitle'])
-          && existsAfter(/databases/$(database)/documents/pages/$(existing().pageSlug))
-          && incoming().pageVisibility == getAfter(/databases/$(database)/documents/pages/$(existing().pageSlug)).data.visibility
-          && (
-            incoming().pageTitle == existing().pageTitle ||
-            incoming().pageTitle == getAfter(/databases/$(database)/documents/pages/$(existing().pageSlug)).data.title
-          );
-
-        allow delete: if isVerified()
-          && isValidId(userId)
-          && isValidId(editId)
-          && isNotBlocked()
-          && (isOwner(userId) || canModerateTarget(userId));
+      // Room Chat Messages
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && isValidRoomId(roomId) && isValidId(messageId);
+        allow list: if isSignedIn() && resource.data.roomId == roomId;
+        allow create: if isVerified() && isValidRoomId(roomId) && isValidId(messageId)
+          && isValidRoomMessage(incoming())
+          && incoming().roomId == roomId
+          && roomIsActive(roomId)
+          && incoming().createdAt == request.time;
+        allow delete: if isVerified() && isValidRoomId(roomId) && isValidId(messageId)
+          && (existing().uid == request.auth.uid || isRoomHost(roomId) || isRoomExpiredOrClosed(roomId));
       }
-    }
 
-    // Collection: /users/{userId}/private/{docId} (Strict PII Isolation)
-    match /users/{userId}/private/{docId} {
-      allow get: if isValidId(userId) && isValidId(docId) && (isOwner(userId) || isAdmin());
-      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-
-      allow create: if isVerified()
-        && isValidId(userId)
-        && docId == 'info'
-        && isOwner(userId)
-        && isValidUserPrivateInfo(incoming(), userId)
-        && incoming().updatedAt == request.time
-        && isNotBlocked();
-
-      allow update: if isVerified()
-        && isValidId(userId)
-        && docId == 'info'
-        && isOwner(userId)
-        && isValidUserPrivateInfo(incoming(), userId)
-        && incoming().uid == existing().uid
-        && incoming().updatedAt == request.time
-        && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt'])
-        && isNotBlocked();
-
-      allow delete: if isValidId(userId) && isValidId(docId) && canModerateTarget(userId);
-    }
-
-    // Collection: /admins/{userId} (Managed exclusively by Bureaucrats; Primary Bureaucrat protected)
-    match /admins/{userId} {
-      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
-      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-
-      allow create: if isVerified()
-        && isValidId(userId)
-        && userId != request.auth.uid
-        && isValidAdminRecord(incoming(), userId)
-        && incoming().grantedBy == request.auth.uid
-        && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time
-        && !isTargetBootstrappedBureaucrat(userId)
-        && isBureaucrat();
-
-      allow update: if isVerified()
-        && isValidId(userId)
-        && userId != request.auth.uid
-        && isValidAdminRecord(incoming(), userId)
-        && incoming().uid == existing().uid
-        && incoming().createdAt == existing().createdAt
-        && incoming().grantedBy == request.auth.uid
-        && incoming().updatedAt == request.time
-        && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'grantedBy', 'updatedAt'])
-        && !isTargetBootstrappedBureaucrat(userId)
-        && isBureaucrat();
-
-      allow delete: if isValidId(userId)
-        && userId != request.auth.uid
-        && !isTargetBootstrappedBureaucrat(userId)
-        && isBureaucrat();
-    }
-
-    // Collection: /blocked_users/{userId} (Managed by Admins and Bureaucrats with tier protection)
-    match /blocked_users/{userId} {
-      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
-      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-
-      allow create: if isVerified()
-        && isValidId(userId)
-        && isValidBlockedUser(incoming(), userId)
-        && incoming().blockedBy == request.auth.uid
-        && incoming().createdAt == request.time
-        && canModerateTarget(userId);
-
-      allow update: if isVerified()
-        && isValidId(userId)
-        && isValidBlockedUser(incoming(), userId)
-        && incoming().uid == existing().uid
-        && incoming().createdAt == existing().createdAt
-        && incoming().blockedBy == request.auth.uid
-        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'reason', 'blockedBy', 'blockedByName'])
-        && canModerateTarget(userId);
-
-      allow delete: if isValidId(userId) && canModerateTarget(userId);
-    }
-
-    // Collection: /lgpd_logs/{logId} (Immutable LGPD Compliance Audit Log)
-    match /lgpd_logs/{logId} {
-      allow get: if isValidId(logId) && isAdmin();
-      allow list: if isAdmin();
-
-      allow create: if isVerified()
-        && isValidId(logId)
-        && isValidLgpdLog(incoming())
-        && incoming().createdAt == request.time
-        && canModerateTarget(incoming().targetUid);
-
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    // Collection: /extensions/{extensionId} (Publicly loaded at site boot; writable exclusively by Bureaucrats)
-    match /extensions/{extensionId} {
-      allow get: if isValidId(extensionId) && (
-        (isBureaucrat() && resource == null) ||
-        (resource != null && (existing().scope == 'site' || isBureaucrat()))
-      );
-
-      allow list: if resource.data.scope == 'site' || isBureaucrat();
-
-      allow create: if isVerified()
-        && isValidId(extensionId)
-        && isValidWikiExtension(incoming(), extensionId)
-        && incoming().updatedBy == request.auth.uid
-        && incoming().createdAt == request.time
-        && incoming().updatedAt == request.time
-        && isBureaucrat();
-
-      allow update: if isVerified()
-        && isValidId(extensionId)
-        && isValidWikiExtension(incoming(), extensionId)
-        && incoming().id == existing().id
-        && incoming().scope == existing().scope
-        && incoming().createdAt == existing().createdAt
-        && incoming().updatedAt == request.time
-        && incoming().updatedBy == request.auth.uid
-        && incoming().diff(existing()).affectedKeys().hasOnly([
-          'name', 'description', 'category', 'enabled', 'sortOrder',
-          'settings', 'updatedBy', 'updatedByName', 'updatedAt'
-        ])
-        && isBureaucrat();
-
-      allow delete: if isValidId(extensionId) && isBureaucrat();
+      // Room Gameplay Events
+      match /events/{eventId} {
+        allow get: if isSignedIn() && isValidRoomId(roomId) && isValidId(eventId);
+        allow list: if isSignedIn() && resource.data.roomId == roomId;
+        allow create: if isVerified() && isValidRoomId(roomId) && isValidId(eventId)
+          && isValidRoomEvent(incoming())
+          && incoming().roomId == roomId
+          && roomIsActive(roomId)
+          && incoming().createdAt == request.time;
+        allow delete: if isVerified() && isValidRoomId(roomId) && isValidId(eventId)
+          && (existing().uid == request.auth.uid || isRoomHost(roomId) || isRoomExpiredOrClosed(roomId));
+      }
     }
   }
 }
