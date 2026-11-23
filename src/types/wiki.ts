@@ -59,7 +59,26 @@ export type WikiExtensionId =
   | 'copy-link'
   | 'realtime-toasts'
   | 'page-discussion'
-  | 'external-link-prefix';
+  | 'external-link-prefix'
+  | 'article-ratings'
+  | 'page-history'
+  | 'page-source'
+  | 'pdf-export'
+  | 'zip-archive'
+  | 'wiki-templates'
+  | 'editor-toolbar'
+  | 'ecosystem-portal'
+  | 'quick-create'
+  | 'sidebar-filter'
+  | 'user-profiles'
+  | 'pwa-install'
+  | 'keyboard-shortcuts'
+  | 'back-to-top'
+  | 'footer-badges'
+  | 'page-outline'
+  | 'page-metadata'
+  | 'page-index-views'
+  | 'privacy-banner';
 
 export type WikiExtensionCategory =
   | 'appearance'

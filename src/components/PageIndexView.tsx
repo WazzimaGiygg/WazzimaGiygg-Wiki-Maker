@@ -9,6 +9,7 @@ interface PageIndexViewProps {
   siteTitle?: string;
   pages: WikiPage[];
   isSignedIn: boolean;
+  enableZipExport?: boolean;
   onSelectPage: (slug: string) => void;
   onNewPage: () => void;
 }
@@ -18,6 +19,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
   siteTitle,
   pages,
   isSignedIn,
+  enableZipExport = true,
   onSelectPage,
   onNewPage,
 }) => {
@@ -92,22 +94,24 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <button
-            type="button"
-            disabled={exportingZip || publicPagesCount === 0}
-            onClick={() => void handleExportArchive()}
-            title="Download all public wiki pages as individual Markdown files in a ZIP archive"
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {exportingZip ? (
-              <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-            ) : (
-              <Archive className="w-4 h-4 shrink-0 text-blue-700 dark:text-blue-400" />
-            )}
-            <span className="tabular-nums">
-              {exportingZip ? 'Archiving...' : `Export Public ZIP (${publicPagesCount})`}
-            </span>
-          </button>
+          {enableZipExport && (
+            <button
+              type="button"
+              disabled={exportingZip || publicPagesCount === 0}
+              onClick={() => void handleExportArchive()}
+              title="Download all public wiki pages as individual Markdown files in a ZIP archive"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exportingZip ? (
+                <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+              ) : (
+                <Archive className="w-4 h-4 shrink-0 text-blue-700 dark:text-blue-400" />
+              )}
+              <span className="tabular-nums">
+                {exportingZip ? 'Archiving...' : `Export Public ZIP (${publicPagesCount})`}
+              </span>
+            </button>
+          )}
 
           {isSignedIn && (
             <button

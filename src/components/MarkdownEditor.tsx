@@ -50,8 +50,11 @@ interface MarkdownEditorProps {
   errorMessage: string | null;
   enableInfoboxToolbar?: boolean;
   enableReferencesToolbar?: boolean;
+  enableVisualToolbar?: boolean;
+  enableTemplatesToolbar?: boolean;
   enableInfoboxPreview?: boolean;
   enableReferencesPreview?: boolean;
+  enableTemplatesPreview?: boolean;
   showTocPreview?: boolean;
   tocDefaultExpanded?: boolean;
   tocMinHeadings?: number;
@@ -98,8 +101,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   errorMessage,
   enableInfoboxToolbar = true,
   enableReferencesToolbar = true,
+  enableVisualToolbar = true,
+  enableTemplatesToolbar = true,
   enableInfoboxPreview = true,
   enableReferencesPreview = true,
+  enableTemplatesPreview = true,
   showTocPreview = true,
   tocDefaultExpanded = true,
   tocMinHeadings = 2,
@@ -261,7 +267,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return;
     }
 
-    if (isMod && e.shiftKey && keyLower === 't') {
+    if (isMod && e.shiftKey && keyLower === 't' && enableTemplatesToolbar) {
       e.preventDefault();
       setTemplateModalOpen(true);
       return;
@@ -273,7 +279,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return;
     }
 
-    if (isMod && e.shiftKey && keyLower === 'l') {
+    if (isMod && e.shiftKey && keyLower === 'l' && enableVisualToolbar) {
       e.preventDefault();
       insertSnippet('[[', ']]', 'page-slug|Link Label');
       return;
@@ -285,7 +291,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       return;
     }
 
-    if (document.activeElement === textareaRef.current && isMod && !e.shiftKey) {
+    if (enableVisualToolbar && document.activeElement === textareaRef.current && isMod && !e.shiftKey) {
       if (keyLower === 'b') {
         e.preventDefault();
         insertSnippet('**', '**', 'bold');
@@ -453,15 +459,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               <span>Infobox</span>
             </button>
           )}
-          <button
-            type="button"
-            title="Inserir Pré-definição MediaWiki {{...}} (Ctrl+Shift+T)"
-            onClick={() => setTemplateModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-          >
-            <Braces className="w-3.5 h-3.5" />
-            <span>Pré-definições</span>
-          </button>
+          {enableTemplatesToolbar && (
+            <button
+              type="button"
+              title="Inserir Pré-definição MediaWiki {{...}} (Ctrl+Shift+T)"
+              onClick={() => setTemplateModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Braces className="w-3.5 h-3.5" />
+              <span>Pré-definições</span>
+            </button>
+          )}
           {enableReferencesToolbar && (
             <button
               type="button"
@@ -525,120 +533,122 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         {paneMode !== 'preview' && (
           <div className="flex flex-col">
             {/* Visual Wikitext Formatting Toolbar directly above the textarea */}
-            <div
-              role="toolbar"
-              aria-label="Barra de ferramentas de wikitexto"
-              className="flex flex-wrap items-center gap-1 px-2.5 py-2 rounded-t-xl border border-b-0 border-slate-300 dark:border-slate-700 bg-slate-50/90 dark:bg-[#0f1623]"
-            >
-              <button
-                type="button"
-                title="Negrito (**texto**) — Ctrl+B"
-                onClick={() => insertSnippet('**', '**', 'texto em negrito')}
-                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            {enableVisualToolbar && (
+              <div
+                role="toolbar"
+                aria-label="Barra de ferramentas de wikitexto"
+                className="flex flex-wrap items-center gap-1 px-2.5 py-2 rounded-t-xl border border-b-0 border-slate-300 dark:border-slate-700 bg-slate-50/90 dark:bg-[#0f1623]"
               >
-                <Bold className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Negrito</span>
-              </button>
-              <button
-                type="button"
-                title="Itálico (*texto*) — Ctrl+I"
-                onClick={() => insertSnippet('*', '*', 'texto em itálico')}
-                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Italic className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Itálico</span>
-              </button>
+                <button
+                  type="button"
+                  title="Negrito (**texto**) — Ctrl+B"
+                  onClick={() => insertSnippet('**', '**', 'texto em negrito')}
+                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Bold className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Negrito</span>
+                </button>
+                <button
+                  type="button"
+                  title="Itálico (*texto*) — Ctrl+I"
+                  onClick={() => insertSnippet('*', '*', 'texto em itálico')}
+                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Italic className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Itálico</span>
+                </button>
 
-              <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
 
-              <button
-                type="button"
-                title="Título de seção (## Título)"
-                onClick={() => insertSnippet('## ', '', 'Título da Seção')}
-                className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Heading2 className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                title="Subtítulo (### Subtítulo)"
-                onClick={() => insertSnippet('### ', '', 'Subtítulo')}
-                className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Heading3 className="w-4 h-4" />
-              </button>
+                <button
+                  type="button"
+                  title="Título de seção (## Título)"
+                  onClick={() => insertSnippet('## ', '', 'Título da Seção')}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Heading2 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Subtítulo (### Subtítulo)"
+                  onClick={() => insertSnippet('### ', '', 'Subtítulo')}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Heading3 className="w-4 h-4" />
+                </button>
 
-              <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
 
-              <button
-                type="button"
-                title="Link interno do wiki ([[slug|Texto]]) — Ctrl+Shift+L"
-                onClick={() => insertSnippet('[[', ']]', 'slug-da-pagina|Texto do Link')}
-                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Link2 className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                <span>Link</span>
-              </button>
-              <button
-                type="button"
-                title="Link externo ([Texto](https://...))"
-                onClick={() => insertSnippet('[', '](https://exemplo.com)', 'Texto do Link')}
-                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">URL</span>
-              </button>
+                <button
+                  type="button"
+                  title="Link interno do wiki ([[slug|Texto]]) — Ctrl+Shift+L"
+                  onClick={() => insertSnippet('[[', ']]', 'slug-da-pagina|Texto do Link')}
+                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Link2 className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                  <span>Link</span>
+                </button>
+                <button
+                  type="button"
+                  title="Link externo ([Texto](https://...))"
+                  onClick={() => insertSnippet('[', '](https://exemplo.com)', 'Texto do Link')}
+                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">URL</span>
+                </button>
 
-              <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
 
-              <button
-                type="button"
-                title="Lista com marcadores (- Item)"
-                onClick={() => insertSnippet('\n- ', '', 'Item da lista')}
-                className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                title="Checklist (- [ ] Tarefa)"
-                onClick={() => insertSnippet('\n- [ ] ', '', 'Tarefa pendente')}
-                className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <ListChecks className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                title="Bloco de citação (> Texto)"
-                onClick={() => insertSnippet('\n> ', '', 'Texto citado ou nota editorial.')}
-                className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Quote className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                title="Bloco de código"
-                onClick={() => insertSnippet('\n```ts\n', '\n```\n', 'const exemplo = "wiki";')}
-                className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Code className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                title="Inserir tabela wikitexto/Markdown"
-                onClick={() =>
-                  insertSnippet(
-                    '\n| Coluna 1 | Coluna 2 |\n| --- | --- |\n| ',
-                    ' | Valor 2 |\n| Linha 2A | Linha 2B |\n',
-                    'Valor 1'
-                  )
-                }
-                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <Table className="w-3.5 h-3.5" />
-                <span>Tabela</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  title="Lista com marcadores (- Item)"
+                  onClick={() => insertSnippet('\n- ', '', 'Item da lista')}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Checklist (- [ ] Tarefa)"
+                  onClick={() => insertSnippet('\n- [ ] ', '', 'Tarefa pendente')}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <ListChecks className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Bloco de citação (> Texto)"
+                  onClick={() => insertSnippet('\n> ', '', 'Texto citado ou nota editorial.')}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Quote className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Bloco de código"
+                  onClick={() => insertSnippet('\n```ts\n', '\n```\n', 'const exemplo = "wiki";')}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Code className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Inserir tabela wikitexto/Markdown"
+                  onClick={() =>
+                    insertSnippet(
+                      '\n| Coluna 1 | Coluna 2 |\n| --- | --- |\n| ',
+                      ' | Valor 2 |\n| Linha 2A | Linha 2B |\n',
+                      'Valor 1'
+                    )
+                  }
+                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Table className="w-3.5 h-3.5" />
+                  <span>Tabela</span>
+                </button>
+              </div>
+            )}
 
             <textarea
               ref={textareaRef}
@@ -646,7 +656,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               maxLength={VALIDATION_LIMITS.CONTENT_MAX_LENGTH}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write in Markdown... Use [[slug]] for links, {{Notice|...}} or {{Aviso|...}} for MediaWiki templates, or :::infobox for infoboxes. Press Ctrl+Enter to save."
-              className="w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed rounded-b-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y"
+              className={`w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed ${
+                enableVisualToolbar ? 'rounded-b-xl' : 'rounded-xl'
+              } border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y`}
             />
             <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
               <span>GFM, {'{{Predefinições}}'}, :::infobox, &lt;ref&gt; &amp; [[links]] · Ctrl+Enter to save</span>
@@ -675,6 +687,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               enableReferences={enableReferencesPreview}
               referencesTitle={referencesTitle}
               enableInfoboxes={enableInfoboxPreview}
+              enableTemplates={enableTemplatesPreview}
               externalLinkPrefix={externalLinkPrefix}
               encodeExternalLinkTarget={encodeExternalLinkTarget}
             />
@@ -760,17 +773,19 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         onNavigateSlug={onNavigateSlug}
       />
 
-      <TemplatePickerModal
-        isOpen={templateModalOpen}
-        existingSlugs={existingSlugs}
-        wikiPages={wikiPages}
-        currentUser={currentUser}
-        onClose={() => setTemplateModalOpen(false)}
-        onInsert={insertBlockAtCursor}
-        onNavigateSlug={onNavigateSlug}
-        externalLinkPrefix={externalLinkPrefix}
-        encodeExternalLinkTarget={encodeExternalLinkTarget}
-      />
+      {enableTemplatesToolbar && (
+        <TemplatePickerModal
+          isOpen={templateModalOpen}
+          existingSlugs={existingSlugs}
+          wikiPages={wikiPages}
+          currentUser={currentUser}
+          onClose={() => setTemplateModalOpen(false)}
+          onInsert={insertBlockAtCursor}
+          onNavigateSlug={onNavigateSlug}
+          externalLinkPrefix={externalLinkPrefix}
+          encodeExternalLinkTarget={encodeExternalLinkTarget}
+        />
+      )}
     </div>
   );
 };

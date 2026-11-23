@@ -361,6 +361,25 @@ function WikiWorkspace() {
   const copyLinkExt = extensionsState.byId['copy-link'];
   const realtimeExt = extensionsState.byId['realtime-toasts'];
   const discussionExt = extensionsState.byId['page-discussion'];
+  const ratingsExt = extensionsState.byId['article-ratings'];
+  const historyExt = extensionsState.byId['page-history'];
+  const sourceExt = extensionsState.byId['page-source'];
+  const pdfExportExt = extensionsState.byId['pdf-export'];
+  const zipArchiveExt = extensionsState.byId['zip-archive'];
+  const templatesExt = extensionsState.byId['wiki-templates'];
+  const editorToolbarExt = extensionsState.byId['editor-toolbar'];
+  const ecosystemExt = extensionsState.byId['ecosystem-portal'];
+  const quickCreateExt = extensionsState.byId['quick-create'];
+  const sidebarFilterExt = extensionsState.byId['sidebar-filter'];
+  const userProfilesExt = extensionsState.byId['user-profiles'];
+  const pwaInstallExt = extensionsState.byId['pwa-install'];
+  const shortcutsExt = extensionsState.byId['keyboard-shortcuts'];
+  const backToTopExt = extensionsState.byId['back-to-top'];
+  const footerBadgesExt = extensionsState.byId['footer-badges'];
+  const pageOutlineExt = extensionsState.byId['page-outline'];
+  const pageMetadataExt = extensionsState.byId['page-metadata'];
+  const pageIndexExt = extensionsState.byId['page-index-views'];
+  const privacyBannerExt = extensionsState.byId['privacy-banner'];
   const externalLinkConfig = React.useMemo(
     () => resolveExternalLinkConfig(extensionsState),
     [extensionsState]
@@ -389,8 +408,18 @@ function WikiWorkspace() {
   React.useEffect(() => {
     if (!canViewDiscussion && activeTab === 'comments') {
       setActiveTab('read');
+    } else if (!historyExt.enabled && activeTab === 'history') {
+      setActiveTab('read');
+    } else if (!sourceExt.enabled && activeTab === 'source') {
+      setActiveTab('read');
     }
-  }, [canViewDiscussion, activeTab]);
+  }, [canViewDiscussion, historyExt.enabled, sourceExt.enabled, activeTab]);
+
+  React.useEffect(() => {
+    if (!shortcutsExt.enabled && shortcutsOpen) {
+      setShortcutsOpen(false);
+    }
+  }, [shortcutsExt.enabled, shortcutsOpen]);
 
   // Listen for browser back/forward hash navigation
   React.useEffect(() => {
@@ -750,11 +779,15 @@ function WikiWorkspace() {
           : 'Artigo atualizado em tempo real',
         description: `${activePage.lastEditorName} publicou uma nova revisão de "${activePage.title}".`,
         meta: `v${activePage.version} · :${activePage.slug}`,
-        actionLabel: 'Ver histórico',
-        onAction: () => {
-          setActiveTab('history');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        },
+        ...(historyExt.enabled
+          ? {
+              actionLabel: 'Ver histórico',
+              onAction: () => {
+                setActiveTab('history');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              },
+            }
+          : {}),
         durationMs: isEditingNow ? 10000 : 7500,
       });
     }
@@ -767,11 +800,12 @@ function WikiWorkspace() {
     pushToast,
     realtimeExt.enabled,
     realtimeExt.settings.notifyWhileEditing,
+    historyExt.enabled,
   ]);
 
   // Subscribe to active page comments
   React.useEffect(() => {
-    if (!authReady || view !== 'page' || !activePage) {
+    if (!authReady || view !== 'page' || !activePage || !canViewDiscussion) {
       setComments([]);
       return;
     }
@@ -797,11 +831,11 @@ function WikiWorkspace() {
       }
     );
     return unsub;
-  }, [authReady, view, activePage?.slug, activePage?.visibility, activePage?.authorId]);
+  }, [authReady, view, activePage?.slug, activePage?.visibility, activePage?.authorId, canViewDiscussion]);
 
   // Subscribe to active page ratings
   React.useEffect(() => {
-    if (!authReady || view !== 'page' || !activePage) {
+    if (!authReady || view !== 'page' || !activePage || !ratingsExt.enabled) {
       setRatings([]);
       return;
     }
@@ -826,11 +860,11 @@ function WikiWorkspace() {
       }
     );
     return unsub;
-  }, [authReady, view, activePage?.slug, activePage?.visibility, activePage?.authorId]);
+  }, [authReady, view, activePage?.slug, activePage?.visibility, activePage?.authorId, ratingsExt.enabled]);
 
   // Fetch revisions whenever user switches to History tab
   React.useEffect(() => {
-    if (view !== 'page' || activeTab !== 'history' || !activePage) return;
+    if (!historyExt.enabled || view !== 'page' || activeTab !== 'history' || !activePage) return;
     let cancelled = false;
     setRevisionsLoading(true);
     fetchPageRevisions(activePage)
@@ -843,7 +877,7 @@ function WikiWorkspace() {
     return () => {
       cancelled = true;
     };
-  }, [view, activeTab, activePage?.slug, activePage?.version, activePage?.visibility]);
+  }, [historyExt.enabled, view, activeTab, activePage?.slug, activePage?.version, activePage?.visibility]);
 
   const isPersonalProfilePage = Boolean(
     activePage &&
@@ -859,7 +893,13 @@ function WikiWorkspace() {
 
   // Load personal collaborator profile & edit log when viewing a personal or personal-discussion page
   React.useEffect(() => {
-    if (!authReady || view !== 'page' || !activePage || (!isPersonalProfilePage && !isPersonalDiscussionPage)) {
+    if (
+      !authReady ||
+      !userProfilesExt.enabled ||
+      view !== 'page' ||
+      !activePage ||
+      (!isPersonalProfilePage && !isPersonalDiscussionPage)
+    ) {
       setPersonalAuthorProfile(null);
       setPersonalUserEdits([]);
       return;
@@ -891,6 +931,7 @@ function WikiWorkspace() {
     };
   }, [
     authReady,
+    userProfilesExt.enabled,
     view,
     activePage?.slug,
     activePage?.authorId,
@@ -941,6 +982,10 @@ function WikiWorkspace() {
   };
 
   const navigateToEcosystem = (subpage?: EcosystemSubpage) => {
+    if (!ecosystemExt.enabled) {
+      navigateToPage('start');
+      return;
+    }
     const targetSubpage: EcosystemSubpage = typeof subpage === 'string' ? subpage : 'overview';
     setEcosystemSubpage(targetSubpage);
     setView('ecosystem');
@@ -950,6 +995,15 @@ function WikiWorkspace() {
     window.location.hash =
       targetSubpage === 'overview' ? '#/ecosystem' : `#/ecosystem/${targetSubpage}`;
   };
+
+  React.useEffect(() => {
+    if (!isWikiBootReady) return;
+    if (!ecosystemExt.enabled && view === 'ecosystem') {
+      navigateToPage('start');
+    } else if (!pageIndexExt.enabled && (view === 'index' || view === 'recent')) {
+      navigateToPage('start');
+    }
+  }, [isWikiBootReady, ecosystemExt.enabled, pageIndexExt.enabled, view, navigateToPage]);
 
   const navigateToRandomPage = React.useCallback(() => {
     if (!randomExt.enabled || allPages.length === 0) return;
@@ -1030,6 +1084,32 @@ function WikiWorkspace() {
             target.isContentEditable)
       );
 
+      // Esc -> Close confirmation/modal/drawer, exit Print View, or return from Edit to Read mode
+      if (e.key === 'Escape') {
+        if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+          return;
+        }
+        if (shortcutsOpen) {
+          setShortcutsOpen(false);
+          return;
+        }
+        if (isPrintView) {
+          setIsPrintView(false);
+          return;
+        }
+        if (confirmDeleteOpen) {
+          setConfirmDeleteOpen(false);
+          return;
+        }
+        if (view === 'page' && activeTab === 'edit' && !isSaving && target?.tagName !== 'SELECT') {
+          setActiveTab('read');
+        }
+        return;
+      }
+
+      if (!shortcutsExt.enabled) return;
+
       // Ctrl/Cmd + E -> Switch from Read (or another page tab) to Edit mode
       if (isMod && !e.shiftKey && !e.altKey && keyLower === 'e') {
         if (view === 'page' && activePage) {
@@ -1047,7 +1127,7 @@ function WikiWorkspace() {
       }
 
       // Ctrl/Cmd + K -> Focus sidebar page search filter
-      if (isMod && !e.shiftKey && !e.altKey && keyLower === 'k') {
+      if (sidebarFilterExt.enabled && isMod && !e.shiftKey && !e.altKey && keyLower === 'k') {
         e.preventDefault();
         const isMobile = window.innerWidth < 1024;
         if (isMobile) {
@@ -1077,30 +1157,6 @@ function WikiWorkspace() {
       if (e.key === '?' && !isEditableTarget && !isMod && !e.altKey) {
         e.preventDefault();
         setShortcutsOpen((prev) => !prev);
-        return;
-      }
-
-      // Esc -> Close confirmation/modal/drawer, exit Print View, or return from Edit to Read mode
-      if (e.key === 'Escape') {
-        if (mobileMenuOpen) {
-          setMobileMenuOpen(false);
-          return;
-        }
-        if (shortcutsOpen) {
-          setShortcutsOpen(false);
-          return;
-        }
-        if (isPrintView) {
-          setIsPrintView(false);
-          return;
-        }
-        if (confirmDeleteOpen) {
-          setConfirmDeleteOpen(false);
-          return;
-        }
-        if (view === 'page' && activeTab === 'edit' && !isSaving && target?.tagName !== 'SELECT') {
-          setActiveTab('read');
-        }
       }
     };
 
@@ -1118,6 +1174,8 @@ function WikiWorkspace() {
     isPrintView,
     confirmDeleteOpen,
     isSaving,
+    shortcutsExt.enabled,
+    sidebarFilterExt.enabled,
   ]);
 
   const handleCreateSave = async (data: {
@@ -1304,7 +1362,11 @@ function WikiWorkspace() {
         }
       }
       setConfirmDeleteOpen(false);
-      navigateToIndex('index');
+      if (pageIndexExt.enabled) {
+        navigateToIndex('index');
+      } else {
+        navigateToPage('start');
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -1429,7 +1491,7 @@ function WikiWorkspace() {
   };
 
   const handleExportPdf = async () => {
-    if (!activePage || exportingPdf) return;
+    if (!pdfExportExt.enabled || !activePage || exportingPdf) return;
     setExportingPdf(true);
     try {
       const autoUserInfobox =
@@ -1510,12 +1572,14 @@ function WikiWorkspace() {
   const expandedActiveContent = React.useMemo(
     () =>
       activePage
-        ? expandTemplatesInWikitext(activePage.content, allPages, {
-            currentSlug: activePage.slug,
-            currentTitle: activePage.title,
-          })
+        ? templatesExt.enabled
+          ? expandTemplatesInWikitext(activePage.content, allPages, {
+              currentSlug: activePage.slug,
+              currentTitle: activePage.title,
+            })
+          : activePage.content
         : '',
-    [activePage, allPages]
+    [activePage, allPages, templatesExt.enabled]
   );
 
   const toc = React.useMemo(
@@ -1738,46 +1802,52 @@ function WikiWorkspace() {
             >
               Home
             </a>
-            <a
-              href="#/pages"
-              onClick={(e) => {
-                e.preventDefault();
-                navigateToIndex('index');
-              }}
-              className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
-                view === 'index' ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8' : ''
-              }`}
-            >
-              Pages
-            </a>
-            <a
-              href="#/recent"
-              onClick={(e) => {
-                e.preventDefault();
-                navigateToIndex('recent');
-              }}
-              className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
-                view === 'recent'
-                  ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
-                  : ''
-              }`}
-            >
-              Recent
-            </a>
-            <a
-              href="#/ecosystem"
-              onClick={(e) => {
-                e.preventDefault();
-                navigateToEcosystem();
-              }}
-              className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
-                view === 'ecosystem'
-                  ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
-                  : ''
-              }`}
-            >
-              Ecosystem
-            </a>
+            {pageIndexExt.enabled && (
+              <>
+                <a
+                  href="#/pages"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateToIndex('index');
+                  }}
+                  className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
+                    view === 'index' ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8' : ''
+                  }`}
+                >
+                  Pages
+                </a>
+                <a
+                  href="#/recent"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateToIndex('recent');
+                  }}
+                  className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
+                    view === 'recent'
+                      ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
+                      : ''
+                  }`}
+                >
+                  Recent
+                </a>
+              </>
+            )}
+            {ecosystemExt.enabled && (
+              <a
+                href="#/ecosystem"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateToEcosystem();
+                }}
+                className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
+                  view === 'ecosystem'
+                    ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
+                    : ''
+                }`}
+              >
+                Ecosystem
+              </a>
+            )}
             {randomExt.enabled && randomExt.settings.showInNavbar !== false && (
               <button
                 type="button"
@@ -1846,6 +1916,10 @@ function WikiWorkspace() {
           isDark={effectiveIsDark}
           canToggleTheme={themeColorScheme === 'user'}
           forcedColorMode={themeColorScheme === 'user' ? undefined : themeColorScheme}
+          showQuickCreate={quickCreateExt.enabled}
+          showSidebarFilter={sidebarFilterExt.enabled}
+          showUserProfileLinks={userProfilesExt.enabled}
+          showPwaInstall={pwaInstallExt.enabled}
           onOpenMobile={() => setMobileMenuOpen(true)}
           onCloseMobile={() => setMobileMenuOpen(false)}
           onSelectPage={navigateToPage}
@@ -1856,8 +1930,8 @@ function WikiWorkspace() {
           }
           onQuickCreateSlug={navigateToCreate}
           onOpenAdmin={navigateToAdmin}
-          onOpenEcosystem={navigateToEcosystem}
-          onOpenShortcuts={() => setShortcutsOpen(true)}
+          onOpenEcosystem={ecosystemExt.enabled ? navigateToEcosystem : undefined}
+          onOpenShortcuts={shortcutsExt.enabled ? () => setShortcutsOpen(true) : undefined}
           onSignOut={() => void handleSignOut()}
           onSignIn={() => void handleSignIn()}
           onToggleTheme={() => setIsDark((prev) => !prev)}
@@ -2059,8 +2133,11 @@ function WikiWorkspace() {
                   errorMessage={saveError}
                   enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}
                   enableReferencesToolbar={refsExt.enabled && refsExt.settings.allowEditorToolbar !== false}
+                  enableVisualToolbar={editorToolbarExt.enabled}
+                  enableTemplatesToolbar={templatesExt.enabled}
                   enableInfoboxPreview={infoboxExt.enabled}
                   enableReferencesPreview={refsExt.enabled}
+                  enableTemplatesPreview={templatesExt.enabled}
                   showTocPreview={tocExt.enabled}
                   tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
                   tocMinHeadings={tocMinHeadings}
@@ -2102,6 +2179,7 @@ function WikiWorkspace() {
                 siteTitle={siteTitle}
                 pages={allPages}
                 isSignedIn={Boolean(user && !isBlocked)}
+                enableZipExport={zipArchiveExt.enabled}
                 onSelectPage={navigateToPage}
                 onNewPage={() => navigateToCreate('')}
               />
@@ -2221,11 +2299,13 @@ function WikiWorkspace() {
                     <div className="font-mono">
                       wiki / {activeCategoryLabel.toLowerCase()} / :{activePage.slug}
                     </div>
-                    <div className="font-mono tabular-nums">
-                      v{activePage.version} ·{' '}
-                      {activePage.visibility === 'private' ? 'Private' : 'Public'}
-                      {activePage.isLocked ? ' · Locked' : ''}
-                    </div>
+                    {pageMetadataExt.enabled && (
+                      <div className="font-mono tabular-nums">
+                        v{activePage.version} ·{' '}
+                        {activePage.visibility === 'private' ? 'Private' : 'Public'}
+                        {activePage.isLocked ? ' · Locked' : ''}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-start justify-between gap-4">
@@ -2255,24 +2335,26 @@ function WikiWorkspace() {
                         </button>
                       )}
 
-                      <button
-                        type="button"
-                        disabled={exportingPdf}
-                        onClick={() => void handleExportPdf()}
-                        title={`Exportar artigo em PDF (${activeTheme.name} · ${
-                          effectiveIsDark ? 'Escuro' : 'Claro'
-                        })`}
-                        aria-label="Exportar conteúdo do artigo como PDF"
-                        data-wiki-surface="inset"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                      >
-                        {exportingPdf ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                        ) : (
-                          <FileDown className="w-3.5 h-3.5 shrink-0" />
-                        )}
-                        <span>{exportingPdf ? 'Gerando PDF...' : 'Exportar PDF'}</span>
-                      </button>
+                      {pdfExportExt.enabled && (
+                        <button
+                          type="button"
+                          disabled={exportingPdf}
+                          onClick={() => void handleExportPdf()}
+                          title={`Exportar artigo em PDF (${activeTheme.name} · ${
+                            effectiveIsDark ? 'Escuro' : 'Claro'
+                          })`}
+                          aria-label="Exportar conteúdo do artigo como PDF"
+                          data-wiki-surface="inset"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        >
+                          {exportingPdf ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                          ) : (
+                            <FileDown className="w-3.5 h-3.5 shrink-0" />
+                          )}
+                          <span>{exportingPdf ? 'Gerando PDF...' : 'Exportar PDF'}</span>
+                        </button>
+                      )}
 
                       {printExt.enabled && printExt.settings.showInHeader !== false && (
                         <button
@@ -2306,21 +2388,23 @@ function WikiWorkspace() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                    <span>Created by {activePage.authorName}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>Last edited by {activePage.lastEditorName}</span>
-                    <span aria-hidden="true">·</span>
-                    <span className="tabular-nums">{formatRelativeTime(activePage.updatedAt)}</span>
-                    {activePage.tags.length > 0 && (
-                      <>
-                        <span aria-hidden="true">·</span>
-                        <span className="font-mono text-slate-600 dark:text-slate-300">
-                          {activePage.tags.map((t) => `#${t}`).join('  ')}
-                        </span>
-                      </>
-                    )}
-                  </div>
+                  {pageMetadataExt.enabled && (
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                      <span>Created by {activePage.authorName}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>Last edited by {activePage.lastEditorName}</span>
+                      <span aria-hidden="true">·</span>
+                      <span className="tabular-nums">{formatRelativeTime(activePage.updatedAt)}</span>
+                      {activePage.tags.length > 0 && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          <span className="font-mono text-slate-600 dark:text-slate-300">
+                            {activePage.tags.map((t) => `#${t}`).join('  ')}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
 
                   {/* Wikidot Action Tabs */}
                   <div
@@ -2378,18 +2462,20 @@ function WikiWorkspace() {
                       <span>Edit</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('history')}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                        activeTab === 'history'
-                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                      }`}
-                    >
-                      <History className="w-3.5 h-3.5" />
-                      <span>History</span>
-                    </button>
+                    {historyExt.enabled && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('history')}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                          activeTab === 'history'
+                            ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                        }`}
+                      >
+                        <History className="w-3.5 h-3.5" />
+                        <span>History</span>
+                      </button>
+                    )}
 
                     {canViewDiscussion && (
                       <button
@@ -2406,18 +2492,20 @@ function WikiWorkspace() {
                       </button>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('source')}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                        activeTab === 'source'
-                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                      }`}
-                    >
-                      <Code2 className="w-3.5 h-3.5" />
-                      <span>Source</span>
-                    </button>
+                    {sourceExt.enabled && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('source')}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+                          activeTab === 'source'
+                            ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                        }`}
+                      >
+                        <Code2 className="w-3.5 h-3.5" />
+                        <span>Source</span>
+                      </button>
+                    )}
                   </div>
 
                   {canDeleteActivePage && (
@@ -2464,12 +2552,14 @@ function WikiWorkspace() {
                   <article
                     data-wiki-document="article"
                     className={
-                      !isPrintView && (outlineToc.length > 0 || outlineRefs.length > 0)
+                      !isPrintView &&
+                      pageOutlineExt.enabled &&
+                      (outlineToc.length > 0 || outlineRefs.length > 0)
                         ? 'xl:col-span-9'
                         : 'xl:col-span-12'
                     }
                   >
-                    {(isPersonalProfilePage || isPersonalDiscussionPage) && (
+                    {userProfilesExt.enabled && (isPersonalProfilePage || isPersonalDiscussionPage) && (
                       <div
                         data-wiki-chrome="personal-actions"
                         className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-200 dark:border-slate-800 print:hidden"
@@ -2583,6 +2673,7 @@ function WikiWorkspace() {
                         enableReferences={refsExt.enabled}
                         referencesTitle={referencesSectionTitle}
                         enableInfoboxes={infoboxExt.enabled}
+                        enableTemplates={templatesExt.enabled}
                         showReferencesFooter={false}
                         externalLinkPrefix={externalLinkConfig.prefix}
                         encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
@@ -2600,24 +2691,26 @@ function WikiWorkspace() {
                       />
                     )}
 
-                    <PageRatingPanel
-                      pageSlug={activePage.slug}
-                      ratings={ratings}
-                      currentUserId={user?.uid ?? null}
-                      isSignedIn={Boolean(user)}
-                      isBlocked={isBlocked}
-                      onRate={async (score) => {
-                        if (!user || isBlocked) return;
-                        await upsertPageRating(activePage, score, user);
-                      }}
-                      onRemoveRating={async () => {
-                        if (!user || isBlocked) return;
-                        await deletePageRating(activePage.slug, user.uid);
-                      }}
-                      onSignIn={() => void handleSignIn()}
-                    />
+                    {ratingsExt.enabled && (
+                      <PageRatingPanel
+                        pageSlug={activePage.slug}
+                        ratings={ratings}
+                        currentUserId={user?.uid ?? null}
+                        isSignedIn={Boolean(user)}
+                        isBlocked={isBlocked}
+                        onRate={async (score) => {
+                          if (!user || isBlocked) return;
+                          await upsertPageRating(activePage, score, user);
+                        }}
+                        onRemoveRating={async () => {
+                          if (!user || isBlocked) return;
+                          await deletePageRating(activePage.slug, user.uid);
+                        }}
+                        onSignIn={() => void handleSignIn()}
+                      />
+                    )}
 
-                    {isPersonalProfilePage && (
+                    {userProfilesExt.enabled && isPersonalProfilePage && (
                       <UserEditsPanel
                         authorName={activePage.authorName}
                         edits={personalUserEdits}
@@ -2662,7 +2755,7 @@ function WikiWorkspace() {
                             {formatAbsoluteTime(activePage.updatedAt)}
                           </span>{' '}
                           by{' '}
-                          {activePage.lastEditorId === 'builtin-editorial' ? (
+                          {!userProfilesExt.enabled || activePage.lastEditorId === 'builtin-editorial' ? (
                             <span className="font-medium text-slate-700 dark:text-slate-200">
                               {activePage.lastEditorName}
                             </span>
@@ -2714,7 +2807,7 @@ function WikiWorkspace() {
                     </footer>
                   </article>
 
-                  {(outlineToc.length > 0 || outlineRefs.length > 0) && (
+                  {pageOutlineExt.enabled && (outlineToc.length > 0 || outlineRefs.length > 0) && (
                     <aside
                       data-wiki-chrome="page-outline"
                       className="xl:col-span-3 xl:sticky xl:top-20 border-t xl:border-t-0 xl:border-l border-slate-200 dark:border-slate-800 pt-4 xl:pt-0 xl:pl-5 space-y-2.5 print:hidden"
@@ -2793,8 +2886,11 @@ function WikiWorkspace() {
                   errorMessage={saveError}
                   enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}
                   enableReferencesToolbar={refsExt.enabled && refsExt.settings.allowEditorToolbar !== false}
+                  enableVisualToolbar={editorToolbarExt.enabled}
+                  enableTemplatesToolbar={templatesExt.enabled}
                   enableInfoboxPreview={infoboxExt.enabled}
                   enableReferencesPreview={refsExt.enabled}
+                  enableTemplatesPreview={templatesExt.enabled}
                   showTocPreview={tocExt.enabled}
                   tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
                   tocMinHeadings={tocMinHeadings}
@@ -2818,7 +2914,7 @@ function WikiWorkspace() {
                 />
               )}
 
-              {activeTab === 'history' && (
+              {historyExt.enabled && activeTab === 'history' && (
                 <RevisionHistory
                   revisions={revisions}
                   loading={revisionsLoading}
@@ -2845,7 +2941,7 @@ function WikiWorkspace() {
                 />
               )}
 
-              {activeTab === 'source' && (
+              {sourceExt.enabled && activeTab === 'source' && (
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
@@ -2962,16 +3058,18 @@ function WikiWorkspace() {
             </div>
 
             <div className="flex flex-wrap items-center gap-4 shrink-0">
-              <a
-                href="#/ecosystem"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigateToEcosystem();
-                }}
-                className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
-              >
-                Ecosystem &amp; Products
-              </a>
+              {ecosystemExt.enabled && (
+                <a
+                  href="#/ecosystem"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigateToEcosystem();
+                  }}
+                  className="hover:text-slate-900 dark:hover:text-slate-100 underline underline-offset-4 whitespace-nowrap"
+                >
+                  Ecosystem &amp; Products
+                </a>
+              )}
               <a
                 href={`#/page/${DOSSIER_PAGE_SLUG}`}
                 onClick={(e) => {
@@ -3016,24 +3114,30 @@ function WikiWorkspace() {
                 'WikiWazzimaGiygg Ecosystem · Infrastructure, Licensing & Governance'
               )}
             </span>
-            <FooterBadges
-              siteTitle={siteTitle}
-              showWikiomiteBadge={activeTheme.id === 'wikidiota'}
-              externalLinkPrefix={externalLinkConfig.prefix}
-              encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
-              onNavigateHome={() => navigateToPage('start')}
-              onNavigateLegal={() => navigateToLegal('privacy')}
-              onNavigateDossier={() => navigateToPage(DOSSIER_PAGE_SLUG)}
-            />
+            {footerBadgesExt.enabled && (
+              <FooterBadges
+                siteTitle={siteTitle}
+                showWikiomiteBadge={activeTheme.id === 'wikidiota'}
+                externalLinkPrefix={externalLinkConfig.prefix}
+                encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
+                onNavigateHome={() => navigateToPage('start')}
+                onNavigateLegal={() => navigateToLegal('privacy')}
+                onNavigateDossier={() => navigateToPage(DOSSIER_PAGE_SLUG)}
+              />
+            )}
           </div>
         </div>
       </footer>
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
-      <PrivacyNoticeBanner onOpenPrivacy={() => navigateToLegal('privacy')} />
+      {shortcutsExt.enabled && (
+        <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      )}
+      {privacyBannerExt.enabled && (
+        <PrivacyNoticeBanner onOpenPrivacy={() => navigateToLegal('privacy')} />
+      )}
 
-      {showBackToTop && (
+      {backToTopExt.enabled && showBackToTop && (
         <button
           data-wiki-chrome="floating"
           data-wiki-surface="panel"

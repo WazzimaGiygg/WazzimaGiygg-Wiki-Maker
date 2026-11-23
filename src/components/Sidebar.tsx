@@ -36,6 +36,10 @@ interface SidebarProps {
   isDark: boolean;
   canToggleTheme?: boolean;
   forcedColorMode?: 'light' | 'dark';
+  showQuickCreate?: boolean;
+  showSidebarFilter?: boolean;
+  showUserProfileLinks?: boolean;
+  showPwaInstall?: boolean;
   onOpenMobile?: () => void;
   onCloseMobile: () => void;
   onSelectPage: (slug: string) => void;
@@ -103,6 +107,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isDark,
   canToggleTheme = true,
   forcedColorMode,
+  showQuickCreate = true,
+  showSidebarFilter = true,
+  showUserProfileLinks = true,
+  showPwaInstall = true,
   onOpenMobile,
   onCloseMobile,
   onSelectPage,
@@ -318,6 +326,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [isOpenMobile, gestureDisabled, onOpenMobile, onCloseMobile]);
 
   const filteredPages = React.useMemo(() => {
+    if (!showSidebarFilter) return pages;
     const q = searchQuery.trim().toLowerCase();
     if (!q) return pages;
     return pages.filter(
@@ -326,7 +335,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         p.slug.toLowerCase().includes(q) ||
         p.tags.some((t) => t.toLowerCase().includes(q))
     );
-  }, [pages, searchQuery]);
+  }, [pages, searchQuery, showSidebarFilter]);
 
   const groupedByCategory = React.useMemo(() => {
     const legacyMap: Record<string, string> = {
@@ -385,52 +394,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Wikidot-style Quick Page Creator */}
-          <form onSubmit={handleQuickCreateSubmit} className="space-y-1.5">
-            <label
-              htmlFor={quickCreatorId}
-              className="block text-xs font-medium text-slate-600 dark:text-slate-400"
-            >
-              Quick create by slug
-            </label>
-            <div className="flex items-center gap-1.5">
-              <div
-                data-wiki-surface="inset"
-                className="flex-1 flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] px-2.5"
+          {showQuickCreate && (
+            <form onSubmit={handleQuickCreateSubmit} className="space-y-1.5">
+              <label
+                htmlFor={quickCreatorId}
+                className="block text-xs font-medium text-slate-600 dark:text-slate-400"
               >
-                <span className="text-xs font-mono text-slate-400 select-none">:</span>
-                <input
-                  id={quickCreatorId}
-                  type="text"
-                  value={quickSlugInput}
-                  onChange={(e) => setQuickSlugInput(e.target.value)}
-                  placeholder="new-page"
-                  className="w-full py-1.5 pl-1 text-xs font-mono bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
-                />
+                Quick create by slug
+              </label>
+              <div className="flex items-center gap-1.5">
+                <div
+                  data-wiki-surface="inset"
+                  className="flex-1 flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] px-2.5"
+                >
+                  <span className="text-xs font-mono text-slate-400 select-none">:</span>
+                  <input
+                    id={quickCreatorId}
+                    type="text"
+                    value={quickSlugInput}
+                    onChange={(e) => setQuickSlugInput(e.target.value)}
+                    placeholder="new-page"
+                    className="w-full py-1.5 pl-1 text-xs font-mono bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  title="Create or open page"
+                  disabled={!toWikiSlug(quickSlugInput)}
+                  className="p-2 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white transition-colors disabled:opacity-40 shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button
-                type="submit"
-                title="Create or open page"
-                disabled={!toWikiSlug(quickSlugInput)}
-                className="p-2 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white transition-colors disabled:opacity-40 shrink-0"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </form>
+            </form>
+          )}
 
           {/* Live Sidebar Filter */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              id={filterInputId}
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter pages... (Ctrl+K)"
-              data-wiki-surface="inset"
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
-            />
-          </div>
+          {showSidebarFilter && (
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                id={filterInputId}
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Filter pages... (Ctrl+K)"
+                data-wiki-surface="inset"
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+              />
+            </div>
+          )}
 
           {onRandomPage && (
             <button
@@ -576,7 +589,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
 
-            {personalPageSlug && discussionPageSlug && (
+            {showUserProfileLinks && personalPageSlug && discussionPageSlug && (
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
@@ -641,7 +654,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         )}
 
-        <PWAInstallButton siteTitle={siteTitle} />
+        {showPwaInstall && <PWAInstallButton siteTitle={siteTitle} />}
 
         <div className="flex items-center justify-between gap-2 pt-1">
           {onOpenShortcuts ? (

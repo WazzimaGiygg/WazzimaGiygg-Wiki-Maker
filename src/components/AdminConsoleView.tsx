@@ -73,6 +73,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
   onSelectPage,
 }) => {
   const isBureaucrat = currentUserRole === 'bureaucrat';
+  const isZipExportEnabled = extensionsState.byId['zip-archive']?.enabled !== false;
   const externalLinkConfig = React.useMemo(
     () => resolveExternalLinkConfig(extensionsState),
     [extensionsState]
@@ -1125,24 +1126,26 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
-                  <button
-                    type="button"
-                    disabled={busyKey === 'export:zip' || publicArchiveCount === 0}
-                    onClick={() => void handleExportPublicZip()}
-                    title="Export all public wiki pages into a ZIP archive of Markdown files"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
-                  >
-                    {busyKey === 'export:zip' ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                    ) : (
-                      <Archive className="w-3.5 h-3.5 shrink-0 text-blue-700 dark:text-blue-400" />
-                    )}
-                    <span className="tabular-nums">
-                      {busyKey === 'export:zip'
-                        ? 'Archiving...'
-                        : `Export Public ZIP (${publicArchiveCount})`}
-                    </span>
-                  </button>
+                  {isZipExportEnabled && (
+                    <button
+                      type="button"
+                      disabled={busyKey === 'export:zip' || publicArchiveCount === 0}
+                      onClick={() => void handleExportPublicZip()}
+                      title="Export all public wiki pages into a ZIP archive of Markdown files"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                    >
+                      {busyKey === 'export:zip' ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                      ) : (
+                        <Archive className="w-3.5 h-3.5 shrink-0 text-blue-700 dark:text-blue-400" />
+                      )}
+                      <span className="tabular-nums">
+                        {busyKey === 'export:zip'
+                          ? 'Archiving...'
+                          : `Export Public ZIP (${publicArchiveCount})`}
+                      </span>
+                    </button>
+                  )}
 
                   <div className="relative w-full sm:w-72">
                     <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
