@@ -56,6 +56,8 @@ interface MarkdownEditorProps {
   tocDefaultExpanded?: boolean;
   tocMinHeadings?: number;
   referencesTitle?: string;
+  isAdminEditingOtherPage?: boolean;
+  targetEditorDisplayName?: string;
   onSave: (data: {
     slug: string;
     title: string;
@@ -65,6 +67,10 @@ interface MarkdownEditorProps {
     visibility: PageVisibility;
     isLocked: boolean;
     summary: string;
+    adminNotice?: {
+      send: boolean;
+      reason: string;
+    };
   }) => Promise<void>;
   onCancel: () => void;
   onNavigateSlug: (slug: string) => void;
@@ -96,6 +102,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   tocDefaultExpanded = true,
   tocMinHeadings = 1,
   referencesTitle = 'Referências',
+  isAdminEditingOtherPage = false,
+  targetEditorDisplayName,
   onSave,
   onCancel,
   onNavigateSlug,
@@ -109,6 +117,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [visibility, setVisibility] = React.useState<PageVisibility>(initialVisibility);
   const [isLocked, setIsLocked] = React.useState(initialIsLocked);
   const [summary, setSummary] = React.useState('');
+  const [sendAdminNotice, setSendAdminNotice] = React.useState(false);
+  const [adminNoticeReason, setAdminNoticeReason] = React.useState('');
   const [paneMode, setPaneMode] = React.useState<EditorPaneMode>('split');
   const [localError, setLocalError] = React.useState<string | null>(null);
   const [infoboxModalOpen, setInfoboxModalOpen] = React.useState(false);
@@ -126,6 +136,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setVisibility(initialVisibility);
     setIsLocked(initialIsLocked);
     setSummary('');
+    setSendAdminNotice(false);
+    setAdminNoticeReason('');
     setLocalError(null);
   }, [
     mode,
@@ -216,6 +228,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       visibility,
       isLocked,
       summary: summary.trim(),
+      adminNotice: isAdminEditingOtherPage
+        ? {
+            send: sendAdminNotice || isLocked !== initialIsLocked,
+            reason: adminNoticeReason.trim() || summary.trim(),
+          }
+        : undefined,
     });
   };
 
@@ -657,6 +675,36 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </div>
         )}
       </div>
+
+      {/* Admin/Bureaucrat Discussion Notification Toggle when moderating another user's page/edit */}
+      {isAdminEditingOtherPage && mode === 'edit' && (
+        <div className="p-3.5 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/20 space-y-2.5">
+          <label className="flex items-start gap-2.5 text-xs text-slate-800 dark:text-slate-200 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={sendAdminNotice || isLocked !== initialIsLocked}
+              onChange={(e) => setSendAdminNotice(e.target.checked)}
+              className="mt-0.5 rounded border-slate-300 dark:border-slate-700"
+            />
+            <span>
+              <strong>Notificar {targetEditorDisplayName || 'o editor'} na página de discussão</strong>{' '}
+              — insere automaticamente uma notificação administrativa dentro da página de discussão
+              sobre esta intervenção/sanção na edição
+              {isLocked !== initialIsLocked ? ' (obrigatório ao bloquear/desbloquear edição)' : ''}.
+            </span>
+          </label>
+          {(sendAdminNotice || isLocked !== initialIsLocked) && (
+            <input
+              type="text"
+              value={adminNoticeReason}
+              maxLength={300}
+              onChange={(e) => setAdminNoticeReason(e.target.value)}
+              placeholder="Motivo da aplicação administrativa / sanção (usa o resumo se vazio)..."
+              className="w-full px-3 py-1.5 text-xs rounded-lg border border-amber-300/80 dark:border-amber-800 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+            />
+          )}
+        </div>
+      )}
 
       {/* Summary & Save Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">

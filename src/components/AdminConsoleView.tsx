@@ -1,9 +1,11 @@
 import React from 'react';
 import type { User } from 'firebase/auth';
 import {
+  AlertTriangle,
   Ban,
   ExternalLink,
   Lock,
+  MessageSquare,
   RefreshCw,
   Search,
   Shield,
@@ -16,11 +18,14 @@ import {
   type AdminDashboardSnapshot,
   type AdminEditEntry,
   type AdminUserRow,
+  applySanctionToUser,
   blockUserAccount,
   deletePageAsAdmin,
   executeLgpdUserRemoval,
   fetchAdminDashboardData,
+  notifyUserDiscussionPage,
   removeRevisionEditAsAdmin,
+  type SanctionSeverity,
   setUserGovernanceRole,
   unblockUserAccount,
 } from '../lib/adminService';
@@ -64,6 +69,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
   const [loading, setLoading] = React.useState(true);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = React.useState<string | null>(null);
+  const [feedbackDiscussionSlug, setFeedbackDiscussionSlug] = React.useState<string | null>(null);
 
   const [userSearch, setUserSearch] = React.useState('');
   const [userFilter, setUserFilter] = React.useState<'all' | 'staff' | 'blocked'>('all');
@@ -75,8 +81,22 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
   const [blockModalUser, setBlockModalUser] = React.useState<{
     uid: string;
     displayName: string;
+    pageSlug?: string;
+    pageTitle?: string;
+    version?: number;
   } | null>(null);
   const [blockReason, setBlockReason] = React.useState('');
+
+  const [sanctionModalTarget, setSanctionModalTarget] = React.useState<{
+    uid: string;
+    displayName: string;
+    pageSlug?: string;
+    pageTitle?: string;
+    version?: number;
+  } | null>(null);
+  const [sanctionSeverity, setSanctionSeverity] = React.useState<SanctionSeverity>('warning');
+  const [sanctionLabel, setSanctionLabel] = React.useState('');
+  const [sanctionReason, setSanctionReason] = React.useState('');
 
   const [lgpdModalUser, setLgpdModalUser] = React.useState<AdminUserRow | null>(null);
   const [lgpdMode, setLgpdMode] = React.useState<LgpdErasureMode>('anonymize');
@@ -163,6 +183,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     setBusyKey(`role:${target.uid}`);
     setErrorMsg(null);
     setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
     try {
       await setUserGovernanceRole(target.uid, nextRole, currentUser);
       setFeedbackMsg(`Updated role for ${target.displayName} to ${nextRole}.`);
@@ -180,14 +201,25 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     setBusyKey(`block:${blockModalUser.uid}`);
     setErrorMsg(null);
     setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
     try {
-      await blockUserAccount(
+      const notice = await blockUserAccount(
         blockModalUser.uid,
         blockModalUser.displayName,
         blockReason || 'Blocked by wiki moderation',
-        currentUser
+        currentUser,
+        {
+          pageSlug: blockModalUser.pageSlug,
+          pageTitle: blockModalUser.pageTitle,
+          version: blockModalUser.version,
+        }
       );
-      setFeedbackMsg(`Blocked user ${blockModalUser.displayName}. Write permissions revoked.`);
+      setFeedbackMsg(
+        notice.notified && notice.discussionPageSlug
+          ? `Blocked user ${blockModalUser.displayName}. Write permissions revoked and notification inserted into :${notice.discussionPageSlug}.`
+          : `Blocked user ${blockModalUser.displayName}. Write permissions revoked.`
+      );
+      setFeedbackDiscussionSlug(notice.notified ? notice.discussionPageSlug : null);
       setBlockModalUser(null);
       setBlockReason('');
       await loadData();
@@ -202,12 +234,57 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     setBusyKey(`unblock:${target.uid}`);
     setErrorMsg(null);
     setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
     try {
-      await unblockUserAccount(target.uid);
-      setFeedbackMsg(`Unblocked user ${target.displayName}.`);
+      const notice = await unblockUserAccount(target.uid, target.displayName, currentUser);
+      setFeedbackMsg(
+        notice.notified && notice.discussionPageSlug
+          ? `Unblocked user ${target.displayName}. Notification inserted into :${notice.discussionPageSlug}.`
+          : `Unblocked user ${target.displayName}.`
+      );
+      setFeedbackDiscussionSlug(notice.notified ? notice.discussionPageSlug : null);
       await loadData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to unblock user.');
+    } finally {
+      setBusyKey(null);
+    }
+  };
+
+  const handleConfirmSanction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sanctionModalTarget) return;
+    setBusyKey(`sanction:${sanctionModalTarget.uid}`);
+    setErrorMsg(null);
+    setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
+    try {
+      const res = await applySanctionToUser({
+        targetUid: sanctionModalTarget.uid,
+        targetDisplayName: sanctionModalTarget.displayName,
+        actor: currentUser,
+        severity: sanctionSeverity,
+        sanctionLabel: sanctionLabel.trim() || undefined,
+        reason: sanctionReason.trim(),
+        pageSlug: sanctionModalTarget.pageSlug,
+        pageTitle: sanctionModalTarget.pageTitle,
+        version: sanctionModalTarget.version,
+      });
+      const actionDesc = res.blockedApplied
+        ? `Sanction & account block applied to ${sanctionModalTarget.displayName}`
+        : `Sanction applied to ${sanctionModalTarget.displayName}`;
+      setFeedbackMsg(
+        res.notified && res.discussionPageSlug
+          ? `${actionDesc}. Notification inserted into :${res.discussionPageSlug}.`
+          : `${actionDesc}.`
+      );
+      setFeedbackDiscussionSlug(res.notified ? res.discussionPageSlug : null);
+      setSanctionModalTarget(null);
+      setSanctionLabel('');
+      setSanctionReason('');
+      await loadData();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to apply sanction.');
     } finally {
       setBusyKey(null);
     }
@@ -221,15 +298,30 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     setBusyKey(`edit:${edit.pageSlug}:${edit.id}`);
     setErrorMsg(null);
     setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
     try {
-      const outcome = await removeRevisionEditAsAdmin(parentPage, edit, revsForPage, currentUser);
+      const { outcome, discussionPageSlug, notified } = await removeRevisionEditAsAdmin(
+        parentPage,
+        edit,
+        revsForPage,
+        currentUser
+      );
+      const noticeSuffix =
+        notified && discussionPageSlug
+          ? ` Notification inserted into :${discussionPageSlug}.`
+          : '';
       if (outcome === 'deleted-page') {
-        setFeedbackMsg(`Deleted single-revision page :${edit.pageSlug}.`);
+        setFeedbackMsg(`Deleted single-revision page :${edit.pageSlug}.${noticeSuffix}`);
       } else if (outcome === 'reverted-and-removed') {
-        setFeedbackMsg(`Reverted :${edit.pageSlug} to previous revision and removed edit v${edit.version}.`);
+        setFeedbackMsg(
+          `Reverted :${edit.pageSlug} to previous revision and removed edit v${edit.version}.${noticeSuffix}`
+        );
       } else {
-        setFeedbackMsg(`Removed revision v${edit.version} from :${edit.pageSlug}.`);
+        setFeedbackMsg(
+          `Removed revision v${edit.version} from :${edit.pageSlug}.${noticeSuffix}`
+        );
       }
+      setFeedbackDiscussionSlug(notified ? discussionPageSlug : null);
       await loadData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to remove edit.');
@@ -242,7 +334,9 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     setBusyKey(`lock:${page.slug}`);
     setErrorMsg(null);
     setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
     try {
+      const nextLocked = !page.isLocked;
       await updateWikiPage(
         page,
         {
@@ -252,15 +346,38 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
           category: page.category,
           tags: page.tags,
           visibility: page.visibility,
-          isLocked: !page.isLocked,
-          summary: !page.isLocked ? 'Moderation: locked page' : 'Moderation: unlocked page',
+          isLocked: nextLocked,
+          summary: nextLocked ? 'Moderation: locked page' : 'Moderation: unlocked page',
         },
         currentUser,
         true
       );
+
+      let noticeSlug: string | null = null;
+      if (page.authorId !== currentUser.uid) {
+        const notice = await notifyUserDiscussionPage({
+          targetUid: page.authorId,
+          targetDisplayName: page.authorName,
+          actor: currentUser,
+          kind: nextLocked ? 'page-locked' : 'page-unlocked',
+          reason: nextLocked
+            ? `A página :${page.slug} foi bloqueada para edição pela administração.`
+            : `A proteção de edição da página :${page.slug} foi removida pela administração.`,
+          pageSlug: page.slug,
+          pageTitle: page.title,
+          version: page.version + 1,
+        });
+        if (notice.notified && notice.discussionPageSlug) {
+          noticeSlug = notice.discussionPageSlug;
+        }
+      }
+
       setFeedbackMsg(
-        !page.isLocked ? `Locked page :${page.slug}.` : `Unlocked page :${page.slug}.`
+        noticeSlug
+          ? `${nextLocked ? 'Locked' : 'Unlocked'} page :${page.slug}. Notification inserted into :${noticeSlug}.`
+          : `${nextLocked ? 'Locked' : 'Unlocked'} page :${page.slug}.`
       );
+      setFeedbackDiscussionSlug(noticeSlug);
       await loadData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to update page lock.');
@@ -273,10 +390,16 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     setBusyKey(`delpage:${slug}`);
     setErrorMsg(null);
     setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
     try {
-      await deletePageAsAdmin(slug);
+      const notice = await deletePageAsAdmin(slug, currentUser);
       setConfirmDeletePageSlug(null);
-      setFeedbackMsg(`Deleted page :${slug} and all revisions/comments.`);
+      setFeedbackMsg(
+        notice.notified && notice.discussionPageSlug
+          ? `Deleted page :${slug} and all revisions/comments. Notification inserted into :${notice.discussionPageSlug}.`
+          : `Deleted page :${slug} and all revisions/comments.`
+      );
+      setFeedbackDiscussionSlug(notice.notified ? notice.discussionPageSlug : null);
       await loadData();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to delete page.');
@@ -347,8 +470,18 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
         </div>
       )}
       {feedbackMsg && (
-        <div className="p-3.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-950/30 text-xs text-emerald-800 dark:text-emerald-300">
-          {feedbackMsg}
+        <div className="p-3.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-950/30 text-xs text-emerald-800 dark:text-emerald-300 flex flex-wrap items-center justify-between gap-2">
+          <span>{feedbackMsg}</span>
+          {feedbackDiscussionSlug && (
+            <button
+              type="button"
+              onClick={() => onSelectPage(feedbackDiscussionSlug)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-emerald-400/60 dark:border-emerald-700 bg-white dark:bg-[#0b0f17] text-emerald-800 dark:text-emerald-300 font-medium hover:bg-emerald-100/60 dark:hover:bg-emerald-900/40 whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <MessageSquare className="w-3 h-3" />
+              <span>Abrir página de discussão</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -596,6 +729,16 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                                           <ExternalLink className="w-3 h-3" />
                                         </button>
                                       )}
+                                      {u.discussionPageSlug && (
+                                        <button
+                                          type="button"
+                                          onClick={() => onSelectPage(u.discussionPageSlug!)}
+                                          title={`Open discussion page :${u.discussionPageSlug}`}
+                                          className="text-slate-500 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 shrink-0"
+                                        >
+                                          <MessageSquare className="w-3 h-3" />
+                                        </button>
+                                      )}
                                     </div>
                                     <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
                                       {u.uid}
@@ -674,6 +817,23 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                                 <div className="inline-flex items-center justify-end gap-2">
                                   {canModerateTarget ? (
                                     <>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setSanctionModalTarget({
+                                            uid: u.uid,
+                                            displayName: u.displayName,
+                                          });
+                                          setSanctionSeverity('warning');
+                                          setSanctionLabel('');
+                                          setSanctionReason('');
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 whitespace-nowrap shrink-0"
+                                      >
+                                        <AlertTriangle className="w-3 h-3" />
+                                        <span>Sanction</span>
+                                      </button>
+
                                       {u.blocked ? (
                                         <button
                                           type="button"
@@ -850,6 +1010,33 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                                     </span>
                                   </button>
 
+                                  {edit.editorId !== currentUser.uid &&
+                                    edit.editorId !== 'lgpd-anonymized' &&
+                                    !editorUser?.isBootstrappedOwner &&
+                                    (isBureaucrat || !editorUser || editorUser.role === 'member') && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setSanctionModalTarget({
+                                            uid: edit.editorId,
+                                            displayName: edit.editorName,
+                                            pageSlug: edit.pageSlug,
+                                            pageTitle: edit.pageTitle,
+                                            version: edit.version,
+                                          });
+                                          setSanctionSeverity('edit-sanction');
+                                          setSanctionLabel('');
+                                          setSanctionReason(
+                                            `Sanção aplicada sobre a edição v${edit.version} em :${edit.pageSlug}`
+                                          );
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 whitespace-nowrap shrink-0"
+                                      >
+                                        <AlertTriangle className="w-3 h-3" />
+                                        <span>Sanction Edit</span>
+                                      </button>
+                                    )}
+
                                   {canBlockEditor && (
                                     <button
                                       type="button"
@@ -857,6 +1044,9 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                                         setBlockModalUser({
                                           uid: edit.editorId,
                                           displayName: edit.editorName,
+                                          pageSlug: edit.pageSlug,
+                                          pageTitle: edit.pageTitle,
+                                          version: edit.version,
                                         });
                                         setBlockReason(
                                           `Moderation action on :${edit.pageSlug} (v${edit.version})`
@@ -1126,7 +1316,8 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                 Blocking <strong>{blockModalUser.displayName}</strong> immediately revokes
-                permission to create, edit, or delete pages and comments.
+                permission to create, edit, or delete pages and comments. Uma notificação será
+                inserida automaticamente dentro da página de discussão do usuário.
               </p>
             </div>
 
@@ -1163,6 +1354,114 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 className="px-4 py-2 text-xs font-semibold rounded-lg bg-amber-700 text-white hover:bg-amber-800 disabled:opacity-50"
               >
                 {busyKey === `block:${blockModalUser.uid}` ? 'Blocking...' : 'Confirm Block'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* SANCTION / DISCUSSION NOTICE MODAL */}
+      {sanctionModalTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-[1px]">
+          <form
+            onSubmit={handleConfirmSanction}
+            className="w-full max-w-md bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 space-y-4"
+          >
+            <div>
+              <p className="text-xs font-mono text-blue-700 dark:text-blue-400">
+                Governance · Discussion Page Notification
+              </p>
+              <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
+                Aplicar Sanção: {sanctionModalTarget.displayName}
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                A notificação oficial desta sanção será inserida automaticamente dentro da página de
+                discussão de <strong>{sanctionModalTarget.displayName}</strong>
+                {sanctionModalTarget.pageSlug
+                  ? ` (ref: :${sanctionModalTarget.pageSlug}${
+                      typeof sanctionModalTarget.version === 'number'
+                        ? ` v${sanctionModalTarget.version}`
+                        : ''
+                    })`
+                  : ''}
+                .
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="sanction-severity-select"
+                className="block text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
+                Tipo de sanção / aplicação
+              </label>
+              <select
+                id="sanction-severity-select"
+                value={sanctionSeverity}
+                onChange={(e) => setSanctionSeverity(e.target.value as SanctionSeverity)}
+                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+              >
+                <option value="warning">Advertência formal (Aviso)</option>
+                <option value="edit-sanction">Sanção / Revisão sobre edição</option>
+                <option value="block">Sanção com bloqueio imediato da conta</option>
+              </select>
+            </div>
+
+            {sanctionSeverity !== 'block' && (
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="sanction-label-input"
+                  className="block text-xs font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Título curto da sanção (opcional)
+                </label>
+                <input
+                  id="sanction-label-input"
+                  type="text"
+                  maxLength={100}
+                  value={sanctionLabel}
+                  onChange={(e) => setSanctionLabel(e.target.value)}
+                  placeholder="Ex.: Advertência de conduta editorial"
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="sanction-reason-input"
+                className="block text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
+                Motivo / Descrição da notificação
+              </label>
+              <textarea
+                id="sanction-reason-input"
+                required
+                rows={3}
+                maxLength={300}
+                value={sanctionReason}
+                onChange={(e) => setSanctionReason(e.target.value)}
+                placeholder="Descreva a sanção ou determinação administrativa que aparecerá na página de discussão..."
+                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setSanctionModalTarget(null)}
+                className="px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={busyKey === `sanction:${sanctionModalTarget.uid}` || !sanctionReason.trim()}
+                className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50"
+              >
+                {busyKey === `sanction:${sanctionModalTarget.uid}`
+                  ? 'Aplicando...'
+                  : 'Aplicar & Notificar'}
               </button>
             </div>
           </form>

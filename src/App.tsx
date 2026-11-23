@@ -46,7 +46,7 @@ import { Sidebar } from './components/Sidebar';
 import { ToastContainer, type ToastNotification } from './components/ToastContainer';
 import { UserEditsPanel } from './components/UserEditsPanel';
 import { WikiInfobox } from './components/WikiInfobox';
-import { fetchCurrentUserGovernance } from './lib/adminService';
+import { fetchCurrentUserGovernance, notifyUserDiscussionPage } from './lib/adminService';
 import {
   bootAndSubscribeSiteExtensions,
   getInitialSiteExtensionsState,
@@ -1112,6 +1112,10 @@ function WikiWorkspace() {
     visibility: PageVisibility;
     isLocked: boolean;
     summary: string;
+    adminNotice?: {
+      send: boolean;
+      reason: string;
+    };
   }) => {
     if (!user || !activePage) return;
     setIsSaving(true);
@@ -1121,6 +1125,62 @@ function WikiWorkspace() {
         await createWikiPage({ ...data, slug: activePage.slug }, user);
       } else {
         await updateWikiPage(activePage, data, user, canManageActiveMeta);
+
+        const lockChanged = data.isLocked !== activePage.isLocked;
+        const shouldNotifyDiscussion =
+          isAdmin &&
+          !isPersonalDiscussionPage &&
+          (Boolean(data.adminNotice?.send) || (lockChanged && activePage.authorId !== user.uid));
+
+        if (shouldNotifyDiscussion) {
+          const targetUid =
+            lockChanged && activePage.authorId !== user.uid
+              ? activePage.authorId
+              : activePage.lastEditorId !== user.uid
+              ? activePage.lastEditorId
+              : activePage.authorId;
+          const targetName =
+            targetUid === activePage.lastEditorId
+              ? activePage.lastEditorName
+              : activePage.authorName;
+
+          if (targetUid && targetUid !== user.uid) {
+            const noticeReason =
+              data.adminNotice?.reason?.trim() ||
+              data.summary.trim() ||
+              (lockChanged
+                ? data.isLocked
+                  ? `Página :${activePage.slug} bloqueada para edição pela administração.`
+                  : `Proteção de edição removida em :${activePage.slug}.`
+                : `Intervenção administrativa aplicada sobre a edição v${activePage.version} em :${activePage.slug}.`);
+
+            const notice = await notifyUserDiscussionPage({
+              targetUid,
+              targetDisplayName: targetName,
+              actor: user,
+              kind: lockChanged
+                ? data.isLocked
+                  ? 'page-locked'
+                  : 'page-unlocked'
+                : 'edit-moderation',
+              reason: noticeReason,
+              pageSlug: activePage.slug,
+              pageTitle: data.title,
+              version: activePage.version + 1,
+            });
+
+            if (notice.notified && notice.discussionPageSlug) {
+              const targetDiscussionSlug = notice.discussionPageSlug;
+              pushToast({
+                tone: 'info',
+                title: 'Notificação inserida na página de discussão',
+                description: `O colaborador ${targetName} foi notificado em :${targetDiscussionSlug}.`,
+                actionLabel: 'Abrir discussão',
+                onAction: () => navigateToPage(targetDiscussionSlug),
+              });
+            }
+          }
+        }
       }
       setActiveTab('read');
     } catch (err) {
@@ -1135,6 +1195,33 @@ function WikiWorkspace() {
     setRestoringVersion(rev.version);
     try {
       await restorePageRevision(activePage, rev, user, canManageActiveMeta);
+      if (
+        isAdmin &&
+        activePage.lastEditorId !== user.uid &&
+        activePage.lastEditorId !== 'builtin-editorial' &&
+        activePage.lastEditorId !== 'lgpd-anonymized'
+      ) {
+        const notice = await notifyUserDiscussionPage({
+          targetUid: activePage.lastEditorId,
+          targetDisplayName: activePage.lastEditorName,
+          actor: user,
+          kind: 'edit-reverted',
+          reason: `Edição v${activePage.version} substituída pela restauração administrativa para a versão v${rev.version}.`,
+          pageSlug: activePage.slug,
+          pageTitle: activePage.title,
+          version: activePage.version,
+        });
+        if (notice.notified && notice.discussionPageSlug) {
+          const targetDiscussionSlug = notice.discussionPageSlug;
+          pushToast({
+            tone: 'warning',
+            title: 'Notificação inserida na página de discussão',
+            description: `${activePage.lastEditorName} foi notificado em :${targetDiscussionSlug} sobre a reversão da edição v${activePage.version}.`,
+            actionLabel: 'Abrir discussão',
+            onAction: () => navigateToPage(targetDiscussionSlug),
+          });
+        }
+      }
       setActiveTab('read');
     } finally {
       setRestoringVersion(null);
@@ -1143,13 +1230,77 @@ function WikiWorkspace() {
 
   const handleDeletePage = async () => {
     if (!activePage) return;
+    const pageToDelete = activePage;
     setIsDeleting(true);
     try {
-      await deleteWikiPage(activePage);
+      await deleteWikiPage(pageToDelete);
+      if (
+        isAdmin &&
+        user &&
+        pageToDelete.authorId !== user.uid &&
+        pageToDelete.authorId !== 'builtin-editorial' &&
+        pageToDelete.authorId !== 'lgpd-anonymized' &&
+        !(isUserOrDiscussionPage(pageToDelete) && pageToDelete.slug.endsWith('-discussion'))
+      ) {
+        const notice = await notifyUserDiscussionPage({
+          targetUid: pageToDelete.authorId,
+          targetDisplayName: pageToDelete.authorName,
+          actor: user,
+          kind: 'page-deleted',
+          reason: `A página :${pageToDelete.slug} foi excluída pela administração.`,
+          pageSlug: pageToDelete.slug,
+          pageTitle: pageToDelete.title,
+          version: pageToDelete.version,
+        });
+        if (notice.notified && notice.discussionPageSlug) {
+          const targetDiscussionSlug = notice.discussionPageSlug;
+          pushToast({
+            tone: 'warning',
+            title: 'Notificação inserida na página de discussão',
+            description: `${pageToDelete.authorName} foi notificado em :${targetDiscussionSlug}.`,
+            actionLabel: 'Abrir discussão',
+            onAction: () => navigateToPage(targetDiscussionSlug),
+          });
+        }
+      }
       setConfirmDeleteOpen(false);
       navigateToIndex('index');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCommentWithNotice = async (commentId: string) => {
+    if (!activePage) return;
+    const targetComment = comments.find((c) => c.id === commentId);
+    await deletePageComment(activePage.slug, commentId);
+
+    if (
+      isAdmin &&
+      user &&
+      targetComment &&
+      targetComment.authorId !== user.uid &&
+      targetComment.authorId !== 'lgpd-anonymized'
+    ) {
+      const notice = await notifyUserDiscussionPage({
+        targetUid: targetComment.authorId,
+        targetDisplayName: targetComment.authorName,
+        actor: user,
+        kind: 'comment-removed',
+        reason: `Comentário removido pela administração na discussão de :${activePage.slug}.`,
+        pageSlug: activePage.slug,
+        pageTitle: activePage.title,
+      });
+      if (notice.notified && notice.discussionPageSlug) {
+        const targetDiscussionSlug = notice.discussionPageSlug;
+        pushToast({
+          tone: 'info',
+          title: 'Notificação inserida na página de discussão',
+          description: `${targetComment.authorName} foi notificado em :${targetDiscussionSlug}.`,
+          actionLabel: 'Abrir discussão',
+          onAction: () => navigateToPage(targetDiscussionSlug),
+        });
+      }
     }
   };
 
@@ -2426,9 +2577,7 @@ function WikiWorkspace() {
                             if (!user || isBlocked) return;
                             await addPageComment(activePage, body, user);
                           }}
-                          onDeleteComment={async (commentId) => {
-                            await deletePageComment(activePage.slug, commentId);
-                          }}
+                          onDeleteComment={handleDeleteCommentWithNotice}
                           onSignIn={() => void handleSignIn()}
                         />
                       </section>
@@ -2580,6 +2729,17 @@ function WikiWorkspace() {
                   tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
                   tocMinHeadings={tocMinHeadings}
                   referencesTitle={referencesSectionTitle}
+                  isAdminEditingOtherPage={
+                    isAdmin &&
+                    activePage.authorId !== 'builtin-editorial' &&
+                    !isPersonalDiscussionPage &&
+                    (activePage.lastEditorId !== user.uid || activePage.authorId !== user.uid)
+                  }
+                  targetEditorDisplayName={
+                    activePage.lastEditorId !== user.uid
+                      ? activePage.lastEditorName
+                      : activePage.authorName
+                  }
                   onSave={handleEditSave}
                   onCancel={() => setActiveTab('read')}
                   onNavigateSlug={navigateToPage}
@@ -2608,9 +2768,7 @@ function WikiWorkspace() {
                     if (!user || isBlocked) return;
                     await addPageComment(activePage, body, user);
                   }}
-                  onDeleteComment={async (commentId) => {
-                    await deletePageComment(activePage.slug, commentId);
-                  }}
+                  onDeleteComment={handleDeleteCommentWithNotice}
                   onSignIn={() => void handleSignIn()}
                 />
               )}

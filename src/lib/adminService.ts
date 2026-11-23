@@ -24,7 +24,7 @@ import {
   type WikiPage,
 } from '../types/wiki';
 import { ADMIN_EMAIL, db, handleFirestoreError, OperationType } from './firebase';
-import { updateWikiPage } from './wikiService';
+import { buildPersonalSlugs, isUserOrDiscussionPage, updateWikiPage } from './wikiService';
 
 export interface AdminUserRow {
   uid: string;
@@ -71,6 +71,368 @@ function buildEditDocId(slug: string, version: number): string {
   const suffix = `_v${version}`;
   const maxSlugLen = Math.max(1, VALIDATION_LIMITS.SLUG_MAX_LENGTH - suffix.length);
   return `${slug.slice(0, maxSlugLen)}${suffix}`;
+}
+
+export type DiscussionModerationNoticeKind =
+  | 'block'
+  | 'unblock'
+  | 'sanction'
+  | 'edit-reverted'
+  | 'edit-removed'
+  | 'edit-moderation'
+  | 'page-locked'
+  | 'page-unlocked'
+  | 'page-deleted'
+  | 'comment-removed';
+
+export type SanctionSeverity = 'warning' | 'edit-sanction' | 'block';
+
+export interface DiscussionNotificationInput {
+  targetUid: string;
+  targetDisplayName?: string;
+  actor: User;
+  kind: DiscussionModerationNoticeKind;
+  reason: string;
+  pageSlug?: string;
+  pageTitle?: string;
+  version?: number;
+  sanctionLabel?: string;
+}
+
+export interface DiscussionNotificationResult {
+  notified: boolean;
+  discussionPageSlug: string | null;
+}
+
+function sanitizeTemplateInlineText(value: string, maxLen: number): string {
+  return value
+    .replace(/\r?\n+/g, ' ')
+    .replace(/\|/g, '—')
+    .replace(/\{\{/g, '((')
+    .replace(/\}\}/g, '))')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLen);
+}
+
+function getModerationNoticeMeta(
+  kind: DiscussionModerationNoticeKind,
+  sanctionLabel?: string
+): {
+  noticeType: 'critico' | 'cuidado' | 'sucesso' | 'nota';
+  heading: string;
+  categoryLabel: string;
+} {
+  switch (kind) {
+    case 'block':
+      return {
+        noticeType: 'critico',
+        heading: 'Bloqueio de conta aplicado',
+        categoryLabel: 'Sanção administrativa / Bloqueio',
+      };
+    case 'unblock':
+      return {
+        noticeType: 'sucesso',
+        heading: 'Bloqueio encerrado',
+        categoryLabel: 'Revisão administrativa / Desbloqueio',
+      };
+    case 'sanction':
+      return {
+        noticeType: 'cuidado',
+        heading: sanctionLabel?.trim() || 'Sanção / Advertência formal',
+        categoryLabel: 'Sanção administrativa',
+      };
+    case 'edit-reverted':
+      return {
+        noticeType: 'cuidado',
+        heading: 'Edição revertida pela administração',
+        categoryLabel: 'Aplicação administrativa sobre edição',
+      };
+    case 'edit-removed':
+      return {
+        noticeType: 'critico',
+        heading: 'Revisão removida pela administração',
+        categoryLabel: 'Aplicação administrativa sobre edição',
+      };
+    case 'edit-moderation':
+      return {
+        noticeType: 'nota',
+        heading: 'Intervenção administrativa sobre edição',
+        categoryLabel: 'Aplicação administrativa sobre edição',
+      };
+    case 'page-locked':
+      return {
+        noticeType: 'cuidado',
+        heading: 'Página protegida / bloqueada para edição',
+        categoryLabel: 'Aplicação administrativa sobre página',
+      };
+    case 'page-unlocked':
+      return {
+        noticeType: 'nota',
+        heading: 'Proteção de página removida',
+        categoryLabel: 'Aplicação administrativa sobre página',
+      };
+    case 'page-deleted':
+      return {
+        noticeType: 'critico',
+        heading: 'Página removida pela administração',
+        categoryLabel: 'Aplicação administrativa sobre página',
+      };
+    case 'comment-removed':
+      return {
+        noticeType: 'cuidado',
+        heading: 'Comentário removido pela administração',
+        categoryLabel: 'Moderação de discussão',
+      };
+  }
+}
+
+/**
+ * Appends a structured administrative/sanction/block notification directly into
+ * the target user's discussion page (`/pages/{discussionPageSlug}`), creating a
+ * tracked revision so the notice is immediately visible inside their talk page.
+ */
+export async function notifyUserDiscussionPage(
+  input: DiscussionNotificationInput
+): Promise<DiscussionNotificationResult> {
+  const { targetUid, targetDisplayName, actor, kind, reason, pageSlug, pageTitle, version, sanctionLabel } =
+    input;
+
+  if (
+    !targetUid ||
+    targetUid === actor.uid ||
+    targetUid === 'lgpd-anonymized' ||
+    targetUid === 'builtin-editorial'
+  ) {
+    return { notified: false, discussionPageSlug: null };
+  }
+
+  const actorName = getActorDisplayName(actor);
+  let resolvedName = sanitizeString(
+    targetDisplayName || 'Collaborator',
+    VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH
+  );
+  let discussionSlug = '';
+
+  try {
+    const collabSnap = await getDoc(doc(db, 'collaborators', targetUid));
+    if (collabSnap.exists()) {
+      const collab = collabSnap.data() as Partial<CollaboratorProfile>;
+      if (collab.displayName) {
+        resolvedName = sanitizeString(collab.displayName, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH);
+      }
+      if (collab.discussionPageSlug) {
+        discussionSlug = collab.discussionPageSlug;
+      }
+    }
+  } catch (error) {
+    console.warn('Could not read collaborator profile for discussion notice:', error);
+  }
+
+  if (!discussionSlug) {
+    discussionSlug = buildPersonalSlugs(resolvedName || 'Collaborator', targetUid).discussionPageSlug;
+  }
+
+  // Never recursively notify about edits made inside the same discussion page itself
+  if (
+    pageSlug &&
+    pageSlug === discussionSlug &&
+    kind !== 'block' &&
+    kind !== 'unblock' &&
+    kind !== 'sanction'
+  ) {
+    return { notified: false, discussionPageSlug: discussionSlug };
+  }
+
+  const now = new Date();
+  const dateOnly = now.toISOString().slice(0, 10);
+  const dateTimeUtc = `${dateOnly} ${now.toISOString().slice(11, 16)} UTC`;
+  const { noticeType, heading, categoryLabel } = getModerationNoticeMeta(kind, sanctionLabel);
+
+  const cleanReason =
+    sanitizeTemplateInlineText(reason, 600) ||
+    'Aplicação administrativa registrada pela moderação da wiki.';
+  const cleanPageTitle = pageTitle ? sanitizeTemplateInlineText(pageTitle, 140) : '';
+  const cleanHeading = sanitizeTemplateInlineText(heading, 120);
+  const cleanActorName = sanitizeTemplateInlineText(actorName, 80);
+
+  const templateTitle = `${categoryLabel}: ${cleanHeading}`;
+  const templateBodyParts = [`Notificação oficial aplicada por ${cleanActorName}: ${cleanReason}`];
+  if (pageSlug) {
+    templateBodyParts.push(
+      `Página: :${pageSlug}${typeof version === 'number' ? ` (v${version})` : ''}.`
+    );
+  }
+  const templateBody = sanitizeTemplateInlineText(templateBodyParts.join(' '), 500);
+
+  const metadataLines = [
+    `- **Ação aplicada:** ${cleanHeading}`,
+    `- **Categoria:** ${categoryLabel}`,
+    `- **Administrador / Burocrata:** ${cleanActorName}`,
+    `- **Data e hora:** \`${dateTimeUtc}\``,
+    `- **Motivo / Aplicação:** ${cleanReason}`,
+  ];
+
+  if (pageSlug) {
+    if (kind === 'page-deleted') {
+      metadataLines.push(
+        `- **Página afetada:** \`:${pageSlug}\`${cleanPageTitle ? ` (${cleanPageTitle})` : ''}`
+      );
+    } else {
+      metadataLines.push(
+        `- **Página afetada:** [[${pageSlug}|${cleanPageTitle || pageSlug}]] (\`:${pageSlug}\`)`
+      );
+    }
+  }
+  if (typeof version === 'number') {
+    metadataLines.push(`- **Revisão / Edição:** \`v${version}\``);
+  }
+
+  const noticeSection = [
+    '---',
+    '',
+    `## Notificação administrativa — ${cleanHeading} (${dateOnly})`,
+    '',
+    `{{Aviso|tipo=${noticeType}|título=${templateTitle}|texto=${templateBody}|data=${dateTimeUtc}}}`,
+    '',
+    ...metadataLines,
+  ].join('\n');
+
+  const discussionRef = doc(db, 'pages', discussionSlug);
+  const actorCollabRef = doc(db, 'collaborators', actor.uid);
+
+  try {
+    const [discussionSnap, actorCollabSnap] = await Promise.all([
+      getDoc(discussionRef),
+      getDoc(actorCollabRef),
+    ]);
+
+    const actorHasCollab = actorCollabSnap.exists();
+    const batch = writeBatch(db);
+    const revSummary = sanitizeString(
+      `Notificação administrativa: ${cleanHeading}`,
+      VALIDATION_LIMITS.SUMMARY_MAX_LENGTH
+    );
+
+    if (discussionSnap.exists()) {
+      const existingPage = discussionSnap.data() as WikiPage;
+      const baseContent = existingPage.content.trimEnd();
+      const combined = baseContent ? `${baseContent}\n\n${noticeSection}` : noticeSection;
+      const boundedContent =
+        combined.length <= VALIDATION_LIMITS.CONTENT_MAX_LENGTH
+          ? combined
+          : `${baseContent.slice(
+              0,
+              Math.max(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH - noticeSection.length - 4)
+            )}\n\n${noticeSection}`;
+
+      const nextVersion = existingPage.version + 1;
+
+      batch.update(discussionRef, {
+        content: boundedContent,
+        lastEditorId: actor.uid,
+        lastEditorName: actorName,
+        version: nextVersion,
+        updatedAt: serverTimestamp(),
+      });
+
+      batch.set(doc(db, 'pages', discussionSlug, 'revisions', `v_${nextVersion}`), {
+        pageSlug: discussionSlug,
+        pageVisibility: existingPage.visibility,
+        pageAuthorId: existingPage.authorId,
+        title: existingPage.title,
+        content: boundedContent,
+        editorId: actor.uid,
+        editorName: actorName,
+        summary: revSummary,
+        version: nextVersion,
+        createdAt: serverTimestamp(),
+      });
+
+      if (actorHasCollab) {
+        batch.set(
+          doc(db, 'collaborators', actor.uid, 'edits', buildEditDocId(discussionSlug, nextVersion)),
+          {
+            editorId: actor.uid,
+            pageSlug: discussionSlug,
+            pageTitle: existingPage.title,
+            pageVisibility: existingPage.visibility,
+            summary: revSummary,
+            version: nextVersion,
+            createdAt: serverTimestamp(),
+          }
+        );
+      }
+    } else {
+      const fallbackTitle = sanitizeString(
+        `Discussion: ${resolvedName || 'Collaborator'}`,
+        VALIDATION_LIMITS.TITLE_MAX_LENGTH
+      );
+      const personalSlug = buildPersonalSlugs(
+        resolvedName || 'Collaborator',
+        targetUid
+      ).personalPageSlug;
+      const initialContent = [
+        `This is the dedicated discussion page for **${resolvedName || 'Collaborator'}**.`,
+        '',
+        `Return to [[${personalSlug}|${resolvedName || 'Collaborator'}'s Personal Page]] or review administrative notices below.`,
+        '',
+        noticeSection,
+      ]
+        .join('\n')
+        .slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH);
+
+      batch.set(discussionRef, {
+        slug: discussionSlug,
+        title: fallbackTitle,
+        content: initialContent,
+        category: 'general',
+        tags: ['personal', 'discussion'],
+        visibility: 'public',
+        isLocked: false,
+        authorId: actor.uid,
+        authorName: actorName,
+        lastEditorId: actor.uid,
+        lastEditorName: actorName,
+        version: 1,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      batch.set(doc(db, 'pages', discussionSlug, 'revisions', 'v_1'), {
+        pageSlug: discussionSlug,
+        pageVisibility: 'public',
+        pageAuthorId: actor.uid,
+        title: fallbackTitle,
+        content: initialContent,
+        editorId: actor.uid,
+        editorName: actorName,
+        summary: revSummary,
+        version: 1,
+        createdAt: serverTimestamp(),
+      });
+
+      if (actorHasCollab) {
+        batch.set(
+          doc(db, 'collaborators', actor.uid, 'edits', buildEditDocId(discussionSlug, 1)),
+          {
+            editorId: actor.uid,
+            pageSlug: discussionSlug,
+            pageTitle: fallbackTitle,
+            pageVisibility: 'public',
+            summary: revSummary,
+            version: 1,
+            createdAt: serverTimestamp(),
+          }
+        );
+      }
+    }
+
+    await batch.commit();
+    return { notified: true, discussionPageSlug: discussionSlug };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `pages/${discussionSlug}`);
+  }
 }
 
 type BatchOp =
@@ -340,8 +702,9 @@ export async function blockUserAccount(
   targetUid: string,
   displayName: string,
   reason: string,
-  actor: User
-): Promise<void> {
+  actor: User,
+  context?: { pageSlug?: string; pageTitle?: string; version?: number }
+): Promise<DiscussionNotificationResult> {
   const blockPath = `blocked_users/${targetUid}`;
   const safeName =
     sanitizeString(displayName, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH) || 'Collaborator';
@@ -362,24 +725,121 @@ export async function blockUserAccount(
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, blockPath);
   }
+
+  return notifyUserDiscussionPage({
+    targetUid,
+    targetDisplayName: safeName,
+    actor,
+    kind: 'block',
+    reason: safeReason,
+    pageSlug: context?.pageSlug,
+    pageTitle: context?.pageTitle,
+    version: context?.version,
+  });
 }
 
-export async function unblockUserAccount(targetUid: string): Promise<void> {
+export async function unblockUserAccount(
+  targetUid: string,
+  displayName?: string,
+  actor?: User
+): Promise<DiscussionNotificationResult> {
   const blockPath = `blocked_users/${targetUid}`;
   try {
     await deleteDoc(doc(db, 'blocked_users', targetUid));
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, blockPath);
   }
+
+  if (!actor) {
+    return { notified: false, discussionPageSlug: null };
+  }
+
+  return notifyUserDiscussionPage({
+    targetUid,
+    targetDisplayName: displayName,
+    actor,
+    kind: 'unblock',
+    reason: 'Bloqueio administrativo encerrado e permissões de escrita restauradas.',
+  });
 }
 
-export async function deletePageAsAdmin(slug: string): Promise<void> {
+export async function applySanctionToUser(input: {
+  targetUid: string;
+  targetDisplayName: string;
+  actor: User;
+  severity: SanctionSeverity;
+  sanctionLabel?: string;
+  reason: string;
+  pageSlug?: string;
+  pageTitle?: string;
+  version?: number;
+}): Promise<{ discussionPageSlug: string | null; notified: boolean; blockedApplied: boolean }> {
+  const safeReason =
+    sanitizeString(input.reason, VALIDATION_LIMITS.BLOCK_REASON_MAX_LENGTH) ||
+    'Sanção administrativa aplicada pela moderação.';
+
+  if (input.severity === 'block') {
+    const result = await blockUserAccount(
+      input.targetUid,
+      input.targetDisplayName,
+      safeReason,
+      input.actor,
+      {
+        pageSlug: input.pageSlug,
+        pageTitle: input.pageTitle,
+        version: input.version,
+      }
+    );
+    return {
+      discussionPageSlug: result.discussionPageSlug,
+      notified: result.notified,
+      blockedApplied: true,
+    };
+  }
+
+  const label =
+    input.sanctionLabel?.trim() ||
+    (input.severity === 'edit-sanction'
+      ? 'Sanção sobre edição'
+      : 'Advertência formal');
+
+  const result = await notifyUserDiscussionPage({
+    targetUid: input.targetUid,
+    targetDisplayName: input.targetDisplayName,
+    actor: input.actor,
+    kind: 'sanction',
+    sanctionLabel: label,
+    reason: safeReason,
+    pageSlug: input.pageSlug,
+    pageTitle: input.pageTitle,
+    version: input.version,
+  });
+
+  return {
+    discussionPageSlug: result.discussionPageSlug,
+    notified: result.notified,
+    blockedApplied: false,
+  };
+}
+
+export async function deletePageAsAdmin(
+  slug: string,
+  actor?: User,
+  reason?: string
+): Promise<DiscussionNotificationResult> {
   const pagePath = `pages/${slug}`;
+  let deletedPageData: WikiPage | null = null;
+
   try {
-    const [revsSnap, commentsSnap] = await Promise.all([
+    const [pageSnap, revsSnap, commentsSnap] = await Promise.all([
+      getDoc(doc(db, 'pages', slug)),
       getDocs(collection(db, 'pages', slug, 'revisions')),
       getDocs(collection(db, 'pages', slug, 'comments')),
     ]);
+
+    if (pageSnap.exists()) {
+      deletedPageData = pageSnap.data() as WikiPage;
+    }
 
     const ops: BatchOp[] = [];
     revsSnap.forEach((d) => {
@@ -394,19 +854,51 @@ export async function deletePageAsAdmin(slug: string): Promise<void> {
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, pagePath);
   }
+
+  if (
+    actor &&
+    deletedPageData &&
+    deletedPageData.authorId !== actor.uid &&
+    !(isUserOrDiscussionPage(deletedPageData) && deletedPageData.slug.endsWith('-discussion'))
+  ) {
+    return notifyUserDiscussionPage({
+      targetUid: deletedPageData.authorId,
+      targetDisplayName: deletedPageData.authorName,
+      actor,
+      kind: 'page-deleted',
+      reason:
+        reason?.trim() ||
+        `A página :${slug} foi removida pela administração/burocracia.`,
+      pageSlug: slug,
+      pageTitle: deletedPageData.title,
+      version: deletedPageData.version,
+    });
+  }
+
+  return { notified: false, discussionPageSlug: null };
 }
 
 export async function removeRevisionEditAsAdmin(
   page: WikiPage,
   targetRevision: PageRevision,
   pageRevisions: PageRevision[],
-  actor: User
-): Promise<'reverted-and-removed' | 'removed-revision' | 'deleted-page'> {
+  actor: User,
+  moderationReason?: string
+): Promise<{
+  outcome: 'reverted-and-removed' | 'removed-revision' | 'deleted-page';
+  discussionPageSlug: string | null;
+  notified: boolean;
+}> {
   const sorted = [...pageRevisions].sort((a, b) => b.version - a.version);
 
   // If this is the only revision of the page, delete the entire page
   if (sorted.length <= 1) {
-    await deletePageAsAdmin(page.slug);
+    const deleteNotice = await deletePageAsAdmin(
+      page.slug,
+      actor,
+      moderationReason?.trim() ||
+        `Página removida após exclusão da única revisão (v${targetRevision.version}).`
+    );
     if (targetRevision.editorId && targetRevision.editorId !== 'lgpd-anonymized') {
       try {
         const editRef = doc(
@@ -424,7 +916,33 @@ export async function removeRevisionEditAsAdmin(
         // Edit log entry may already be removed
       }
     }
-    return 'deleted-page';
+
+    // If editor differs from page author, also notify editor if deletePageAsAdmin didn't notify them
+    let noticeResult = deleteNotice;
+    if (
+      targetRevision.editorId &&
+      targetRevision.editorId !== page.authorId &&
+      targetRevision.editorId !== actor.uid
+    ) {
+      noticeResult = await notifyUserDiscussionPage({
+        targetUid: targetRevision.editorId,
+        targetDisplayName: targetRevision.editorName,
+        actor,
+        kind: 'edit-removed',
+        reason:
+          moderationReason?.trim() ||
+          `Sua edição v${targetRevision.version} em :${page.slug} foi removida pela administração.`,
+        pageSlug: page.slug,
+        pageTitle: page.title,
+        version: targetRevision.version,
+      });
+    }
+
+    return {
+      outcome: 'deleted-page',
+      discussionPageSlug: noticeResult.discussionPageSlug,
+      notified: noticeResult.notified,
+    };
   }
 
   const isLatest = targetRevision.version === page.version;
@@ -474,7 +992,26 @@ export async function removeRevisionEditAsAdmin(
     );
   }
 
-  return isLatest ? 'reverted-and-removed' : 'removed-revision';
+  const noticeResult = await notifyUserDiscussionPage({
+    targetUid: targetRevision.editorId,
+    targetDisplayName: targetRevision.editorName,
+    actor,
+    kind: isLatest ? 'edit-reverted' : 'edit-removed',
+    reason:
+      moderationReason?.trim() ||
+      (isLatest
+        ? `Sua edição v${targetRevision.version} em :${page.slug} foi revertida e removida pela administração.`
+        : `Sua revisão v${targetRevision.version} em :${page.slug} foi removida do histórico pela administração.`),
+    pageSlug: page.slug,
+    pageTitle: page.title,
+    version: targetRevision.version,
+  });
+
+  return {
+    outcome: isLatest ? 'reverted-and-removed' : 'removed-revision',
+    discussionPageSlug: noticeResult.discussionPageSlug,
+    notified: noticeResult.notified,
+  };
 }
 
 export async function executeLgpdUserRemoval(
