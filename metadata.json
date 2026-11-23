@@ -1,6 +1,6 @@
 {
-  "name": "Super Mario Bros TypeScript Canvas",
-  "description": "Recriação completa do clássico Super Mario Bros do NES em TypeScript com renderização em HTML5 Canvas de alto desempenho, física autêntica, áudio chiptune 8-bit sintetizado e controles retrô.",
+  "name": "WazzimaGiygg Maker",
+  "description": "Wiki colaborativa simplificada inspirada no Wikidot em TypeScript com suporte a Markdown e banco de dados Firebase.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

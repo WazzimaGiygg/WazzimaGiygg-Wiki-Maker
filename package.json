@@ -4,30 +4,33 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "tsx server.ts",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit",
-    "test:regression": "tsx scripts/regression-tests.ts"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/ws": "^8.18.2",
+    "@types/mdast": "^4.0.4",
     "@vitejs/plugin-react": "^6.1.1",
     "dotenv": "^17.2.3",
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "express": "^4.21.2",
-    "firebase": "^13.3.0",
+    "firebase": "^13.4.0",
+    "jspdf": "^4.2.1",
+    "jszip": "^3.10.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "vite": "^8.3.0",
-    "ws": "^8.22.2"
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5",
+    "vite": "^8.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
