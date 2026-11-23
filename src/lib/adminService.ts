@@ -25,7 +25,12 @@ import {
   type WikiPage,
 } from '../types/wiki';
 import { ADMIN_EMAIL, db, handleFirestoreError, OperationType } from './firebase';
-import { buildPersonalSlugs, isUserOrDiscussionPage, updateWikiPage } from './wikiService';
+import {
+  buildPersonalSlugs,
+  computeNextRecentEditors,
+  isUserOrDiscussionPage,
+  updateWikiPage,
+} from './wikiService';
 
 export interface AdminUserRow {
   uid: string;
@@ -333,6 +338,10 @@ export async function notifyUserDiscussionPage(
         content: boundedContent,
         lastEditorId: actor.uid,
         lastEditorName: actorName,
+        recentEditors: computeNextRecentEditors(existingPage, {
+          uid: actor.uid,
+          name: actorName,
+        }),
         version: nextVersion,
         updatedAt: serverTimestamp(),
       });
@@ -395,6 +404,7 @@ export async function notifyUserDiscussionPage(
         authorName: actorName,
         lastEditorId: actor.uid,
         lastEditorName: actorName,
+        recentEditors: [{ uid: actor.uid, name: actorName }],
         version: 1,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -1121,20 +1131,39 @@ export async function executeLgpdUserRemoval(
         continue;
       }
 
-      // Remaining shared pages: anonymize author/lastEditor references if matching targetUid
+      // Remaining shared pages: anonymize author/lastEditor/recentEditors references if matching targetUid
       const isAuthor = data.authorId === targetUid;
       const isLastEditor = data.lastEditorId === targetUid;
-      if (isAuthor || isLastEditor) {
+      const existingRecentEditors = Array.isArray(data.recentEditors) ? data.recentEditors : null;
+      const hasTargetInRecentEditors = Boolean(
+        existingRecentEditors?.some((entry) => entry?.uid === targetUid)
+      );
+      if (isAuthor || isLastEditor || hasTargetInRecentEditors) {
+        const updateData: Record<string, unknown> = {
+          authorId: isAuthor ? 'lgpd-anonymized' : data.authorId,
+          authorName: isAuthor ? 'Removed User (LGPD)' : data.authorName,
+          lastEditorId: isLastEditor ? 'lgpd-anonymized' : data.lastEditorId,
+          lastEditorName: isLastEditor ? 'Removed User (LGPD)' : data.lastEditorName,
+          updatedAt: serverTimestamp(),
+        };
+        if (existingRecentEditors && existingRecentEditors.length > 0) {
+          const anonymizedList: { uid: string; name: string }[] = [];
+          const seenUids = new Set<string>();
+          for (const entry of existingRecentEditors) {
+            const nextUid = entry.uid === targetUid ? 'lgpd-anonymized' : entry.uid;
+            const nextName = entry.uid === targetUid ? 'Removed User (LGPD)' : entry.name;
+            if (!nextUid || !nextName || seenUids.has(nextUid)) continue;
+            seenUids.add(nextUid);
+            anonymizedList.push({ uid: nextUid, name: nextName });
+          }
+          if (anonymizedList.length > 0) {
+            updateData.recentEditors = anonymizedList.slice(0, VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT);
+          }
+        }
         ops.push({
           type: 'update',
           ref,
-          data: {
-            authorId: isAuthor ? 'lgpd-anonymized' : data.authorId,
-            authorName: isAuthor ? 'Removed User (LGPD)' : data.authorName,
-            lastEditorId: isLastEditor ? 'lgpd-anonymized' : data.lastEditorId,
-            lastEditorName: isLastEditor ? 'Removed User (LGPD)' : data.lastEditorName,
-            updatedAt: serverTimestamp(),
-          },
+          data: updateData,
         });
         anonymizedPages += 1;
       }

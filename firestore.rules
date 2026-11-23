@@ -113,6 +113,23 @@ service cloud.firestore {
         );
     }
 
+    function isValidRecentEditorItem(item) {
+      return item is map
+        && item.keys().hasAll(['uid', 'name'])
+        && item.keys().hasOnly(['uid', 'name'])
+        && item.uid is string && isValidId(item.uid)
+        && item.name is string && item.name.size() >= 1 && item.name.size() <= 80;
+    }
+
+    function isValidRecentEditorsList(editors) {
+      return editors is list
+        && editors.size() >= 1
+        && editors.size() <= 3
+        && (editors.size() <= 0 || isValidRecentEditorItem(editors[0]))
+        && (editors.size() <= 1 || isValidRecentEditorItem(editors[1]))
+        && (editors.size() <= 2 || isValidRecentEditorItem(editors[2]));
+    }
+
     // Pillar 2: Validation Blueprints (never use existing() or diff() inside these helpers)
     function isValidWikiPage(data, slug) {
       return data.keys().hasAll([
@@ -123,7 +140,7 @@ service cloud.firestore {
         && data.keys().hasOnly([
           'slug', 'title', 'content', 'category', 'tags', 'visibility',
           'isLocked', 'headerImageUrl', 'authorId', 'authorName', 'lastEditorId',
-          'lastEditorName', 'version', 'createdAt', 'updatedAt'
+          'lastEditorName', 'recentEditors', 'version', 'createdAt', 'updatedAt'
         ])
         && data.slug is string && data.slug == slug && isValidId(data.slug)
         && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
@@ -137,6 +154,7 @@ service cloud.firestore {
         && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
         && data.lastEditorId is string && isValidId(data.lastEditorId)
         && data.lastEditorName is string && data.lastEditorName.size() >= 1 && data.lastEditorName.size() <= 80
+        && (!('recentEditors' in data) || isValidRecentEditorsList(data.recentEditors))
         && data.version is int && data.version >= 1 && data.version <= 1000000
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
@@ -361,6 +379,7 @@ service cloud.firestore {
         && isValidWikiPage(incoming(), slug)
         && incoming().authorId == request.auth.uid
         && incoming().lastEditorId == request.auth.uid
+        && (!('recentEditors' in incoming()) || (incoming().recentEditors.size() == 1 && incoming().recentEditors[0].uid == request.auth.uid))
         && incoming().version == 1
         && incoming().createdAt == request.time
         && incoming().updatedAt == request.time
@@ -380,13 +399,14 @@ service cloud.firestore {
             && incoming().authorId == existing().authorId
             && incoming().authorName == existing().authorName
             && incoming().lastEditorId == request.auth.uid
+            && (!('recentEditors' in incoming()) || incoming().recentEditors[0].uid == request.auth.uid)
             && (
               // Tier 1: Page Author or Admin (full editorial + lock/visibility control; exclusive editor for user & discussion pages)
               (
                 (existing().authorId == request.auth.uid || isAdmin())
                 && incoming().diff(existing()).affectedKeys().hasOnly([
                   'title', 'content', 'category', 'tags', 'headerImageUrl', 'visibility', 'isLocked',
-                  'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
+                  'lastEditorId', 'lastEditorName', 'recentEditors', 'version', 'updatedAt'
                 ])
               ) ||
               // Tier 2: Collaborator on public unlocked non-personal/non-discussion page (content/metadata edits only)
@@ -398,17 +418,17 @@ service cloud.firestore {
                 && incoming().isLocked == existing().isLocked
                 && incoming().diff(existing()).affectedKeys().hasOnly([
                   'title', 'content', 'category', 'tags', 'headerImageUrl',
-                  'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
+                  'lastEditorId', 'lastEditorName', 'recentEditors', 'version', 'updatedAt'
                 ])
               )
             )
           ) ||
-          // Tier Admin: LGPD Anonymization of author/lastEditor metadata without altering content
+          // Tier Admin: LGPD Anonymization of author/lastEditor/recentEditors metadata without altering content
           (
             isAdmin()
             && incoming().version == existing().version
             && incoming().diff(existing()).affectedKeys().hasOnly([
-              'authorId', 'authorName', 'lastEditorId', 'lastEditorName', 'updatedAt'
+              'authorId', 'authorName', 'lastEditorId', 'lastEditorName', 'recentEditors', 'updatedAt'
             ])
             && ((incoming().authorId == existing().authorId && incoming().authorName == existing().authorName) || (incoming().authorId == 'lgpd-anonymized' && incoming().authorName == 'Removed User (LGPD)'))
             && ((incoming().lastEditorId == existing().lastEditorId && incoming().lastEditorName == existing().lastEditorName) || (incoming().lastEditorId == 'lgpd-anonymized' && incoming().lastEditorName == 'Removed User (LGPD)'))

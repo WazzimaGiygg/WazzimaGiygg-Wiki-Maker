@@ -25,6 +25,7 @@ import {
   Sparkles,
   Trash2,
   User as UserIcon,
+  Users,
   WifiOff,
   X,
 } from 'lucide-react';
@@ -118,6 +119,7 @@ import {
   deletePageRating,
   deleteWikiPage,
   ensureDossierArticlePublished,
+  extractRecentEditorsFromRevisions,
   fetchCollaboratorProfile,
   fetchPageRevisions,
   fetchUserEdits,
@@ -137,6 +139,7 @@ import {
   type PageRevision,
   type PageTab,
   type PageVisibility,
+  type RecentEditorEntry,
   type UserEdit,
   WIKI_CATEGORIES,
   type WikiPage,
@@ -236,6 +239,9 @@ function WikiWorkspace() {
 
   const [revisions, setRevisions] = React.useState<PageRevision[]>([]);
   const [revisionsLoading, setRevisionsLoading] = React.useState(false);
+  const [fallbackRecentEditorsBySlug, setFallbackRecentEditorsBySlug] = React.useState<
+    Record<string, { version: number; editors: RecentEditorEntry[] }>
+  >({});
   const [comments, setComments] = React.useState<PageComment[]>([]);
   const [ratings, setRatings] = React.useState<PageRating[]>([]);
   const [personalAuthorProfile, setPersonalAuthorProfile] = React.useState<CollaboratorProfile | null>(null);
@@ -739,6 +745,76 @@ function WikiWorkspace() {
     () => allPages.find((p) => p.slug === activeSlug) ?? null,
     [allPages, activeSlug]
   );
+
+  // Backfill last 3 editors from revision history on older multi-revision pages without persisted recentEditors
+  React.useEffect(() => {
+    if (
+      !pageMetadataExt.enabled ||
+      view !== 'page' ||
+      !activePage ||
+      (Array.isArray(activePage.recentEditors) && activePage.recentEditors.length > 0) ||
+      activePage.version <= 1 ||
+      activePage.lastEditorId === 'builtin-editorial'
+    ) {
+      return;
+    }
+    const cached = fallbackRecentEditorsBySlug[activePage.slug];
+    if (cached && cached.version === activePage.version) {
+      return;
+    }
+
+    let cancelled = false;
+    fetchPageRevisions(activePage)
+      .then((list) => {
+        if (cancelled) return;
+        const derived = extractRecentEditorsFromRevisions(list, activePage);
+        setFallbackRecentEditorsBySlug((prev) => ({
+          ...prev,
+          [activePage.slug]: {
+            version: activePage.version,
+            editors: derived,
+          },
+        }));
+      })
+      .catch(() => {
+        // Silent fallback to lastEditorName/authorName on metadata display
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    pageMetadataExt.enabled,
+    view,
+    activePage?.slug,
+    activePage?.version,
+    activePage?.recentEditors,
+    activePage?.lastEditorId,
+    fallbackRecentEditorsBySlug,
+  ]);
+
+  const activeRecentEditors = React.useMemo<RecentEditorEntry[]>(() => {
+    if (!activePage) return [];
+    if (Array.isArray(activePage.recentEditors) && activePage.recentEditors.length > 0) {
+      return activePage.recentEditors.slice(0, 3);
+    }
+    const cached = fallbackRecentEditorsBySlug[activePage.slug];
+    if (cached && cached.version === activePage.version && cached.editors.length > 0) {
+      return cached.editors.slice(0, 3);
+    }
+    const derived: RecentEditorEntry[] = [];
+    if (activePage.lastEditorId && activePage.lastEditorName) {
+      derived.push({ uid: activePage.lastEditorId, name: activePage.lastEditorName });
+    }
+    if (
+      activePage.authorId &&
+      activePage.authorName &&
+      activePage.authorId !== activePage.lastEditorId
+    ) {
+      derived.push({ uid: activePage.authorId, name: activePage.authorName });
+    }
+    return derived.slice(0, 3);
+  }, [activePage, fallbackRecentEditorsBySlug]);
 
   // Notify reader via toast when the currently open article is updated in Firestore by another collaborator
   const seenActivePageRef = React.useRef<{
@@ -2441,54 +2517,124 @@ function WikiWorkspace() {
                   </div>
 
                   {pageMetadataExt.enabled && (
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                      <span>Created by {activePage.authorName}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>Last edited by {activePage.lastEditorName}</span>
-                      <span aria-hidden="true">·</span>
-                      <span className="tabular-nums">{formatRelativeTime(activePage.updatedAt)}</span>
-                      {activePage.tags.length > 0 && (
-                        <>
-                          <span aria-hidden="true">·</span>
-                          {sidebarFilterExt.enabled ? (
+                    <div className="space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span>Created by {activePage.authorName}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>Last edited {formatRelativeTime(activePage.updatedAt)}</span>
+                        {activeRecentEditors.length > 0 && (
+                          <>
+                            <span aria-hidden="true">·</span>
                             <span
-                              role="group"
-                              aria-label="Filter sidebar by page tag"
-                              className="inline-flex flex-wrap items-center gap-1.5 font-mono"
+                              className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
+                              title="Last three distinct editors (most recent first)"
                             >
-                              {activePage.tags.map((t) => {
-                                const isSelected =
-                                  sidebarTagFilter !== null &&
-                                  sidebarTagFilter.toLowerCase() === t.toLowerCase();
-                                return (
-                                  <button
-                                    key={t}
-                                    type="button"
-                                    aria-pressed={isSelected}
-                                    onClick={() => handleFilterByTag(t)}
-                                    title={
-                                      isSelected
-                                        ? `Clear tag filter #${t}`
-                                        : `Filter sidebar pages by #${t}`
-                                    }
-                                    className={`inline-flex items-center px-1.5 py-0.5 rounded-md border text-xs font-mono transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
-                                      isSelected
-                                        ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
-                                        : 'border-transparent text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-700 dark:hover:text-blue-400'
-                                    }`}
-                                  >
-                                    #{t}
-                                  </button>
-                                );
-                              })}
+                              <Users className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                              <span>
+                                {activeRecentEditors.length === 1
+                                  ? 'Last editor:'
+                                  : `Last ${activeRecentEditors.length} editors:`}
+                              </span>
+                              <span className="inline-flex flex-wrap items-center gap-x-1">
+                                {activeRecentEditors.map((editor, index) => {
+                                  const canNavigateProfile =
+                                    userProfilesExt.enabled &&
+                                    editor.uid !== 'builtin-editorial' &&
+                                    editor.uid !== 'lgpd-anonymized';
+                                  const isMostRecent = index === 0;
+                                  return (
+                                    <React.Fragment key={`${editor.uid}-${index}`}>
+                                      {canNavigateProfile ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            navigateToPage(
+                                              buildPersonalSlugs(editor.name, editor.uid)
+                                                .personalPageSlug
+                                            )
+                                          }
+                                          title={
+                                            isMostRecent
+                                              ? `Most recent editor · Open ${editor.name}'s collaborator page`
+                                              : `Open ${editor.name}'s collaborator page`
+                                          }
+                                          className={`hover:text-blue-700 dark:hover:text-blue-400 hover:underline cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded-xs ${
+                                            isMostRecent
+                                              ? 'font-medium text-slate-700 dark:text-slate-200'
+                                              : 'text-slate-600 dark:text-slate-300'
+                                          }`}
+                                        >
+                                          {editor.name}
+                                        </button>
+                                      ) : (
+                                        <span
+                                          className={
+                                            isMostRecent
+                                              ? 'font-medium text-slate-700 dark:text-slate-200'
+                                              : 'text-slate-600 dark:text-slate-300'
+                                          }
+                                        >
+                                          {editor.name}
+                                        </span>
+                                      )}
+                                      {index < activeRecentEditors.length - 1 && (
+                                        <span
+                                          aria-hidden="true"
+                                          className="text-slate-400 dark:text-slate-500"
+                                        >
+                                          ,
+                                        </span>
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </span>
                             </span>
-                          ) : (
-                            <span className="font-mono text-slate-600 dark:text-slate-300">
-                              {activePage.tags.map((t) => `#${t}`).join('  ')}
-                            </span>
-                          )}
-                        </>
-                      )}
+                          </>
+                        )}
+                        {activePage.tags.length > 0 && (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            {sidebarFilterExt.enabled ? (
+                              <span
+                                role="group"
+                                aria-label="Filter sidebar by page tag"
+                                className="inline-flex flex-wrap items-center gap-1.5 font-mono"
+                              >
+                                {activePage.tags.map((t) => {
+                                  const isSelected =
+                                    sidebarTagFilter !== null &&
+                                    sidebarTagFilter.toLowerCase() === t.toLowerCase();
+                                  return (
+                                    <button
+                                      key={t}
+                                      type="button"
+                                      aria-pressed={isSelected}
+                                      onClick={() => handleFilterByTag(t)}
+                                      title={
+                                        isSelected
+                                          ? `Clear tag filter #${t}`
+                                          : `Filter sidebar pages by #${t}`
+                                      }
+                                      className={`inline-flex items-center px-1.5 py-0.5 rounded-md border text-xs font-mono transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                                        isSelected
+                                          ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
+                                          : 'border-transparent text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-700 dark:hover:text-blue-400'
+                                      }`}
+                                    >
+                                      #{t}
+                                    </button>
+                                  );
+                                })}
+                              </span>
+                            ) : (
+                              <span className="font-mono text-slate-600 dark:text-slate-300">
+                                {activePage.tags.map((t) => `#${t}`).join('  ')}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
 

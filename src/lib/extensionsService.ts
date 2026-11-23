@@ -756,7 +756,7 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     scope: 'site',
     name: 'Metadados de Autoria & Tags',
     description:
-      'Exibe a linha de versão, visibilidade, autor, último editor, data relativa e #tags no cabeçalho de leitura.',
+      'Exibe a linha de versão, visibilidade, autor, os últimos 3 editores, data relativa e #tags no cabeçalho de leitura.',
     category: 'reading',
     enabled: true,
     sortOrder: 28,

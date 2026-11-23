@@ -18,6 +18,7 @@ import {
   type PageRating,
   type PageRevision,
   type PageVisibility,
+  type RecentEditorEntry,
   type UserEdit,
   VALIDATION_LIMITS,
   type WikiPage,
@@ -92,6 +93,92 @@ function sanitizeTags(tags: string[]): string[] {
 function getUserDisplayName(user: User): string {
   const raw = user.displayName || user.email?.split('@')[0] || 'Collaborator';
   return sanitizeString(raw, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH) || 'Collaborator';
+}
+
+export function computeNextRecentEditors(
+  existing:
+    | Pick<
+        WikiPage,
+        'recentEditors' | 'lastEditorId' | 'lastEditorName' | 'authorId' | 'authorName'
+      >
+    | null
+    | undefined,
+  nextEditor: RecentEditorEntry
+): RecentEditorEntry[] {
+  const result: RecentEditorEntry[] = [];
+  const seen = new Set<string>();
+
+  const pushEntry = (uid?: string | null, name?: string | null) => {
+    if (!uid || !name) return;
+    const cleanUid = uid.trim();
+    const cleanName = sanitizeString(name, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH);
+    if (!cleanUid || !cleanName || !isValidWikiSlug(cleanUid) || seen.has(cleanUid)) return;
+    seen.add(cleanUid);
+    result.push({ uid: cleanUid, name: cleanName });
+  };
+
+  pushEntry(nextEditor.uid, nextEditor.name);
+
+  if (Array.isArray(existing?.recentEditors)) {
+    for (const entry of existing.recentEditors) {
+      pushEntry(entry?.uid, entry?.name);
+      if (result.length >= VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT) {
+        return result;
+      }
+    }
+  }
+
+  if (existing && result.length < VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT) {
+    pushEntry(existing.lastEditorId, existing.lastEditorName);
+  }
+  if (existing && result.length < VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT) {
+    pushEntry(existing.authorId, existing.authorName);
+  }
+
+  return result.slice(0, VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT);
+}
+
+export function extractRecentEditorsFromRevisions(
+  revisions: PageRevision[],
+  fallbackPage?: Pick<
+    WikiPage,
+    'recentEditors' | 'lastEditorId' | 'lastEditorName' | 'authorId' | 'authorName'
+  > | null
+): RecentEditorEntry[] {
+  const sorted = [...revisions].sort((a, b) => b.version - a.version);
+  const result: RecentEditorEntry[] = [];
+  const seen = new Set<string>();
+
+  const pushEntry = (uid?: string | null, name?: string | null) => {
+    if (!uid || !name) return;
+    const cleanUid = uid.trim();
+    const cleanName = sanitizeString(name, VALIDATION_LIMITS.AUTHOR_NAME_MAX_LENGTH);
+    if (!cleanUid || !cleanName || seen.has(cleanUid)) return;
+    seen.add(cleanUid);
+    result.push({ uid: cleanUid, name: cleanName });
+  };
+
+  for (const rev of sorted) {
+    pushEntry(rev.editorId, rev.editorName);
+    if (result.length >= VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT) {
+      return result;
+    }
+  }
+
+  if (fallbackPage) {
+    if (Array.isArray(fallbackPage.recentEditors)) {
+      for (const entry of fallbackPage.recentEditors) {
+        pushEntry(entry?.uid, entry?.name);
+        if (result.length >= VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT) return result;
+      }
+    }
+    pushEntry(fallbackPage.lastEditorId, fallbackPage.lastEditorName);
+    if (result.length < VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT) {
+      pushEntry(fallbackPage.authorId, fallbackPage.authorName);
+    }
+  }
+
+  return result.slice(0, VALIDATION_LIMITS.RECENT_EDITORS_MAX_COUNT);
 }
 
 export function buildPersonalSlugs(
@@ -269,6 +356,7 @@ export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
           authorName: displayName,
           lastEditorId: user.uid,
           lastEditorName: displayName,
+          recentEditors: [{ uid: user.uid, name: displayName }],
           version: 1,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -318,6 +406,7 @@ export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
           authorName: displayName,
           lastEditorId: user.uid,
           lastEditorName: displayName,
+          recentEditors: [{ uid: user.uid, name: displayName }],
           version: 1,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -458,6 +547,7 @@ export async function createWikiPage(input: SavePageInput, user: User): Promise<
     authorName,
     lastEditorId: user.uid,
     lastEditorName: authorName,
+    recentEditors: [{ uid: user.uid, name: authorName }],
     version: 1,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -533,6 +623,11 @@ export async function updateWikiPage(
   const pageRef = doc(db, 'pages', existing.slug);
   const batch = writeBatch(db);
 
+  const recentEditors = computeNextRecentEditors(existing, {
+    uid: user.uid,
+    name: editorName,
+  });
+
   const updatePayload: Record<string, unknown> = {
     title,
     content,
@@ -540,6 +635,7 @@ export async function updateWikiPage(
     tags,
     lastEditorId: user.uid,
     lastEditorName: editorName,
+    recentEditors,
     version: nextVersion,
     updatedAt: serverTimestamp(),
   };
@@ -1153,6 +1249,7 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
           authorName,
           lastEditorId: user.uid,
           lastEditorName: authorName,
+          recentEditors: [{ uid: user.uid, name: authorName }],
           version: 1,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -1285,6 +1382,7 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
           authorName,
           lastEditorId: user.uid,
           lastEditorName: authorName,
+          recentEditors: [{ uid: user.uid, name: authorName }],
           version: 1,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -1330,6 +1428,10 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
             tags: item.tags,
             lastEditorId: user.uid,
             lastEditorName: authorName,
+            recentEditors: computeNextRecentEditors(existing, {
+              uid: user.uid,
+              name: authorName,
+            }),
             version: nextVersion,
             updatedAt: serverTimestamp(),
           });

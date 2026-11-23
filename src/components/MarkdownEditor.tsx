@@ -5,8 +5,10 @@ import {
   BookMarked,
   Braces,
   Code,
+  Code2,
   ExternalLink,
   Eye,
+  FileText,
   Heading2,
   Heading3,
   Image as ImageIcon,
@@ -38,6 +40,12 @@ import {
 } from '../lib/headerImageService';
 import { toWikiSlug } from '../lib/markdownUtils';
 import { ArticleViewer } from './ArticleViewer';
+import {
+  type ActiveRichFormats,
+  FormattedMarkdownPane,
+  type FormattedEditorHandle,
+  type RichFormatCommand,
+} from './FormattedMarkdownPane';
 import { InfoboxBuilderModal } from './InfoboxBuilderModal';
 import { TemplatePickerModal } from './TemplatePickerModal';
 
@@ -93,7 +101,7 @@ interface MarkdownEditorProps {
   onNavigateSlug: (slug: string) => void;
 }
 
-type EditorPaneMode = 'write' | 'split' | 'preview';
+type EditorPaneMode = 'formatted' | 'code' | 'split' | 'preview';
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   mode,
@@ -148,11 +156,20 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [sendAdminNotice, setSendAdminNotice] = React.useState(false);
   const [adminNoticeReason, setAdminNoticeReason] = React.useState('');
   const [paneMode, setPaneMode] = React.useState<EditorPaneMode>('split');
+  const [focusedPane, setFocusedPane] = React.useState<'code' | 'formatted'>('code');
+  const [activeRichFormats, setActiveRichFormats] = React.useState<ActiveRichFormats>({
+    bold: false,
+    italic: false,
+    blockTag: '',
+    unorderedList: false,
+    orderedList: false,
+  });
   const [localError, setLocalError] = React.useState<string | null>(null);
   const [infoboxModalOpen, setInfoboxModalOpen] = React.useState(false);
   const [templateModalOpen, setTemplateModalOpen] = React.useState(false);
 
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const formattedPaneRef = React.useRef<FormattedEditorHandle | null>(null);
   const bannerFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
@@ -232,6 +249,46 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       el.focus();
       el.setSelectionRange(nextCaret, nextCaret);
     });
+  };
+
+  const targetIsFormatted =
+    paneMode === 'formatted' || (paneMode === 'split' && focusedPane === 'formatted');
+
+  const switchPaneMode = (nextMode: EditorPaneMode) => {
+    setPaneMode(nextMode);
+    if (nextMode === 'formatted') {
+      setFocusedPane('formatted');
+      requestAnimationFrame(() => formattedPaneRef.current?.focus());
+    } else if (nextMode === 'code') {
+      setFocusedPane('code');
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  };
+
+  const handleToolbarFormat = (richCmd: RichFormatCommand, codeAction: () => void) => {
+    if (targetIsFormatted) {
+      formattedPaneRef.current?.applyFormat(richCmd);
+      return;
+    }
+    codeAction();
+  };
+
+  const handleInsertWikiStructure = (blockText: string) => {
+    if (targetIsFormatted) {
+      formattedPaneRef.current?.insertRawWikiSnippet(blockText);
+      return;
+    }
+    insertBlockAtCursor(blockText);
+  };
+
+  const handleInsertReference = () => {
+    if (targetIsFormatted) {
+      formattedPaneRef.current?.insertRawWikiSnippet(
+        '<ref>Autor, Título (Ano). https://...</ref>'
+      );
+      return;
+    }
+    insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...');
   };
 
   const handleBannerFileSelected = async (file: File | null) => {
@@ -340,19 +397,23 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
     if (isMod && e.shiftKey && keyLower === 'p') {
       e.preventDefault();
-      setPaneMode((prev) => (prev === 'write' ? 'split' : prev === 'split' ? 'preview' : 'write'));
+      const order: EditorPaneMode[] = ['formatted', 'code', 'split', 'preview'];
+      const next = order[(order.indexOf(paneMode) + 1) % order.length];
+      switchPaneMode(next);
       return;
     }
 
     if (isMod && e.shiftKey && keyLower === 'l' && enableVisualToolbar) {
       e.preventDefault();
-      insertSnippet('[[', ']]', 'page-slug|Link Label');
+      handleToolbarFormat('wikilink', () =>
+        insertSnippet('[[', ']]', 'page-slug|Link Label')
+      );
       return;
     }
 
     if (isMod && e.shiftKey && keyLower === 'r' && enableReferencesToolbar) {
       e.preventDefault();
-      insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...');
+      handleInsertReference();
       return;
     }
 
@@ -647,9 +708,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <button
               type="button"
               title="Inserir citação bibliográfica <ref> (Ctrl+Shift+R)"
-              onClick={() =>
-                insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...')
-              }
+              onMouseDown={(e) => {
+                if (targetIsFormatted) e.preventDefault();
+              }}
+              onClick={handleInsertReference}
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
@@ -658,33 +720,58 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg">
+        <div
+          role="tablist"
+          aria-label="Modo de edição"
+          className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg"
+        >
           <button
             type="button"
-            onClick={() => setPaneMode('write')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-              paneMode === 'write'
+            role="tab"
+            aria-selected={paneMode === 'formatted'}
+            onClick={() => switchPaneMode('formatted')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+              paneMode === 'formatted'
                 ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
-            Write
+            <FileText className="w-3.5 h-3.5" />
+            <span>Formatado</span>
           </button>
           <button
             type="button"
-            onClick={() => setPaneMode('split')}
-            className={`hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+            role="tab"
+            aria-selected={paneMode === 'code'}
+            onClick={() => switchPaneMode('code')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+              paneMode === 'code'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            <Code2 className="w-3.5 h-3.5" />
+            <span>Código</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={paneMode === 'split'}
+            onClick={() => switchPaneMode('split')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
               paneMode === 'split'
                 ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
             <SplitSquareHorizontal className="w-3.5 h-3.5" />
-            Split
+            <span>Lado a lado</span>
           </button>
           <button
             type="button"
-            onClick={() => setPaneMode('preview')}
+            role="tab"
+            aria-selected={paneMode === 'preview'}
+            onClick={() => switchPaneMode('preview')}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
               paneMode === 'preview'
                 ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
@@ -692,31 +779,39 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
-            Preview
+            <span>Visualizar</span>
           </button>
         </div>
       </div>
 
-      {/* Markdown Input + Live Preview */}
-      <div
-        className={`grid gap-5 ${
-          paneMode === 'split' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
-        }`}
-      >
-        {paneMode !== 'preview' && (
-          <div className="flex flex-col">
-            {/* Visual Wikitext Formatting Toolbar directly above the textarea */}
-            {enableVisualToolbar && (
-              <div
-                role="toolbar"
-                aria-label="Barra de ferramentas de wikitexto"
-                className="flex flex-wrap items-center gap-1 px-2.5 py-2 rounded-t-xl border border-b-0 border-slate-300 dark:border-slate-700 bg-slate-50/90 dark:bg-[#0f1623]"
-              >
+      {/* Editor Area: Visual Toolbar + Formatted / Code / Side-by-Side / Preview */}
+      {paneMode !== 'preview' ? (
+        <div className="flex flex-col">
+          {enableVisualToolbar && (
+            <div
+              role="toolbar"
+              aria-label="Barra de ferramentas de edição"
+              className={`flex flex-wrap items-center justify-between gap-2 px-2.5 py-2 border border-slate-300 dark:border-slate-700 bg-slate-50/90 dark:bg-[#0f1623] ${
+                paneMode === 'split' ? 'rounded-xl mb-3' : 'rounded-t-xl border-b-0'
+              }`}
+            >
+              <div className="flex flex-wrap items-center gap-1">
                 <button
                   type="button"
                   title="Negrito (**texto**) — Ctrl+B"
-                  onClick={() => insertSnippet('**', '**', 'texto em negrito')}
-                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('bold', () =>
+                      insertSnippet('**', '**', 'texto em negrito')
+                    )
+                  }
+                  className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                    targetIsFormatted && activeRichFormats.bold
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <Bold className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Negrito</span>
@@ -724,38 +819,84 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 <button
                   type="button"
                   title="Itálico (*texto*) — Ctrl+I"
-                  onClick={() => insertSnippet('*', '*', 'texto em itálico')}
-                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('italic', () =>
+                      insertSnippet('*', '*', 'texto em itálico')
+                    )
+                  }
+                  className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                    targetIsFormatted && activeRichFormats.italic
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <Italic className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Itálico</span>
                 </button>
 
-                <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5"
+                />
 
                 <button
                   type="button"
                   title="Título de seção (## Título)"
-                  onClick={() => insertSnippet('## ', '', 'Título da Seção')}
-                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('heading2', () =>
+                      insertSnippet('## ', '', 'Título da Seção')
+                    )
+                  }
+                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                    targetIsFormatted && activeRichFormats.blockTag === 'h2'
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <Heading2 className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   title="Subtítulo (### Subtítulo)"
-                  onClick={() => insertSnippet('### ', '', 'Subtítulo')}
-                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('heading3', () =>
+                      insertSnippet('### ', '', 'Subtítulo')
+                    )
+                  }
+                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                    targetIsFormatted && activeRichFormats.blockTag === 'h3'
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <Heading3 className="w-4 h-4" />
                 </button>
 
-                <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5"
+                />
 
                 <button
                   type="button"
                   title="Link interno do wiki ([[slug|Texto]]) — Ctrl+Shift+L"
-                  onClick={() => insertSnippet('[[', ']]', 'slug-da-pagina|Texto do Link')}
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('wikilink', () =>
+                      insertSnippet('[[', ']]', 'slug-da-pagina|Texto do Link')
+                    )
+                  }
                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <Link2 className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
@@ -764,27 +905,55 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 <button
                   type="button"
                   title="Link externo ([Texto](https://...))"
-                  onClick={() => insertSnippet('[', '](https://exemplo.com)', 'Texto do Link')}
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('externallink', () =>
+                      insertSnippet('[', '](https://exemplo.com)', 'Texto do Link')
+                    )
+                  }
                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">URL</span>
                 </button>
 
-                <span aria-hidden="true" className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5" />
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5"
+                />
 
                 <button
                   type="button"
                   title="Lista com marcadores (- Item)"
-                  onClick={() => insertSnippet('\n- ', '', 'Item da lista')}
-                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('bulletList', () =>
+                      insertSnippet('\n- ', '', 'Item da lista')
+                    )
+                  }
+                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                    targetIsFormatted && activeRichFormats.unorderedList
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <List className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   title="Checklist (- [ ] Tarefa)"
-                  onClick={() => insertSnippet('\n- [ ] ', '', 'Tarefa pendente')}
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('checklist', () =>
+                      insertSnippet('\n- [ ] ', '', 'Tarefa pendente')
+                    )
+                  }
                   className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <ListChecks className="w-4 h-4" />
@@ -792,27 +961,54 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 <button
                   type="button"
                   title="Bloco de citação (> Texto)"
-                  onClick={() => insertSnippet('\n> ', '', 'Texto citado ou nota editorial.')}
-                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('blockquote', () =>
+                      insertSnippet('\n> ', '', 'Texto citado ou nota editorial.')
+                    )
+                  }
+                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                    targetIsFormatted && activeRichFormats.blockTag === 'blockquote'
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <Quote className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   title="Bloco de código"
-                  onClick={() => insertSnippet('\n```ts\n', '\n```\n', 'const exemplo = "wiki";')}
-                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() =>
+                    handleToolbarFormat('codeBlock', () =>
+                      insertSnippet('\n```ts\n', '\n```\n', 'const exemplo = "wiki";')
+                    )
+                  }
+                  className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                    targetIsFormatted && activeRichFormats.blockTag === 'pre'
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
                 >
                   <Code className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   title="Inserir tabela wikitexto/Markdown"
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
                   onClick={() =>
-                    insertSnippet(
-                      '\n| Coluna 1 | Coluna 2 |\n| --- | --- |\n| ',
-                      ' | Valor 2 |\n| Linha 2A | Linha 2B |\n',
-                      'Valor 1'
+                    handleToolbarFormat('table', () =>
+                      insertSnippet(
+                        '\n| Coluna 1 | Coluna 2 |\n| --- | --- |\n| ',
+                        ' | Valor 2 |\n| Linha 2A | Linha 2B |\n',
+                        'Valor 1'
+                      )
                     )
                   }
                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -821,61 +1017,121 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <span>Tabela</span>
                 </button>
               </div>
-            )}
 
-            <textarea
-              ref={textareaRef}
-              value={content}
-              maxLength={VALIDATION_LIMITS.CONTENT_MAX_LENGTH}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write in Markdown... Use [[slug]] for links, {{Notice|...}} or {{Aviso|...}} for MediaWiki templates, or :::infobox for infoboxes. Press Ctrl+Enter to save."
-              className={`w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed ${
-                enableVisualToolbar ? 'rounded-b-xl' : 'rounded-xl'
-              } border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y`}
-            />
-            <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
-              <span>GFM, {'{{Predefinições}}'}, :::infobox, &lt;ref&gt; &amp; [[links]] · Ctrl+Enter to save</span>
-              <span>
-                {content.length.toLocaleString('en-US')} /{' '}
-                {VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('en-US')}
-              </span>
+              {paneMode === 'split' && (
+                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 px-1.5">
+                  Alvo: {focusedPane === 'formatted' ? 'Formatado' : 'Código'}
+                </span>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {paneMode !== 'write' && (
-          <div className="min-h-[420px] p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0d131f] overflow-y-auto space-y-4">
-            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-3 border-b border-slate-200 dark:border-slate-800">
-              Live preview
-            </div>
-            {enableHeaderBanner && sanitizeHeaderImageUrl(headerImageUrl) && !bannerPreviewFailed && (
-              <figure className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
-                <img
-                  src={sanitizeHeaderImageUrl(headerImageUrl)}
-                  alt={`${title || 'Page'} banner preview`}
-                  className="w-full h-36 sm:h-44 object-cover object-center block"
+          <div
+            className={`grid gap-4 ${
+              paneMode === 'split' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
+            }`}
+          >
+            {(paneMode === 'code' || paneMode === 'split') && (
+              <div className="flex flex-col min-w-0">
+                {paneMode === 'split' && (
+                  <div className="flex items-center justify-between px-3 py-1.5 rounded-t-xl border border-b-0 border-slate-300 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-900/70 text-xs font-medium text-slate-600 dark:text-slate-300">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Code2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                      Código (Markdown)
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                      wikitexto bruto
+                    </span>
+                  </div>
+                )}
+                <textarea
+                  ref={textareaRef}
+                  value={content}
+                  maxLength={VALIDATION_LIMITS.CONTENT_MAX_LENGTH}
+                  onFocus={() => setFocusedPane('code')}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Write in Markdown... Use [[slug]] for links, {{Notice|...}} or {{Aviso|...}} for MediaWiki templates, or :::infobox for infoboxes. Press Ctrl+Enter to save."
+                  className={`w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed ${
+                    paneMode === 'split' || enableVisualToolbar ? 'rounded-b-xl' : 'rounded-xl'
+                  } border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y`}
                 />
-              </figure>
+              </div>
             )}
-            <ArticleViewer
-              content={content}
-              existingSlugs={existingSlugs}
-              wikiPages={wikiPages}
-              currentSlug={currentSlug}
-              onNavigateSlug={onNavigateSlug}
-              showToc={showTocPreview}
-              tocDefaultExpanded={tocDefaultExpanded}
-              tocMinHeadings={tocMinHeadings}
-              enableReferences={enableReferencesPreview}
-              referencesTitle={referencesTitle}
-              enableInfoboxes={enableInfoboxPreview}
-              enableTemplates={enableTemplatesPreview}
-              externalLinkPrefix={externalLinkPrefix}
-              encodeExternalLinkTarget={encodeExternalLinkTarget}
-            />
+
+            {(paneMode === 'formatted' || paneMode === 'split') && (
+              <div
+                className="flex flex-col min-w-0"
+                onFocusCapture={() => setFocusedPane('formatted')}
+              >
+                {paneMode === 'split' && (
+                  <div className="flex items-center justify-between px-3 py-1.5 rounded-t-xl border border-b-0 border-slate-300 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-900/70 text-xs font-medium text-slate-600 dark:text-slate-300">
+                    <span className="inline-flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                      Edição Formatada
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                      visual interativo
+                    </span>
+                  </div>
+                )}
+                <FormattedMarkdownPane
+                  ref={formattedPaneRef}
+                  value={content}
+                  onChange={(nextMarkdown) =>
+                    setContent(nextMarkdown.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH))
+                  }
+                  onActiveFormatsChange={setActiveRichFormats}
+                  roundedClassName={
+                    paneMode === 'split' || enableVisualToolbar ? 'rounded-b-xl' : 'rounded-xl'
+                  }
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
+            <span>
+              GFM, {'{{Predefinições}}'}, :::infobox, &lt;ref&gt; &amp; [[links]] · Formatado,
+              Código ou Lado a lado · Ctrl+Enter para salvar
+            </span>
+            <span>
+              {content.length.toLocaleString('en-US')} /{' '}
+              {VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('en-US')}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="min-h-[420px] p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0d131f] overflow-y-auto space-y-4">
+          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-3 border-b border-slate-200 dark:border-slate-800">
+            Visualização completa do artigo
+          </div>
+          {enableHeaderBanner && sanitizeHeaderImageUrl(headerImageUrl) && !bannerPreviewFailed && (
+            <figure className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+              <img
+                src={sanitizeHeaderImageUrl(headerImageUrl)}
+                alt={`${title || 'Page'} banner preview`}
+                className="w-full h-36 sm:h-44 object-cover object-center block"
+              />
+            </figure>
+          )}
+          <ArticleViewer
+            content={content}
+            existingSlugs={existingSlugs}
+            wikiPages={wikiPages}
+            currentSlug={currentSlug}
+            onNavigateSlug={onNavigateSlug}
+            showToc={showTocPreview}
+            tocDefaultExpanded={tocDefaultExpanded}
+            tocMinHeadings={tocMinHeadings}
+            enableReferences={enableReferencesPreview}
+            referencesTitle={referencesTitle}
+            enableInfoboxes={enableInfoboxPreview}
+            enableTemplates={enableTemplatesPreview}
+            externalLinkPrefix={externalLinkPrefix}
+            encodeExternalLinkTarget={encodeExternalLinkTarget}
+          />
+        </div>
+      )}
 
       {/* Admin/Bureaucrat Discussion Notification Toggle when moderating another user's page/edit */}
       {isAdminEditingOtherPage && mode === 'edit' && (
@@ -951,7 +1207,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         isOpen={infoboxModalOpen}
         existingSlugs={existingSlugs}
         onClose={() => setInfoboxModalOpen(false)}
-        onInsert={insertBlockAtCursor}
+        onInsert={handleInsertWikiStructure}
         onNavigateSlug={onNavigateSlug}
       />
 
@@ -962,7 +1218,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           wikiPages={wikiPages}
           currentUser={currentUser}
           onClose={() => setTemplateModalOpen(false)}
-          onInsert={insertBlockAtCursor}
+          onInsert={handleInsertWikiStructure}
           onNavigateSlug={onNavigateSlug}
           externalLinkPrefix={externalLinkPrefix}
           encodeExternalLinkTarget={encodeExternalLinkTarget}

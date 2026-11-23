@@ -44,6 +44,7 @@ export const VALIDATION_LIMITS = {
   HEADER_IMAGE_EXTERNAL_URL_MAX_LENGTH: 1000,
   RATING_MIN_SCORE: 1,
   RATING_MAX_SCORE: 5,
+  RECENT_EDITORS_MAX_COUNT: 3,
 } as const;
 
 export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
@@ -160,6 +161,11 @@ export interface LgpdErasureLog {
   createdAt: Timestamp | null;
 }
 
+export interface RecentEditorEntry {
+  uid: string;
+  name: string;
+}
+
 export interface WikiPage {
   slug: string;
   title: string;
@@ -173,6 +179,7 @@ export interface WikiPage {
   authorName: string;
   lastEditorId: string;
   lastEditorName: string;
+  recentEditors?: RecentEditorEntry[];
   version: number;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;

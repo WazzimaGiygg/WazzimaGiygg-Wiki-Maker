@@ -76,6 +76,10 @@
           "maxLength": 80,
           "description": "Display name of the most recent editor."
         },
+        "recentEditors": {
+          "type": "array",
+          "description": "Bounded list of up to 3 most recent unique editors ({ uid, name }), ordered newest-first."
+        },
         "version": {
           "type": "integer",
           "description": "Monotonically increasing revision number starting at 1."
