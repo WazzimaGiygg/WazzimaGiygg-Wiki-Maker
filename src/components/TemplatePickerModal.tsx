@@ -34,6 +34,8 @@ interface TemplatePickerModalProps {
   onClose: () => void;
   onInsert: (snippet: string) => void;
   onNavigateSlug: (slug: string) => void;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 type FilterTab = 'all' | 'notices' | 'navigation' | 'infobox' | 'ecosystem' | 'community';
@@ -98,6 +100,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   onClose,
   onInsert,
   onNavigateSlug,
+  externalLinkPrefix,
+  encodeExternalLinkTarget = false,
 }) => {
   const [activeTab, setActiveTab] = React.useState<FilterTab>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -659,6 +663,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       showToc={false}
                       enableReferences={false}
                       showReferencesFooter={false}
+                      externalLinkPrefix={externalLinkPrefix}
+                      encodeExternalLinkTarget={encodeExternalLinkTarget}
                     />
                   </div>
                 </div>
@@ -755,6 +761,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       showToc={false}
                       enableReferences={false}
                       showReferencesFooter={false}
+                      externalLinkPrefix={externalLinkPrefix}
+                      encodeExternalLinkTarget={encodeExternalLinkTarget}
                     />
                   </div>
                 </div>
@@ -839,6 +847,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       showToc={false}
                       enableReferences={false}
                       showReferencesFooter={false}
+                      externalLinkPrefix={externalLinkPrefix}
+                      encodeExternalLinkTarget={encodeExternalLinkTarget}
                     />
                   </div>
                 </div>

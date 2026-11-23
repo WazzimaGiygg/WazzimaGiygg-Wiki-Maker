@@ -26,3 +26,4 @@
 14. **Primary Bootstrapped Bureaucrat Moderation Attempt**: A regular admin or secondary bureaucrat attempts to create `/blocked_users/{ownerUid}` or overwrite `/admins/{ownerUid}` targeting `mafersao1100@gmail.com`. -> **Expected: PERMISSION_DENIED**
 15. **Regular Admin Privilege Escalation on `/admins` or `/extensions`**: A non-bureaucrat admin attempts to promote themselves in `/admins/{selfUid}` or mutate `/extensions/site-branding`. -> **Expected: PERMISSION_DENIED**
 16. **Non-Owner Edit on Another User's Personal or Discussion Page**: A regular collaborator attempts to update `/pages/user-alice-123` or `/pages/user-alice-123-discussion` owned by `uid_alice`, even when `visibility == 'public'` and `isLocked == false`. -> **Expected: PERMISSION_DENIED**
+17. **Unsafe External Link Prefix Injection**: Even a bureaucrat attempts to store `externalLinkPrefix: "javascript:alert(1)"` inside `/extensions/external-link-prefix`. -> **Expected: PERMISSION_DENIED**

@@ -22,12 +22,18 @@ import {
   WMF_DOSSIER_PILLARS,
 } from '../lib/ecosystemContent';
 import { DOSSIER_PAGE_SLUG } from '../lib/dossierArticle';
+import {
+  applyExternalLinkPrefix,
+  DEFAULT_EXTERNAL_LINK_PREFIX,
+} from '../lib/extensionsService';
 
 interface EcosystemProductsViewProps {
   siteTitle: string;
   subpage: EcosystemSubpage;
   onChangeSubpage: (subpage: EcosystemSubpage) => void;
   onSelectPage: (slug: string) => void;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 const SUBPAGE_TABS: {
@@ -62,7 +68,11 @@ const SUBPAGE_TABS: {
   },
 ];
 
-function getSubpageHeadingMeta(subpage: EcosystemSubpage, siteTitle: string): {
+function getSubpageHeadingMeta(
+  subpage: EcosystemSubpage,
+  siteTitle: string,
+  formatExternalUrl: (url: string) => string
+): {
   breadcrumbLabel: string;
   h1: string;
   lead: React.ReactNode;
@@ -90,7 +100,7 @@ function getSubpageHeadingMeta(subpage: EcosystemSubpage, siteTitle: string): {
           <>
             Public investigative dossier published at{' '}
             <a
-              href={WIKIPEDIA_DOSSIER_URL}
+              href={formatExternalUrl(WIKIPEDIA_DOSSIER_URL)}
               target="_blank"
               rel="noopener noreferrer"
               data-wiki-surface="link"
@@ -126,7 +136,7 @@ function getSubpageHeadingMeta(subpage: EcosystemSubpage, siteTitle: string): {
           <>
             <strong>{siteTitle}</strong> is part of the{' '}
             <a
-              href="https://wazzimagiygg.com/"
+              href={formatExternalUrl('https://wazzimagiygg.com/')}
               target="_blank"
               rel="noopener noreferrer"
               data-wiki-surface="link"
@@ -149,8 +159,15 @@ export const EcosystemProductsView: React.FC<EcosystemProductsViewProps> = ({
   subpage,
   onChangeSubpage,
   onSelectPage,
+  externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
+  encodeExternalLinkTarget = false,
 }) => {
-  const headingMeta = getSubpageHeadingMeta(subpage, siteTitle);
+  const formatExternalUrl = React.useCallback(
+    (url: string) =>
+      applyExternalLinkPrefix(url, externalLinkPrefix, encodeExternalLinkTarget) ?? url,
+    [externalLinkPrefix, encodeExternalLinkTarget]
+  );
+  const headingMeta = getSubpageHeadingMeta(subpage, siteTitle, formatExternalUrl);
   const showServicesSection = subpage === 'overview' || subpage === 'services';
   const showDossierSection = subpage === 'overview' || subpage === 'dossier';
   const showAdminsSection = subpage === 'overview' || subpage === 'administrators';
@@ -280,7 +297,7 @@ export const EcosystemProductsView: React.FC<EcosystemProductsViewProps> = ({
             <span>Read Ecosystem Wiki Article</span>
           </button>
           <a
-            href={WIKIPEDIA_DOSSIER_URL}
+            href={formatExternalUrl(WIKIPEDIA_DOSSIER_URL)}
             target="_blank"
             rel="noopener noreferrer"
             data-wiki-surface="accent"
@@ -389,7 +406,7 @@ export const EcosystemProductsView: React.FC<EcosystemProductsViewProps> = ({
                     {product.domain}
                   </span>
                   <a
-                    href={product.url}
+                    href={formatExternalUrl(product.url)}
                     itemProp="url"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -511,7 +528,7 @@ export const EcosystemProductsView: React.FC<EcosystemProductsViewProps> = ({
                 </a>
               )}
               <a
-                href={WIKIPEDIA_DOSSIER_URL}
+                href={formatExternalUrl(WIKIPEDIA_DOSSIER_URL)}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-wiki-surface="accent"
@@ -549,7 +566,7 @@ export const EcosystemProductsView: React.FC<EcosystemProductsViewProps> = ({
             <span className="text-slate-600 dark:text-slate-300">
               Primary source:{' '}
               <a
-                href={WIKIPEDIA_DOSSIER_URL}
+                href={formatExternalUrl(WIKIPEDIA_DOSSIER_URL)}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-wiki-surface="link"
@@ -672,7 +689,7 @@ export const EcosystemProductsView: React.FC<EcosystemProductsViewProps> = ({
 
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-[11px]">
                   <a
-                    href={WIKIPEDIA_DOSSIER_URL}
+                    href={formatExternalUrl(WIKIPEDIA_DOSSIER_URL)}
                     itemProp="url"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -699,7 +716,7 @@ export const EcosystemProductsView: React.FC<EcosystemProductsViewProps> = ({
               <span className="text-slate-600 dark:text-slate-300">
                 Full documentary archive:{' '}
                 <a
-                  href={WIKIPEDIA_DOSSIER_URL}
+                  href={formatExternalUrl(WIKIPEDIA_DOSSIER_URL)}
                   target="_blank"
                   rel="noopener noreferrer"
                   data-wiki-surface="link"

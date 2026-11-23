@@ -39,6 +39,7 @@ export const VALIDATION_LIMITS = {
   EXTENSION_FOOTER_TITLE_MAX_LENGTH: 80,
   EXTENSION_MIN_HEADINGS_MIN: 1,
   EXTENSION_MIN_HEADINGS_MAX: 10,
+  EXTENSION_EXTERNAL_LINK_PREFIX_MAX_LENGTH: 300,
 } as const;
 
 export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
@@ -55,7 +56,8 @@ export type WikiExtensionId =
   | 'random-article'
   | 'copy-link'
   | 'realtime-toasts'
-  | 'page-discussion';
+  | 'page-discussion'
+  | 'external-link-prefix';
 
 export type WikiExtensionCategory =
   | 'appearance'
@@ -84,6 +86,8 @@ export interface WikiExtensionSettings {
   notifyWhileEditing?: boolean;
   allowAnonymousRead?: boolean;
   autoExitOnNavigate?: boolean;
+  externalLinkPrefix?: string;
+  encodeTargetUrl?: boolean;
 }
 
 export interface WikiExtensionRecord {

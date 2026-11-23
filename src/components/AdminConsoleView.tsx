@@ -30,7 +30,10 @@ import {
   unblockUserAccount,
 } from '../lib/adminService';
 import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
-import type { SiteExtensionsState } from '../lib/extensionsService';
+import {
+  resolveExternalLinkConfig,
+  type SiteExtensionsState,
+} from '../lib/extensionsService';
 import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
 import { updateWikiPage } from '../lib/wikiService';
 import { isTemplatePage } from '../services/templateService';
@@ -63,6 +66,10 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
   onSelectPage,
 }) => {
   const isBureaucrat = currentUserRole === 'bureaucrat';
+  const externalLinkConfig = React.useMemo(
+    () => resolveExternalLinkConfig(extensionsState),
+    [extensionsState]
+  );
 
   const [tab, setTab] = React.useState<AdminTab>('users');
   const [snapshot, setSnapshot] = React.useState<AdminDashboardSnapshot | null>(null);
@@ -1215,6 +1222,8 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
               onReloadData={loadData}
               onFeedback={setFeedbackMsg}
               onError={setErrorMsg}
+              externalLinkPrefix={externalLinkConfig.prefix}
+              encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
             />
           )}
 

@@ -278,4 +278,26 @@ export const DIRTY_DOZEN_PAYLOADS: DirtyDozenCase[] = [
     },
     expected: 'PERMISSION_DENIED',
   },
+  {
+    id: 17,
+    name: 'Unsafe Scheme Injection in Extension externalLinkPrefix',
+    operation: 'update',
+    path: '/extensions/external-link-prefix',
+    actorUid: 'uid_bureaucrat',
+    emailVerified: true,
+    payload: {
+      id: 'external-link-prefix',
+      scope: 'site',
+      name: 'Prefixo de Links Externos',
+      description: 'Test',
+      category: 'navigation',
+      enabled: true,
+      sortOrder: 10,
+      settings: {
+        externalLinkPrefix: 'javascript:alert(document.cookie)//',
+        encodeTargetUrl: false,
+      },
+    },
+    expected: 'PERMISSION_DENIED',
+  },
 ];

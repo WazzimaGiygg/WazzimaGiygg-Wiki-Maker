@@ -48,8 +48,10 @@ import { UserEditsPanel } from './components/UserEditsPanel';
 import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance, notifyUserDiscussionPage } from './lib/adminService';
 import {
+  applyExternalLinkPrefix,
   bootAndSubscribeSiteExtensions,
   getInitialSiteExtensionsState,
+  resolveExternalLinkConfig,
   resolveSiteTheme,
   resolveSiteTitle,
   type SiteExtensionsState,
@@ -354,6 +356,10 @@ function WikiWorkspace() {
   const copyLinkExt = extensionsState.byId['copy-link'];
   const realtimeExt = extensionsState.byId['realtime-toasts'];
   const discussionExt = extensionsState.byId['page-discussion'];
+  const externalLinkConfig = React.useMemo(
+    () => resolveExternalLinkConfig(extensionsState),
+    [extensionsState]
+  );
 
   const isBureaucrat = Boolean(
     user &&
@@ -1908,6 +1914,8 @@ function WikiWorkspace() {
                 subpage={ecosystemSubpage}
                 onChangeSubpage={navigateToEcosystem}
                 onSelectPage={navigateToPage}
+                externalLinkPrefix={externalLinkConfig.prefix}
+                encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
               />
             </div>
           ) : view === 'legal' ? (
@@ -2021,6 +2029,8 @@ function WikiWorkspace() {
                   tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
                   tocMinHeadings={tocMinHeadings}
                   referencesTitle={referencesSectionTitle}
+                  externalLinkPrefix={externalLinkConfig.prefix}
+                  encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
                   onSave={handleCreateSave}
                   onCancel={() => navigateToPage('start')}
                   onNavigateSlug={navigateToPage}
@@ -2518,6 +2528,8 @@ function WikiWorkspace() {
                             }}
                             existingSlugs={existingSlugs}
                             onNavigateSlug={navigateToPage}
+                            externalLinkPrefix={externalLinkConfig.prefix}
+                            encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
                           />
                         )}
 
@@ -2535,6 +2547,8 @@ function WikiWorkspace() {
                         referencesTitle={referencesSectionTitle}
                         enableInfoboxes={infoboxExt.enabled}
                         showReferencesFooter={false}
+                        externalLinkPrefix={externalLinkConfig.prefix}
+                        encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
                       />
                     </div>
 
@@ -2544,6 +2558,8 @@ function WikiWorkspace() {
                         title={referencesSectionTitle}
                         existingSlugs={existingSlugs}
                         onNavigateSlug={navigateToPage}
+                        externalLinkPrefix={externalLinkConfig.prefix}
+                        encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
                       />
                     )}
 
@@ -2621,7 +2637,11 @@ function WikiWorkspace() {
                       <div>
                         Content is available under{' '}
                         <a
-                          href="https://creativecommons.org/licenses/by-sa/4.0/"
+                          href={applyExternalLinkPrefix(
+                            'https://creativecommons.org/licenses/by-sa/4.0/',
+                            externalLinkConfig.prefix,
+                            externalLinkConfig.encodeTargetUrl
+                          )}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-700 dark:text-blue-400 hover:underline"
@@ -2729,6 +2749,8 @@ function WikiWorkspace() {
                   tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
                   tocMinHeadings={tocMinHeadings}
                   referencesTitle={referencesSectionTitle}
+                  externalLinkPrefix={externalLinkConfig.prefix}
+                  encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
                   isAdminEditingOtherPage={
                     isAdmin &&
                     activePage.authorId !== 'builtin-editorial' &&
@@ -2830,7 +2852,11 @@ function WikiWorkspace() {
                 </strong>{' '}
                 · Content under{' '}
                 <a
-                  href="https://creativecommons.org/licenses/by-sa/4.0/"
+                  href={applyExternalLinkPrefix(
+                    'https://creativecommons.org/licenses/by-sa/4.0/',
+                    externalLinkConfig.prefix,
+                    externalLinkConfig.encodeTargetUrl
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-700 dark:text-blue-400 hover:underline"
@@ -2856,7 +2882,11 @@ function WikiWorkspace() {
               <p className="pt-0.5 text-slate-600 dark:text-slate-300 leading-relaxed">
                 Este site pertence ao ecossistema{' '}
                 <a
-                  href={LEGAL_GOVERNANCE.ecosystemUrl}
+                  href={applyExternalLinkPrefix(
+                    LEGAL_GOVERNANCE.ecosystemUrl,
+                    externalLinkConfig.prefix,
+                    externalLinkConfig.encodeTargetUrl
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   data-wiki-surface="link"
@@ -2866,7 +2896,11 @@ function WikiWorkspace() {
                 </a>
                 , um projeto <strong className="font-semibold text-slate-800 dark:text-slate-100">WazzimaGiygg</strong>. Confira a verdade sobre os absurdos da Wikipédia no link:{' '}
                 <a
-                  href={LEGAL_GOVERNANCE.truthPortalUrl}
+                  href={applyExternalLinkPrefix(
+                    LEGAL_GOVERNANCE.truthPortalUrl,
+                    externalLinkConfig.prefix,
+                    externalLinkConfig.encodeTargetUrl
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   data-wiki-surface="link"
@@ -2935,6 +2969,8 @@ function WikiWorkspace() {
             <FooterBadges
               siteTitle={siteTitle}
               showWikiomiteBadge={activeTheme.id === 'wikidiota'}
+              externalLinkPrefix={externalLinkConfig.prefix}
+              encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
               onNavigateHome={() => navigateToPage('start')}
               onNavigateLegal={() => navigateToLegal('privacy')}
               onNavigateDossier={() => navigateToPage(DOSSIER_PAGE_SLUG)}

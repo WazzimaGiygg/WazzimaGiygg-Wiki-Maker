@@ -56,6 +56,8 @@ interface MarkdownEditorProps {
   tocDefaultExpanded?: boolean;
   tocMinHeadings?: number;
   referencesTitle?: string;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
   isAdminEditingOtherPage?: boolean;
   targetEditorDisplayName?: string;
   onSave: (data: {
@@ -102,6 +104,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   tocDefaultExpanded = true,
   tocMinHeadings = 1,
   referencesTitle = 'Referências',
+  externalLinkPrefix,
+  encodeExternalLinkTarget = false,
   isAdminEditingOtherPage = false,
   targetEditorDisplayName,
   onSave,
@@ -671,6 +675,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               enableReferences={enableReferencesPreview}
               referencesTitle={referencesTitle}
               enableInfoboxes={enableInfoboxPreview}
+              externalLinkPrefix={externalLinkPrefix}
+              encodeExternalLinkTarget={encodeExternalLinkTarget}
             />
           </div>
         )}
@@ -762,6 +768,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         onClose={() => setTemplateModalOpen(false)}
         onInsert={insertBlockAtCursor}
         onNavigateSlug={onNavigateSlug}
+        externalLinkPrefix={externalLinkPrefix}
+        encodeExternalLinkTarget={encodeExternalLinkTarget}
       />
     </div>
   );

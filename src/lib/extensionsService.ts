@@ -33,6 +33,7 @@ import {
 } from './wikiThemes';
 
 export const DEFAULT_SITE_TITLE = 'WazzimaGiygg Maker';
+export const DEFAULT_EXTERNAL_LINK_PREFIX = 'https://wazzimagiygg.com/rv/?uid=';
 
 export const EXTENSION_CATEGORY_LABELS: Record<WikiExtensionCategory, string> = {
   appearance: 'Aparência & Temas',
@@ -229,6 +230,21 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
       key: 'allowAnonymousRead',
       label: 'Leitura pública de discussões',
       hint: 'Permite que visitantes não autenticados visualizem a aba Discussion.',
+      type: 'boolean',
+    },
+  ],
+  'external-link-prefix': [
+    {
+      key: 'externalLinkPrefix',
+      label: 'Parâmetro / prefixo antes dos links externos',
+      hint: 'Inserido imediatamente antes de links externos (http:// ou https://). Padrão: https://wazzimagiygg.com/rv/?uid=',
+      type: 'text',
+      maxLength: VALIDATION_LIMITS.EXTENSION_EXTERNAL_LINK_PREFIX_MAX_LENGTH,
+    },
+    {
+      key: 'encodeTargetUrl',
+      label: 'Codificar URL de destino (encodeURIComponent)',
+      hint: 'Quando ativado, escapa caracteres da URL original ao anexá-la ao parâmetro; desativado por padrão para inserção direta antes do link.',
       type: 'boolean',
     },
   ],
@@ -440,6 +456,25 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     updatedAt: null,
     persisted: false,
   },
+  {
+    id: 'external-link-prefix',
+    scope: 'site',
+    name: 'Prefixo de Links Externos (Outlink Parameter)',
+    description:
+      'Insere um parâmetro ou prefixo de redirecionamento configurável antes de todos os links externos (padrão: "https://wazzimagiygg.com/rv/?uid=").',
+    category: 'navigation',
+    enabled: true,
+    sortOrder: 10,
+    settings: {
+      externalLinkPrefix: DEFAULT_EXTERNAL_LINK_PREFIX,
+      encodeTargetUrl: false,
+    },
+    updatedBy: 'system-default',
+    updatedByName: 'Built-in Default',
+    createdAt: null,
+    updatedAt: null,
+    persisted: false,
+  },
 ];
 
 export type SiteExtensionsMap = Record<WikiExtensionId, ResolvedWikiExtension>;
@@ -574,7 +609,46 @@ export function sanitizeExtensionSettings(
             ? src.allowAnonymousRead
             : base.allowAnonymousRead ?? true,
       };
+    case 'external-link-prefix': {
+      const normalizedPrefix = normalizeExternalLinkPrefix(
+        src.externalLinkPrefix,
+        base.externalLinkPrefix ?? DEFAULT_EXTERNAL_LINK_PREFIX
+      );
+      return {
+        externalLinkPrefix: normalizedPrefix,
+        encodeTargetUrl:
+          typeof src.encodeTargetUrl === 'boolean'
+            ? src.encodeTargetUrl
+            : base.encodeTargetUrl ?? false,
+      };
+    }
   }
+}
+
+export function normalizeExternalLinkPrefix(
+  raw: unknown,
+  fallback: string = DEFAULT_EXTERNAL_LINK_PREFIX
+): string {
+  if (typeof raw !== 'string') {
+    return fallback;
+  }
+  const trimmed = raw
+    .trim()
+    .slice(0, VALIDATION_LIMITS.EXTENSION_EXTERNAL_LINK_PREFIX_MAX_LENGTH);
+  if (!trimmed) {
+    return '';
+  }
+  // Block dangerous schemes and only allow http://, https://, or root-relative / paths
+  if (/^(javascript|data|vbscript|file):/i.test(trimmed)) {
+    return fallback;
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed.replace(/^https?:\/\//i, (scheme) => scheme.toLowerCase());
+  }
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+    return trimmed;
+  }
+  return fallback;
 }
 
 export function mergeExtensionsWithDefaults(
@@ -676,6 +750,57 @@ export function resolveSiteTheme(state: SiteExtensionsState): {
       ? ext.settings.colorScheme
       : 'user';
   return { theme, colorScheme };
+}
+
+export function resolveExternalLinkConfig(state: SiteExtensionsState): {
+  prefix: string;
+  encodeTargetUrl: boolean;
+} {
+  const ext = state.byId['external-link-prefix'];
+  if (!ext || !ext.enabled) {
+    return {
+      prefix: '',
+      encodeTargetUrl: false,
+    };
+  }
+  const prefix = normalizeExternalLinkPrefix(
+    ext.settings.externalLinkPrefix,
+    DEFAULT_EXTERNAL_LINK_PREFIX
+  );
+  return {
+    prefix,
+    encodeTargetUrl: ext.settings.encodeTargetUrl === true,
+  };
+}
+
+export function applyExternalLinkPrefix(
+  rawHref: string | undefined,
+  prefix?: string,
+  encodeTargetUrl = false
+): string | undefined {
+  if (!rawHref) return rawHref;
+  const trimmedHref = rawHref.trim();
+  const cleanPrefix = typeof prefix === 'string' ? prefix.trim() : '';
+  if (!cleanPrefix) return rawHref;
+
+  // Never alter internal wiki pseudo-URLs, anchors, relative paths, mailto, tel, or non-http(s) links
+  if (
+    trimmedHref.startsWith('#') ||
+    trimmedHref.startsWith('/') ||
+    trimmedHref.startsWith('https://wiki.internal/') ||
+    trimmedHref.startsWith('https://wiki.ref/') ||
+    !/^https?:\/\//i.test(trimmedHref)
+  ) {
+    return rawHref;
+  }
+
+  // Avoid double-prefixing URLs that already carry the configured redirect/parameter prefix
+  if (trimmedHref.toLowerCase().startsWith(cleanPrefix.toLowerCase())) {
+    return trimmedHref;
+  }
+
+  const target = encodeTargetUrl ? encodeURIComponent(trimmedHref) : trimmedHref;
+  return `${cleanPrefix}${target}`;
 }
 
 /**

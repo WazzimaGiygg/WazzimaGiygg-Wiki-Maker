@@ -255,7 +255,7 @@ service cloud.firestore {
           'footerTitle', 'showOutlineLink', 'allowEditorToolbar', 'allowAutoProfileCard',
           'showInNavbar', 'showInSidebar', 'excludeDiscussions', 'showInHeader',
           'showToastFeedback', 'notifyWhileEditing', 'allowAnonymousRead',
-          'autoExitOnNavigate'
+          'autoExitOnNavigate', 'externalLinkPrefix', 'encodeTargetUrl'
         ])
         && (!('siteTitle' in settings) || (settings.siteTitle is string && settings.siteTitle.size() >= 1 && settings.siteTitle.size() <= 80))
         && (!('themeId' in settings) || (settings.themeId is string && settings.themeId.size() >= 1 && settings.themeId.size() <= 40 && settings.themeId.matches('^[a-z0-9\\-]+$')))
@@ -273,7 +273,17 @@ service cloud.firestore {
         && (!('showToastFeedback' in settings) || settings.showToastFeedback is bool)
         && (!('notifyWhileEditing' in settings) || settings.notifyWhileEditing is bool)
         && (!('allowAnonymousRead' in settings) || settings.allowAnonymousRead is bool)
-        && (!('autoExitOnNavigate' in settings) || settings.autoExitOnNavigate is bool);
+        && (!('autoExitOnNavigate' in settings) || settings.autoExitOnNavigate is bool)
+        && (!('externalLinkPrefix' in settings) || (
+          settings.externalLinkPrefix is string
+          && settings.externalLinkPrefix.size() <= 300
+          && (
+            settings.externalLinkPrefix == '' ||
+            settings.externalLinkPrefix.matches('^https?://.*') ||
+            (settings.externalLinkPrefix.matches('^/.*') && !settings.externalLinkPrefix.matches('^//.*'))
+          )
+        ))
+        && (!('encodeTargetUrl' in settings) || settings.encodeTargetUrl is bool);
     }
 
     function isValidWikiExtension(data, extensionId) {

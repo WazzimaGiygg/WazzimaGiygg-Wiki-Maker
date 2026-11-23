@@ -7,6 +7,10 @@ import {
   scrollToWikiAnchor,
   type WikiReferenceItem,
 } from '../lib/markdownUtils';
+import {
+  applyExternalLinkPrefix,
+  DEFAULT_EXTERNAL_LINK_PREFIX,
+} from '../lib/extensionsService';
 
 interface ReferencesFooterProps {
   references: WikiReferenceItem[];
@@ -14,6 +18,8 @@ interface ReferencesFooterProps {
   existingSlugs?: Set<string>;
   onNavigateSlug?: (slug: string) => void;
   className?: string;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 function getBacklinkLabel(idx: number): string {
@@ -32,6 +38,8 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
   existingSlugs,
   onNavigateSlug,
   className = '',
+  externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
+  encodeExternalLinkTarget = false,
 }) => {
   if (references.length === 0) {
     return null;
@@ -148,9 +156,14 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
                         );
                       }
 
+                      const prefixedHref = applyExternalLinkPrefix(
+                        href,
+                        externalLinkPrefix,
+                        encodeExternalLinkTarget
+                      );
                       return (
                         <a
-                          href={href}
+                          href={prefixedHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-baseline gap-1 font-medium text-blue-700 dark:text-blue-400 underline decoration-blue-700/30 underline-offset-4 hover:decoration-blue-700 transition-colors break-all"

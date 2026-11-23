@@ -18,12 +18,18 @@ import {
   type InfoboxType,
   preprocessWikiLinks,
 } from '../lib/markdownUtils';
+import {
+  applyExternalLinkPrefix,
+  DEFAULT_EXTERNAL_LINK_PREFIX,
+} from '../lib/extensionsService';
 
 interface WikiInfoboxProps {
   infobox: InfoboxBlock;
   existingSlugs: Set<string>;
   onNavigateSlug: (slug: string) => void;
   disableFloat?: boolean;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 const TYPE_STYLES: Record<
@@ -101,6 +107,8 @@ export const WikiInfobox: React.FC<WikiInfoboxProps> = ({
   existingSlugs,
   onNavigateSlug,
   disableFloat = false,
+  externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
+  encodeExternalLinkTarget = false,
 }) => {
   const [imageFailed, setImageFailed] = React.useState(false);
 
@@ -211,9 +219,14 @@ export const WikiInfobox: React.FC<WikiInfoboxProps> = ({
                           </button>
                         );
                       }
+                      const prefixedHref = applyExternalLinkPrefix(
+                        href,
+                        externalLinkPrefix,
+                        encodeExternalLinkTarget
+                      );
                       return (
                         <a
-                          href={href}
+                          href={prefixedHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-baseline gap-0.5 font-medium text-blue-700 dark:text-blue-400 underline decoration-blue-700/30 underline-offset-2 hover:decoration-blue-700 transition-colors"

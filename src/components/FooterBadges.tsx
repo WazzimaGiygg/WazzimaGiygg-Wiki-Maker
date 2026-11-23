@@ -1,8 +1,14 @@
 import React from 'react';
+import {
+  applyExternalLinkPrefix,
+  DEFAULT_EXTERNAL_LINK_PREFIX,
+} from '../lib/extensionsService';
 
 interface FooterBadgesProps {
   siteTitle?: string;
   showWikiomiteBadge?: boolean;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
   onNavigateHome: () => void;
   onNavigateLegal: () => void;
   onNavigateDossier: () => void;
@@ -14,11 +20,18 @@ interface FooterBadgesProps {
 export const FooterBadges: React.FC<FooterBadgesProps> = ({
   siteTitle = 'WazzimaGiygg Maker',
   showWikiomiteBadge = false,
+  externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
+  encodeExternalLinkTarget = false,
   onNavigateHome,
   onNavigateLegal,
   onNavigateDossier,
 }) => {
   const [logoError, setLogoError] = React.useState(false);
+  const formatExternalUrl = React.useCallback(
+    (url: string) =>
+      applyExternalLinkPrefix(url, externalLinkPrefix, encodeExternalLinkTarget) ?? url,
+    [externalLinkPrefix, encodeExternalLinkTarget]
+  );
 
   return (
     <div
@@ -78,7 +91,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 2. Suporte Tickets 24h */}
       <a
-        href="https://support.wazzimagiygg.com/"
+        href={formatExternalUrl('https://support.wazzimagiygg.com/')}
         target="_blank"
         rel="noopener noreferrer"
         title="Central de Suporte, Tickets e Atendimento dos Serviços WazzimaGiygg"
@@ -123,7 +136,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 4. Powered by Firebase DB */}
       <a
-        href="https://firebase.google.com/products/firestore"
+        href={formatExternalUrl('https://firebase.google.com/products/firestore')}
         target="_blank"
         rel="noopener noreferrer"
         title="Banco de Dados e Infraestrutura Cloud fornecidos por Google Firebase Firestore"
@@ -157,7 +170,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 5. Domínio GoDaddy */}
       <a
-        href="https://www.godaddy.com"
+        href={formatExternalUrl('https://www.godaddy.com')}
         target="_blank"
         rel="noopener noreferrer"
         title="Domínio oficial registrado via GoDaddy"
@@ -202,7 +215,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 6b. Ecossistema WazzimaGiygg /averdade */}
       <a
-        href="https://wazzimagiygg.com/averdade/"
+        href={formatExternalUrl('https://wazzimagiygg.com/averdade/')}
         target="_blank"
         rel="noopener noreferrer"
         title="Ecossistema wazzimagiygg.com — Confira a verdade sobre os absurdos da Wikipédia"
@@ -223,7 +236,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 7. Open Source GitHub */}
       <a
-        href="https://github.com/WazzimaGiygg/WikiWazzimaGiygg"
+        href={formatExternalUrl('https://github.com/WazzimaGiygg/WikiWazzimaGiygg')}
         target="_blank"
         rel="noopener noreferrer"
         title="Código-fonte aberto e repositório oficial no GitHub: WazzimaGiygg/WikiWazzimaGiygg"
@@ -248,7 +261,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 8. Creative Commons CC BY-SA 4.0 */}
       <a
-        href="https://creativecommons.org/licenses/by-sa/4.0/"
+        href={formatExternalUrl('https://creativecommons.org/licenses/by-sa/4.0/')}
         target="_blank"
         rel="noopener noreferrer"
         title="Conteúdo licenciado sob Creative Commons Atribuição-CompartilhaIgual (CC BY-SA 4.0)"
@@ -287,7 +300,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 9. GNU GPL v2+ */}
       <a
-        href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html"
+        href={formatExternalUrl('https://www.gnu.org/licenses/old-licenses/gpl-2.0.html')}
         target="_blank"
         rel="noopener noreferrer"
         title="Software livre sob GNU General Public License v2 ou posterior"
@@ -308,7 +321,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
 
       {/* 10. Official PDF Dossier */}
       <a
-        href="https://wazzimagiygg.com/Investiga%C3%A7%C3%A3o%20LGPD%20e%20Marco%20Civ%C3%ADl%20WMF%20e%20Wikip%C3%A9dia.pdf"
+        href={formatExternalUrl('https://wazzimagiygg.com/Investiga%C3%A7%C3%A3o%20LGPD%20e%20Marco%20Civ%C3%ADl%20WMF%20e%20Wikip%C3%A9dia.pdf')}
         target="_blank"
         rel="noopener noreferrer"
         title="Download the official PDF for the LGPD & Marco Civil Investigation (WMF and Wikipedia)"

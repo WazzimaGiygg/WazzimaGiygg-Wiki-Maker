@@ -13,6 +13,10 @@ import {
 } from '../lib/markdownUtils';
 import type { WikiPage } from '../types/wiki';
 import { expandTemplatesInWikitext } from '../services/templateService';
+import {
+  applyExternalLinkPrefix,
+  DEFAULT_EXTERNAL_LINK_PREFIX,
+} from '../lib/extensionsService';
 import { ReferencesFooter } from './ReferencesFooter';
 import { WikiInfobox } from './WikiInfobox';
 import { WikiTemplateBlock } from './WikiTemplateBlock';
@@ -31,6 +35,8 @@ interface MarkdownRendererProps {
   enableInfoboxes?: boolean;
   enableTemplates?: boolean;
   showReferencesFooter?: boolean;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 function getHeadingText(children: React.ReactNode): string {
@@ -74,6 +80,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   enableInfoboxes = true,
   enableTemplates = true,
   showReferencesFooter = true,
+  externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
+  encodeExternalLinkTarget = false,
 }) => {
   const [tocExpanded, setTocExpanded] = React.useState(tocDefaultExpanded);
 
@@ -219,6 +227,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 infobox={segment.infobox}
                 existingSlugs={existingSlugs}
                 onNavigateSlug={onNavigateSlug}
+                externalLinkPrefix={externalLinkPrefix}
+                encodeExternalLinkTarget={encodeExternalLinkTarget}
               />
             </React.Fragment>
           );
@@ -232,6 +242,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 template={segment.template}
                 existingSlugs={existingSlugs}
                 onNavigateSlug={onNavigateSlug}
+                externalLinkPrefix={externalLinkPrefix}
+                encodeExternalLinkTarget={encodeExternalLinkTarget}
               />
             </React.Fragment>
           );
@@ -308,9 +320,14 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                       );
                     }
 
+                    const prefixedHref = applyExternalLinkPrefix(
+                      href,
+                      externalLinkPrefix,
+                      encodeExternalLinkTarget
+                    );
                     return (
                       <a
-                        href={href}
+                        href={prefixedHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-baseline gap-1 font-medium text-blue-700 dark:text-blue-400 underline decoration-blue-700/30 underline-offset-4 hover:decoration-blue-700 transition-colors"
@@ -335,6 +352,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           title={referencesTitle}
           existingSlugs={existingSlugs}
           onNavigateSlug={onNavigateSlug}
+          externalLinkPrefix={externalLinkPrefix}
+          encodeExternalLinkTarget={encodeExternalLinkTarget}
         />
       )}
     </div>

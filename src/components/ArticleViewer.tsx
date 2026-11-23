@@ -19,6 +19,8 @@ export interface ArticleViewerProps {
   enableInfoboxes?: boolean;
   enableTemplates?: boolean;
   showReferencesFooter?: boolean;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 /**
@@ -41,6 +43,8 @@ export const ArticleViewer: React.FC<ArticleViewerProps> = ({
   enableInfoboxes = true,
   enableTemplates = true,
   showReferencesFooter = true,
+  externalLinkPrefix,
+  encodeExternalLinkTarget = false,
 }) => {
   const expandedContent = React.useMemo(
     () =>
@@ -69,6 +73,8 @@ export const ArticleViewer: React.FC<ArticleViewerProps> = ({
       enableInfoboxes={enableInfoboxes}
       enableTemplates={false}
       showReferencesFooter={showReferencesFooter}
+      externalLinkPrefix={externalLinkPrefix}
+      encodeExternalLinkTarget={encodeExternalLinkTarget}
     />
   );
 };

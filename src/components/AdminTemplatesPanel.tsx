@@ -36,6 +36,8 @@ interface AdminTemplatesPanelProps {
   onReloadData: () => Promise<void>;
   onFeedback: (message: string | null) => void;
   onError: (message: string | null) => void;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 type TemplateNamespaceFilter = 'all' | 'predefinicao' | 'template' | 'private';
@@ -59,6 +61,8 @@ export const AdminTemplatesPanel: React.FC<AdminTemplatesPanelProps> = ({
   onReloadData,
   onFeedback,
   onError,
+  externalLinkPrefix,
+  encodeExternalLinkTarget = false,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [nsFilter, setNsFilter] = React.useState<TemplateNamespaceFilter>('all');
@@ -821,6 +825,8 @@ export const AdminTemplatesPanel: React.FC<AdminTemplatesPanelProps> = ({
                       onNavigateSlug={onSelectPage}
                       showToc={false}
                       showReferencesFooter={true}
+                      externalLinkPrefix={externalLinkPrefix}
+                      encodeExternalLinkTarget={encodeExternalLinkTarget}
                     />
                   ) : (
                     <p className="text-xs text-slate-400 italic">

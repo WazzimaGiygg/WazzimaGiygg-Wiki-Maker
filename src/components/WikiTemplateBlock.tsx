@@ -17,11 +17,17 @@ import {
 } from 'lucide-react';
 import { preprocessWikiLinks, type PredefinicaoBlock } from '../lib/markdownUtils';
 import type { TemplateBlockVariant } from '../lib/templateEngine';
+import {
+  applyExternalLinkPrefix,
+  DEFAULT_EXTERNAL_LINK_PREFIX,
+} from '../lib/extensionsService';
 
 interface WikiTemplateBlockProps {
   template: PredefinicaoBlock;
   existingSlugs: Set<string>;
   onNavigateSlug: (slug: string) => void;
+  externalLinkPrefix?: string;
+  encodeExternalLinkTarget?: boolean;
 }
 
 const VARIANT_CONFIG: Record<
@@ -98,6 +104,8 @@ export const WikiTemplateBlock: React.FC<WikiTemplateBlockProps> = ({
   template,
   existingSlugs,
   onNavigateSlug,
+  externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
+  encodeExternalLinkTarget = false,
 }) => {
   const cfg = VARIANT_CONFIG[template.variant] ?? VARIANT_CONFIG.info;
   const Icon = cfg.icon;
@@ -132,9 +140,14 @@ export const WikiTemplateBlock: React.FC<WikiTemplateBlockProps> = ({
             );
           }
 
+          const prefixedHref = applyExternalLinkPrefix(
+            href,
+            externalLinkPrefix,
+            encodeExternalLinkTarget
+          );
           return (
             <a
-              href={href}
+              href={prefixedHref}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-baseline gap-0.5 font-medium text-blue-700 dark:text-blue-400 underline decoration-blue-700/30 underline-offset-4 hover:decoration-blue-700 transition-colors"

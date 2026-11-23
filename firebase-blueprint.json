@@ -500,7 +500,7 @@
         },
         "settings": {
           "type": "object",
-          "description": "Typed per-extension configuration options map (including siteTitle branding, themeId, and colorScheme)."
+          "description": "Typed per-extension configuration options map (including siteTitle branding, themeId, colorScheme, externalLinkPrefix, and encodeTargetUrl)."
         },
         "updatedBy": {
           "type": "string",
