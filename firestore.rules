@@ -103,6 +103,16 @@ service cloud.firestore {
         && (tags.size() <= 7 || isValidTagItem(tags[7]));
     }
 
+    function isValidHeaderImageUrl(url) {
+      return url is string
+        && url.size() <= 200000
+        && (
+          url == '' ||
+          (url.size() <= 1000 && url.matches('^https?://.*$')) ||
+          url.matches('^data:image/(png|jpeg|jpg|webp|gif|avif);base64,[A-Za-z0-9+/=]+$')
+        );
+    }
+
     // Pillar 2: Validation Blueprints (never use existing() or diff() inside these helpers)
     function isValidWikiPage(data, slug) {
       return data.keys().hasAll([
@@ -112,7 +122,7 @@ service cloud.firestore {
         ])
         && data.keys().hasOnly([
           'slug', 'title', 'content', 'category', 'tags', 'visibility',
-          'isLocked', 'authorId', 'authorName', 'lastEditorId',
+          'isLocked', 'headerImageUrl', 'authorId', 'authorName', 'lastEditorId',
           'lastEditorName', 'version', 'createdAt', 'updatedAt'
         ])
         && data.slug is string && data.slug == slug && isValidId(data.slug)
@@ -122,6 +132,7 @@ service cloud.firestore {
         && isValidTagList(data.tags)
         && data.visibility in ['public', 'private']
         && data.isLocked is bool
+        && (!('headerImageUrl' in data) || isValidHeaderImageUrl(data.headerImageUrl))
         && data.authorId is string && isValidId(data.authorId)
         && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
         && data.lastEditorId is string && isValidId(data.lastEditorId)
@@ -374,7 +385,7 @@ service cloud.firestore {
               (
                 (existing().authorId == request.auth.uid || isAdmin())
                 && incoming().diff(existing()).affectedKeys().hasOnly([
-                  'title', 'content', 'category', 'tags', 'visibility', 'isLocked',
+                  'title', 'content', 'category', 'tags', 'headerImageUrl', 'visibility', 'isLocked',
                   'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
                 ])
               ) ||
@@ -386,7 +397,7 @@ service cloud.firestore {
                 && incoming().visibility == existing().visibility
                 && incoming().isLocked == existing().isLocked
                 && incoming().diff(existing()).affectedKeys().hasOnly([
-                  'title', 'content', 'category', 'tags',
+                  'title', 'content', 'category', 'tags', 'headerImageUrl',
                   'lastEditorId', 'lastEditorName', 'version', 'updatedAt'
                 ])
               )

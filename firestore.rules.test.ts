@@ -317,4 +317,19 @@ export const DIRTY_DOZEN_PAYLOADS: DirtyDozenCase[] = [
     },
     expected: 'PERMISSION_DENIED',
   },
+  {
+    id: 19,
+    name: 'Unsafe SVG/Script Scheme Injection in Page headerImageUrl',
+    operation: 'update',
+    path: '/pages/start',
+    actorUid: 'uid_attacker',
+    emailVerified: true,
+    payload: {
+      headerImageUrl: 'data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9ImFsZXJ0KDEpIi8+',
+      lastEditorId: 'uid_attacker',
+      lastEditorName: 'Attacker',
+      version: 2,
+    },
+    expected: 'PERMISSION_DENIED',
+  },
 ];

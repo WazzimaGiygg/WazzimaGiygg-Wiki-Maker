@@ -59,6 +59,7 @@ import {
 } from './lib/extensionsService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
 import { evaluateFrameContext } from './lib/frameGuard';
+import { sanitizeHeaderImageUrl } from './lib/headerImageService';
 import {
   DOSSIER_PAGE_CATEGORY,
   DOSSIER_PAGE_CONTENT,
@@ -252,6 +253,8 @@ function WikiWorkspace() {
   const [exportingPdf, setExportingPdf] = React.useState(false);
   const [isPrintView, setIsPrintView] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [sidebarTagFilter, setSidebarTagFilter] = React.useState<string | null>(null);
+  const [failedBannerUrl, setFailedBannerUrl] = React.useState<string | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [toasts, setToasts] = React.useState<ToastNotification[]>([]);
@@ -380,6 +383,7 @@ function WikiWorkspace() {
   const pageMetadataExt = extensionsState.byId['page-metadata'];
   const pageIndexExt = extensionsState.byId['page-index-views'];
   const privacyBannerExt = extensionsState.byId['privacy-banner'];
+  const headerBannerExt = extensionsState.byId['page-header-banner'];
   const externalLinkConfig = React.useMemo(
     () => resolveExternalLinkConfig(extensionsState),
     [extensionsState]
@@ -420,6 +424,28 @@ function WikiWorkspace() {
       setShortcutsOpen(false);
     }
   }, [shortcutsExt.enabled, shortcutsOpen]);
+
+  React.useEffect(() => {
+    if (!sidebarFilterExt.enabled && sidebarTagFilter !== null) {
+      setSidebarTagFilter(null);
+    }
+  }, [sidebarFilterExt.enabled, sidebarTagFilter]);
+
+  const handleFilterByTag = React.useCallback(
+    (tag: string) => {
+      if (!sidebarFilterExt.enabled) return;
+      const trimmed = tag.trim();
+      if (!trimmed) return;
+      const isClearing =
+        sidebarTagFilter !== null &&
+        sidebarTagFilter.toLowerCase() === trimmed.toLowerCase();
+      setSidebarTagFilter(isClearing ? null : trimmed);
+      if (!isClearing && typeof window !== 'undefined' && window.innerWidth < 1024) {
+        setMobileMenuOpen(true);
+      }
+    },
+    [sidebarFilterExt.enabled, sidebarTagFilter]
+  );
 
   // Listen for browser back/forward hash navigation
   React.useEffect(() => {
@@ -1186,6 +1212,7 @@ function WikiWorkspace() {
     tags: string[];
     visibility: PageVisibility;
     isLocked: boolean;
+    headerImageUrl?: string;
     summary: string;
   }) => {
     if (!user) return;
@@ -1209,6 +1236,7 @@ function WikiWorkspace() {
     tags: string[];
     visibility: PageVisibility;
     isLocked: boolean;
+    headerImageUrl?: string;
     summary: string;
     adminNotice?: {
       send: boolean;
@@ -1604,6 +1632,14 @@ function WikiWorkspace() {
   const activeCategoryLabel = activePage
     ? WIKI_CATEGORIES.find((c) => c.id === activePage.category)?.label ?? activePage.category
     : '';
+  const activeBannerUrl =
+    activePage && headerBannerExt.enabled
+      ? sanitizeHeaderImageUrl(activePage.headerImageUrl)
+      : '';
+  const showReadingBanner =
+    activeTab === 'read' &&
+    Boolean(activeBannerUrl) &&
+    failedBannerUrl !== activeBannerUrl;
 
   // Sync per-page SEO title, meta description, keywords, canonical URL, OpenGraph, Twitter, JSON-LD, and robots indexing directive
   React.useEffect(() => {
@@ -1918,6 +1954,8 @@ function WikiWorkspace() {
           forcedColorMode={themeColorScheme === 'user' ? undefined : themeColorScheme}
           showQuickCreate={quickCreateExt.enabled}
           showSidebarFilter={sidebarFilterExt.enabled}
+          activeTagFilter={sidebarTagFilter}
+          onClearTagFilter={() => setSidebarTagFilter(null)}
           showUserProfileLinks={userProfilesExt.enabled}
           showPwaInstall={pwaInstallExt.enabled}
           onOpenMobile={() => setMobileMenuOpen(true)}
@@ -2124,6 +2162,7 @@ function WikiWorkspace() {
                   }
                   initialVisibility="public"
                   initialIsLocked={false}
+                  initialHeaderImageUrl=""
                   canManageMeta={true}
                   existingSlugs={existingSlugs}
                   wikiPages={allPages}
@@ -2131,6 +2170,7 @@ function WikiWorkspace() {
                   currentUser={user}
                   isSaving={isSaving}
                   errorMessage={saveError}
+                  enableHeaderBanner={headerBannerExt.enabled}
                   enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}
                   enableReferencesToolbar={refsExt.enabled && refsExt.settings.allowEditorToolbar !== false}
                   enableVisualToolbar={editorToolbarExt.enabled}
@@ -2293,6 +2333,18 @@ function WikiWorkspace() {
                 data-wiki-surface="panel"
                 className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 space-y-6"
               >
+                {showReadingBanner && activePage && (
+                  <figure className="-mx-6 -mt-6 sm:-mx-8 sm:-mt-8 overflow-hidden rounded-t-xl border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+                    <img
+                      src={activeBannerUrl}
+                      alt={`${activePage.title} header banner`}
+                      loading="eager"
+                      onError={() => setFailedBannerUrl(activeBannerUrl)}
+                      className="w-full h-44 sm:h-56 md:h-64 object-cover object-center block"
+                    />
+                  </figure>
+                )}
+
                 {/* Page Header & Clean Unboxed Metadata */}
                 <div className="space-y-3 pb-5 border-b border-slate-200 dark:border-slate-800">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -2398,9 +2450,43 @@ function WikiWorkspace() {
                       {activePage.tags.length > 0 && (
                         <>
                           <span aria-hidden="true">·</span>
-                          <span className="font-mono text-slate-600 dark:text-slate-300">
-                            {activePage.tags.map((t) => `#${t}`).join('  ')}
-                          </span>
+                          {sidebarFilterExt.enabled ? (
+                            <span
+                              role="group"
+                              aria-label="Filter sidebar by page tag"
+                              className="inline-flex flex-wrap items-center gap-1.5 font-mono"
+                            >
+                              {activePage.tags.map((t) => {
+                                const isSelected =
+                                  sidebarTagFilter !== null &&
+                                  sidebarTagFilter.toLowerCase() === t.toLowerCase();
+                                return (
+                                  <button
+                                    key={t}
+                                    type="button"
+                                    aria-pressed={isSelected}
+                                    onClick={() => handleFilterByTag(t)}
+                                    title={
+                                      isSelected
+                                        ? `Clear tag filter #${t}`
+                                        : `Filter sidebar pages by #${t}`
+                                    }
+                                    className={`inline-flex items-center px-1.5 py-0.5 rounded-md border text-xs font-mono transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                                      isSelected
+                                        ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
+                                        : 'border-transparent text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-700 dark:hover:text-blue-400'
+                                    }`}
+                                  >
+                                    #{t}
+                                  </button>
+                                );
+                              })}
+                            </span>
+                          ) : (
+                            <span className="font-mono text-slate-600 dark:text-slate-300">
+                              {activePage.tags.map((t) => `#${t}`).join('  ')}
+                            </span>
+                          )}
                         </>
                       )}
                     </div>
@@ -2877,6 +2963,7 @@ function WikiWorkspace() {
                   initialTags={activePage.tags}
                   initialVisibility={activePage.visibility}
                   initialIsLocked={activePage.isLocked}
+                  initialHeaderImageUrl={activePage.headerImageUrl ?? ''}
                   canManageMeta={canManageActiveMeta}
                   existingSlugs={existingSlugs}
                   wikiPages={allPages}
@@ -2884,6 +2971,7 @@ function WikiWorkspace() {
                   currentUser={user}
                   isSaving={isSaving}
                   errorMessage={saveError}
+                  enableHeaderBanner={headerBannerExt.enabled}
                   enableInfoboxToolbar={infoboxExt.enabled && infoboxExt.settings.allowEditorToolbar !== false}
                   enableReferencesToolbar={refsExt.enabled && refsExt.settings.allowEditorToolbar !== false}
                   enableVisualToolbar={editorToolbarExt.enabled}

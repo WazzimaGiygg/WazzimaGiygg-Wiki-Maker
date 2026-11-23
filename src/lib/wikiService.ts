@@ -45,6 +45,7 @@ import {
   WIKIPEDIA_ABUSES_PAGE_TITLE,
 } from './ecosystemContent';
 import { db, handleFirestoreError, OperationType } from './firebase';
+import { sanitizeHeaderImageUrl } from './headerImageService';
 import { isValidWikiSlug, serializeInfoboxBlock, toWikiSlug } from './markdownUtils';
 import {
   ENGLISH_COMMUNITY_TEMPLATES,
@@ -404,6 +405,7 @@ export interface SavePageInput {
   tags: string[];
   visibility: PageVisibility;
   isLocked: boolean;
+  headerImageUrl?: string;
   summary: string;
 }
 
@@ -421,6 +423,7 @@ export async function createWikiPage(input: SavePageInput, user: User): Promise<
   const content = input.content.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH);
   const category = sanitizeCategory(input.category);
   const tags = sanitizeTags(input.tags);
+  const headerImageUrl = sanitizeHeaderImageUrl(input.headerImageUrl);
   const authorName = getUserDisplayName(user);
   const summary =
     sanitizeString(input.summary, VALIDATION_LIMITS.SUMMARY_MAX_LENGTH) ||
@@ -450,6 +453,7 @@ export async function createWikiPage(input: SavePageInput, user: User): Promise<
     tags,
     visibility: input.visibility,
     isLocked: input.isLocked,
+    ...(headerImageUrl ? { headerImageUrl } : {}),
     authorId: user.uid,
     authorName,
     lastEditorId: user.uid,
@@ -513,6 +517,10 @@ export async function updateWikiPage(
   const content = input.content.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH);
   const category = sanitizeCategory(input.category);
   const tags = sanitizeTags(input.tags);
+  const headerImageUrl =
+    input.headerImageUrl !== undefined
+      ? sanitizeHeaderImageUrl(input.headerImageUrl)
+      : sanitizeHeaderImageUrl(existing.headerImageUrl);
   const editorName = getUserDisplayName(user);
   const nextVersion = existing.version + 1;
   const nextVisibility: PageVisibility = canManageMeta ? input.visibility : existing.visibility;
@@ -535,6 +543,10 @@ export async function updateWikiPage(
     version: nextVersion,
     updatedAt: serverTimestamp(),
   };
+
+  if (headerImageUrl !== (existing.headerImageUrl ?? '')) {
+    updatePayload.headerImageUrl = headerImageUrl;
+  }
 
   if (canManageMeta) {
     updatePayload.visibility = nextVisibility;
@@ -647,6 +659,7 @@ export async function restorePageRevision(
       tags: page.tags,
       visibility: page.visibility,
       isLocked: page.isLocked,
+      headerImageUrl: page.headerImageUrl ?? '',
       summary: `Restored version v${revision.version}`,
     },
     user,

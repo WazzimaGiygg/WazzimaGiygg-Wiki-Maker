@@ -44,6 +44,12 @@
           "type": "boolean",
           "description": "When true, only the original author or an admin can edit or delete."
         },
+        "headerImageUrl": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200000,
+          "description": "Optional custom header banner image URL (HTTPS upload URL or optimized raster image data URL)."
+        },
         "authorId": {
           "type": "string",
           "minLength": 1,

@@ -267,6 +267,7 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   'page-metadata': [],
   'page-index-views': [],
   'privacy-banner': [],
+  'page-header-banner': [],
 };
 
 export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
@@ -798,6 +799,22 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     updatedAt: null,
     persisted: false,
   },
+  {
+    id: 'page-header-banner',
+    scope: 'site',
+    name: 'Banner de Cabeçalho Personalizado',
+    description:
+      'Permite enviar ou vincular uma imagem de capa personalizada nos metadados da página e exibi-la como banner no modo de leitura.',
+    category: 'appearance',
+    enabled: true,
+    sortOrder: 31,
+    settings: {},
+    updatedBy: 'system-default',
+    updatedByName: 'Built-in Default',
+    createdAt: null,
+    updatedAt: null,
+    persisted: false,
+  },
 ];
 
 export type SiteExtensionsMap = Record<WikiExtensionId, ResolvedWikiExtension>;
@@ -964,6 +981,7 @@ export function sanitizeExtensionSettings(
     case 'page-metadata':
     case 'page-index-views':
     case 'privacy-banner':
+    case 'page-header-banner':
       return {};
   }
 }

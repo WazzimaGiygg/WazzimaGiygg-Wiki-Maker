@@ -40,6 +40,8 @@ export const VALIDATION_LIMITS = {
   EXTENSION_MIN_HEADINGS_MIN: 1,
   EXTENSION_MIN_HEADINGS_MAX: 10,
   EXTENSION_EXTERNAL_LINK_PREFIX_MAX_LENGTH: 300,
+  HEADER_IMAGE_URL_MAX_LENGTH: 200000,
+  HEADER_IMAGE_EXTERNAL_URL_MAX_LENGTH: 1000,
   RATING_MIN_SCORE: 1,
   RATING_MAX_SCORE: 5,
 } as const;
@@ -78,7 +80,8 @@ export type WikiExtensionId =
   | 'page-outline'
   | 'page-metadata'
   | 'page-index-views'
-  | 'privacy-banner';
+  | 'privacy-banner'
+  | 'page-header-banner';
 
 export type WikiExtensionCategory =
   | 'appearance'
@@ -165,6 +168,7 @@ export interface WikiPage {
   tags: string[];
   visibility: PageVisibility;
   isLocked: boolean;
+  headerImageUrl?: string;
   authorId: string;
   authorName: string;
   lastEditorId: string;

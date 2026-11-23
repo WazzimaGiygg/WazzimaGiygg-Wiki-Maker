@@ -9,17 +9,21 @@ import {
   Eye,
   Heading2,
   Heading3,
+  Image as ImageIcon,
   Italic,
   Link2,
   List,
   ListChecks,
+  Loader2,
   Lock,
   PanelRight,
   Quote,
   Save,
   SplitSquareHorizontal,
   Table,
+  Trash2,
   Unlock,
+  Upload,
 } from 'lucide-react';
 import {
   type PageVisibility,
@@ -27,6 +31,11 @@ import {
   WIKI_CATEGORIES,
   type WikiPage,
 } from '../types/wiki';
+import {
+  isValidHeaderImageUrl,
+  sanitizeHeaderImageUrl,
+  uploadPageHeaderImage,
+} from '../lib/headerImageService';
 import { toWikiSlug } from '../lib/markdownUtils';
 import { ArticleViewer } from './ArticleViewer';
 import { InfoboxBuilderModal } from './InfoboxBuilderModal';
@@ -41,6 +50,7 @@ interface MarkdownEditorProps {
   initialTags: string[];
   initialVisibility: PageVisibility;
   initialIsLocked: boolean;
+  initialHeaderImageUrl?: string;
   canManageMeta: boolean;
   existingSlugs: Set<string>;
   wikiPages?: WikiPage[];
@@ -48,6 +58,7 @@ interface MarkdownEditorProps {
   currentUser?: User | null;
   isSaving: boolean;
   errorMessage: string | null;
+  enableHeaderBanner?: boolean;
   enableInfoboxToolbar?: boolean;
   enableReferencesToolbar?: boolean;
   enableVisualToolbar?: boolean;
@@ -71,6 +82,7 @@ interface MarkdownEditorProps {
     tags: string[];
     visibility: PageVisibility;
     isLocked: boolean;
+    headerImageUrl: string;
     summary: string;
     adminNotice?: {
       send: boolean;
@@ -92,6 +104,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   initialTags,
   initialVisibility,
   initialIsLocked,
+  initialHeaderImageUrl = '',
   canManageMeta,
   existingSlugs,
   wikiPages,
@@ -99,6 +112,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   currentUser = null,
   isSaving,
   errorMessage,
+  enableHeaderBanner = true,
   enableInfoboxToolbar = true,
   enableReferencesToolbar = true,
   enableVisualToolbar = true,
@@ -126,6 +140,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [tagsText, setTagsText] = React.useState(initialTags.join(', '));
   const [visibility, setVisibility] = React.useState<PageVisibility>(initialVisibility);
   const [isLocked, setIsLocked] = React.useState(initialIsLocked);
+  const [headerImageUrl, setHeaderImageUrl] = React.useState(initialHeaderImageUrl);
+  const [isUploadingBanner, setIsUploadingBanner] = React.useState(false);
+  const [bannerUploadError, setBannerUploadError] = React.useState<string | null>(null);
+  const [bannerPreviewFailed, setBannerPreviewFailed] = React.useState(false);
   const [summary, setSummary] = React.useState('');
   const [sendAdminNotice, setSendAdminNotice] = React.useState(false);
   const [adminNoticeReason, setAdminNoticeReason] = React.useState('');
@@ -135,6 +153,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [templateModalOpen, setTemplateModalOpen] = React.useState(false);
 
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+  const bannerFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
     setSlug(initialSlug);
@@ -145,6 +164,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setTagsText(initialTags.join(', '));
     setVisibility(initialVisibility);
     setIsLocked(initialIsLocked);
+    setHeaderImageUrl(initialHeaderImageUrl);
+    setBannerUploadError(null);
+    setBannerPreviewFailed(false);
     setSummary('');
     setSendAdminNotice(false);
     setAdminNoticeReason('');
@@ -158,6 +180,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     initialTags,
     initialVisibility,
     initialIsLocked,
+    initialHeaderImageUrl,
   ]);
 
   const handleTitleChange = (value: string) => {
@@ -211,8 +234,41 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     });
   };
 
+  const handleBannerFileSelected = async (file: File | null) => {
+    if (!file) return;
+    if (!currentUser) {
+      setBannerUploadError('Sign in with Google to upload a header image.');
+      return;
+    }
+
+    setBannerUploadError(null);
+    setIsUploadingBanner(true);
+    try {
+      const result = await uploadPageHeaderImage(
+        file,
+        slug || initialSlug || title || 'page',
+        currentUser
+      );
+      setHeaderImageUrl(result.url);
+      setBannerPreviewFailed(false);
+    } catch (err) {
+      setBannerUploadError(
+        err instanceof Error ? err.message : 'Failed to process header image.'
+      );
+    } finally {
+      setIsUploadingBanner(false);
+      if (bannerFileInputRef.current) {
+        bannerFileInputRef.current.value = '';
+      }
+    }
+  };
+
   const submitForm = async () => {
     setLocalError(null);
+    if (isUploadingBanner) {
+      setLocalError('Please wait for the header image upload to finish before saving.');
+      return;
+    }
     const normalizedSlug = mode === 'create' ? toWikiSlug(slug) : initialSlug;
     if (!normalizedSlug) {
       setLocalError('Please provide a valid page identifier (:slug).');
@@ -220,6 +276,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
     if (!title.trim()) {
       setLocalError('Please enter a page title.');
+      return;
+    }
+
+    const trimmedHeaderUrl = headerImageUrl.trim();
+    if (trimmedHeaderUrl && !isValidHeaderImageUrl(trimmedHeaderUrl)) {
+      setLocalError(
+        'Header image URL must start with https:// or http:// (max 1,000 characters), or be uploaded directly.'
+      );
       return;
     }
 
@@ -237,6 +301,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       tags: parsedTags,
       visibility,
       isLocked,
+      headerImageUrl: sanitizeHeaderImageUrl(trimmedHeaderUrl),
       summary: summary.trim(),
       adminNotice: isAdminEditingOtherPage
         ? {
@@ -443,6 +508,114 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             </div>
           )}
         </div>
+
+        {enableHeaderBanner && (
+          <div className="md:col-span-12 pt-2 border-t border-slate-200/80 dark:border-slate-800/80 space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label
+                htmlFor="wiki-header-image-url-input"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400"
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                <span>Header banner image (optional)</span>
+              </label>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                PNG, JPG, WebP, GIF, or AVIF · displayed across the top of the reading view
+              </span>
+            </div>
+
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                const droppedFile = e.dataTransfer.files?.[0] ?? null;
+                void handleBannerFileSelected(droppedFile);
+              }}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5"
+            >
+              <input
+                ref={bannerFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                onChange={(e) => void handleBannerFileSelected(e.target.files?.[0] ?? null)}
+                className="hidden"
+              />
+              <button
+                type="button"
+                disabled={isUploadingBanner || isSaving}
+                onClick={() => bannerFileInputRef.current?.click()}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed"
+              >
+                {isUploadingBanner ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-700 dark:text-blue-400" />
+                ) : (
+                  <Upload className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                )}
+                <span>{isUploadingBanner ? 'Uploading image...' : 'Upload image'}</span>
+              </button>
+
+              <input
+                id="wiki-header-image-url-input"
+                type="text"
+                value={headerImageUrl.startsWith('data:image/') ? '' : headerImageUrl}
+                disabled={isUploadingBanner}
+                maxLength={VALIDATION_LIMITS.HEADER_IMAGE_EXTERNAL_URL_MAX_LENGTH}
+                onChange={(e) => {
+                  setBannerUploadError(null);
+                  setBannerPreviewFailed(false);
+                  setHeaderImageUrl(e.target.value);
+                }}
+                placeholder={
+                  headerImageUrl.startsWith('data:image/')
+                    ? 'Uploaded banner image attached (or paste an https:// URL to replace)'
+                    : 'Or paste an external https:// image URL...'
+                }
+                className="flex-1 px-3 py-2 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 disabled:opacity-60"
+              />
+
+              {headerImageUrl.trim() && (
+                <button
+                  type="button"
+                  disabled={isUploadingBanner || isSaving}
+                  onClick={() => {
+                    setHeaderImageUrl('');
+                    setBannerUploadError(null);
+                    setBannerPreviewFailed(false);
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Remove</span>
+                </button>
+              )}
+            </div>
+
+            {bannerUploadError && (
+              <p role="alert" className="text-xs text-red-700 dark:text-red-400">
+                {bannerUploadError}
+              </p>
+            )}
+
+            {sanitizeHeaderImageUrl(headerImageUrl) && (
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] overflow-hidden">
+                {!bannerPreviewFailed ? (
+                  <img
+                    src={sanitizeHeaderImageUrl(headerImageUrl)}
+                    alt="Header banner preview"
+                    onError={() => setBannerPreviewFailed(true)}
+                    className="w-full h-32 sm:h-36 object-cover object-center block"
+                  />
+                ) : (
+                  <div className="px-3 py-4 text-xs text-amber-700 dark:text-amber-300">
+                    Unable to load image preview from this URL. Verify that the link is publicly reachable.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Editor Header: View Mode Switcher & Quick Structure Tools */}
@@ -671,10 +844,19 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         )}
 
         {paneMode !== 'write' && (
-          <div className="min-h-[420px] p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0d131f] overflow-y-auto">
-            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="min-h-[420px] p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0d131f] overflow-y-auto space-y-4">
+            <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-3 border-b border-slate-200 dark:border-slate-800">
               Live preview
             </div>
+            {enableHeaderBanner && sanitizeHeaderImageUrl(headerImageUrl) && !bannerPreviewFailed && (
+              <figure className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+                <img
+                  src={sanitizeHeaderImageUrl(headerImageUrl)}
+                  alt={`${title || 'Page'} banner preview`}
+                  className="w-full h-36 sm:h-44 object-cover object-center block"
+                />
+              </figure>
+            )}
             <ArticleViewer
               content={content}
               existingSlugs={existingSlugs}
