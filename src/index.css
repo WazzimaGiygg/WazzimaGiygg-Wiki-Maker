@@ -403,6 +403,50 @@
   --wiki-table-head-bg: #281833;
 }
 
+:root[data-wiki-theme="google-material"] {
+  --wiki-canvas: #f0f4f9;
+  --wiki-surface: #ffffff;
+  --wiki-surface-nav: rgba(255, 255, 255, 0.96);
+  --wiki-surface-footer: #f8fafd;
+  --wiki-surface-alt: #f8fafd;
+  --wiki-border: #dadce0;
+  --wiki-heading: #1f1f1f;
+  --wiki-text: #3c4043;
+  --wiki-muted: #5f6368;
+  --wiki-accent: #1a73e8;
+  --wiki-accent-hover: #1765cc;
+  --wiki-accent-soft: #d3e3fd;
+  --wiki-accent-soft-text: #041e49;
+  --wiki-inline-code-bg: #f1f3f4;
+  --wiki-inline-code-text: #1f1f1f;
+  --wiki-code-bg: #202124;
+  --wiki-code-text: #e8eaed;
+  --wiki-table-head-bg: #f1f3f4;
+  --wiki-font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --wiki-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root.dark[data-wiki-theme="google-material"] {
+  --wiki-canvas: #131314;
+  --wiki-surface: #1e1f20;
+  --wiki-surface-nav: rgba(30, 31, 32, 0.96);
+  --wiki-surface-footer: #18191a;
+  --wiki-surface-alt: #28292c;
+  --wiki-border: #3c4043;
+  --wiki-heading: #e3e3e3;
+  --wiki-text: #c4c7c5;
+  --wiki-muted: #9aa0a6;
+  --wiki-accent: #8ab4f8;
+  --wiki-accent-hover: #aecbfa;
+  --wiki-accent-soft: #004a77;
+  --wiki-accent-soft-text: #c2e7ff;
+  --wiki-inline-code-bg: #2d2e30;
+  --wiki-inline-code-text: #e8eaed;
+  --wiki-code-bg: #0e0f10;
+  --wiki-code-text: #e8eaed;
+  --wiki-table-head-bg: #28292c;
+}
+
 :root[data-wiki-theme="wikidiota"] {
   --wiki-canvas: #f6f2e9;
   --wiki-surface: #ffffff;
@@ -736,6 +780,38 @@
 
 :root.dark[data-wiki-theme="fandom"] [data-wiki-surface="accent"] {
   color: #130918;
+  font-weight: 600;
+}
+
+/* Google (Material) Four-Color Top Accent & Material 3 Tonal Elevation */
+:root[data-wiki-theme="google-material"] [data-wiki-surface="nav"] {
+  background-image: linear-gradient(
+    90deg,
+    #4285f4 0%,
+    #4285f4 25%,
+    #ea4335 25%,
+    #ea4335 50%,
+    #fbbc04 50%,
+    #fbbc04 75%,
+    #34a853 75%,
+    #34a853 100%
+  );
+  background-size: 100% 3px;
+  background-repeat: no-repeat;
+  background-position: top;
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+:root[data-wiki-theme="google-material"]:not(.dark) [data-wiki-surface="panel"] {
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.14), 0 1px 3px 1px rgba(60, 64, 67, 0.08);
+}
+
+:root.dark[data-wiki-theme="google-material"] [data-wiki-surface="panel"] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+:root.dark[data-wiki-theme="google-material"] [data-wiki-surface="accent"] {
+  color: #062e6f;
   font-weight: 600;
 }
 

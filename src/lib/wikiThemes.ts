@@ -9,6 +9,7 @@ export type WikiThemeId =
   | 'windows-10'
   | 'android-alpha'
   | 'fandom'
+  | 'google-material'
   | 'wikidiota';
 
 export type RgbTuple = [number, number, number];
@@ -469,6 +470,52 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         border: [67, 42, 84],
         accent: [255, 71, 133],
         missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'google-material',
+    name: 'Google (Material)',
+    tagline:
+      'Inspirado no Google Workspace e Material 3: superfícies tonais claras (#f0f4f9), azul Google (#1a73e8), grafite #202124 e filete superior quadricolor.',
+    typographyLabel: 'DM Sans + Plus Jakarta Sans',
+    editionLabel: 'Coleção Material',
+    lightSwatches: ['bg-[#f0f4f9]', 'bg-[#ffffff]', 'bg-[#1a73e8]'],
+    darkSwatches: ['bg-[#131314]', 'bg-[#1e1f20]', 'bg-[#8ab4f8]'],
+    metaThemeColor: {
+      light: '#1a73e8',
+      dark: '#1e1f20',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 255, 255],
+        surfaceBg: [248, 250, 253],
+        chipBg: [211, 227, 253],
+        blockquoteBg: [248, 250, 253],
+        codeBlockBg: [32, 33, 36],
+        codeBlockText: [232, 234, 237],
+        codeBlockBorder: [218, 220, 224],
+        heading: [31, 31, 31],
+        body: [60, 64, 67],
+        muted: [95, 99, 104],
+        border: [218, 220, 224],
+        accent: [26, 115, 232],
+        missingLink: [179, 38, 30],
+      },
+      dark: {
+        pageBg: [30, 31, 32],
+        surfaceBg: [19, 19, 20],
+        chipBg: [0, 74, 119],
+        blockquoteBg: [40, 41, 44],
+        codeBlockBg: [14, 15, 16],
+        codeBlockText: [232, 234, 237],
+        codeBlockBorder: [60, 64, 67],
+        heading: [227, 227, 227],
+        body: [196, 199, 197],
+        muted: [154, 160, 166],
+        border: [60, 64, 67],
+        accent: [138, 180, 248],
+        missingLink: [242, 139, 130],
       },
     },
   },
