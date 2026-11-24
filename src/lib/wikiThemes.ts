@@ -6,6 +6,7 @@ export type WikiThemeId =
   | 'windows-1'
   | 'windows-95'
   | 'windows-xp'
+  | 'windows-10'
   | 'android-alpha'
   | 'wikidiota';
 
@@ -374,6 +375,52 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         muted: [148, 163, 184],
         border: [59, 130, 246],
         accent: [96, 165, 250],
+        missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'windows-10',
+    name: 'Windows 10 (Fluent)',
+    tagline:
+      'Design plano Fluent com azul Windows (#0078d4), superfícies neutras em cinza acrílico, cantos nítidos de 2px e modo escuro grafite.',
+    typographyLabel: 'Public Sans + Plus Jakarta Sans',
+    editionLabel: 'Coleção Fluent 2015',
+    lightSwatches: ['bg-[#f0f0f0]', 'bg-[#ffffff]', 'bg-[#0078d4]'],
+    darkSwatches: ['bg-[#171717]', 'bg-[#202020]', 'bg-[#4cc2ff]'],
+    metaThemeColor: {
+      light: '#0078d4',
+      dark: '#202020',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 255, 255],
+        surfaceBg: [243, 243, 243],
+        chipBg: [222, 236, 249],
+        blockquoteBg: [247, 247, 247],
+        codeBlockBg: [30, 30, 30],
+        codeBlockText: [212, 212, 212],
+        codeBlockBorder: [209, 209, 209],
+        heading: [17, 17, 17],
+        body: [38, 38, 38],
+        muted: [89, 89, 89],
+        border: [209, 209, 209],
+        accent: [0, 120, 212],
+        missingLink: [180, 83, 9],
+      },
+      dark: {
+        pageBg: [32, 32, 32],
+        surfaceBg: [23, 23, 23],
+        chipBg: [35, 58, 79],
+        blockquoteBg: [43, 43, 43],
+        codeBlockBg: [18, 18, 18],
+        codeBlockText: [224, 224, 224],
+        codeBlockBorder: [61, 61, 61],
+        heading: [245, 245, 245],
+        body: [224, 224, 224],
+        muted: [163, 163, 163],
+        border: [61, 61, 61],
+        accent: [76, 194, 255],
         missingLink: [251, 191, 36],
       },
     },

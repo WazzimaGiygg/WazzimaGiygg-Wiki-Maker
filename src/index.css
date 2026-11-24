@@ -315,6 +315,50 @@
   --wiki-table-head-bg: #1e2638;
 }
 
+:root[data-wiki-theme="windows-10"] {
+  --wiki-canvas: #f0f0f0;
+  --wiki-surface: #ffffff;
+  --wiki-surface-nav: rgba(243, 243, 243, 0.94);
+  --wiki-surface-footer: #f3f3f3;
+  --wiki-surface-alt: #f7f7f7;
+  --wiki-border: #d1d1d1;
+  --wiki-heading: #111111;
+  --wiki-text: #262626;
+  --wiki-muted: #595959;
+  --wiki-accent: #0078d4;
+  --wiki-accent-hover: #0067b8;
+  --wiki-accent-soft: #deecf9;
+  --wiki-accent-soft-text: #004578;
+  --wiki-inline-code-bg: #ededed;
+  --wiki-inline-code-text: #111111;
+  --wiki-code-bg: #1e1e1e;
+  --wiki-code-text: #d4d4d4;
+  --wiki-table-head-bg: #f2f2f2;
+  --wiki-font-display: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --wiki-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root.dark[data-wiki-theme="windows-10"] {
+  --wiki-canvas: #171717;
+  --wiki-surface: #202020;
+  --wiki-surface-nav: rgba(31, 31, 31, 0.94);
+  --wiki-surface-footer: #1c1c1c;
+  --wiki-surface-alt: #2b2b2b;
+  --wiki-border: #3d3d3d;
+  --wiki-heading: #f5f5f5;
+  --wiki-text: #e0e0e0;
+  --wiki-muted: #a3a3a3;
+  --wiki-accent: #4cc2ff;
+  --wiki-accent-hover: #70ceff;
+  --wiki-accent-soft: rgba(0, 120, 212, 0.28);
+  --wiki-accent-soft-text: #bce6ff;
+  --wiki-inline-code-bg: #2e2e2e;
+  --wiki-inline-code-text: #f3f3f3;
+  --wiki-code-bg: #121212;
+  --wiki-code-text: #e0e0e0;
+  --wiki-table-head-bg: #2b2b2b;
+}
+
 :root[data-wiki-theme="wikidiota"] {
   --wiki-canvas: #f6f2e9;
   --wiki-surface: #ffffff;
@@ -593,6 +637,39 @@
 :root.dark[data-wiki-theme="windows-xp"] [data-wiki-surface="panel"] {
   border-color: #2b4470;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Windows 10 (Fluent) Crisp 2px Flat Geometry & Acrylic Nav */
+:root[data-wiki-theme="windows-10"] [data-wiki-surface="panel"],
+:root[data-wiki-theme="windows-10"] [data-wiki-surface="inset"],
+:root[data-wiki-theme="windows-10"] [data-wiki-surface="accent"],
+:root[data-wiki-theme="windows-10"] [data-wiki-surface="nav-active"],
+:root[data-wiki-theme="windows-10"] .wiki-prose pre,
+:root[data-wiki-theme="windows-10"] .wiki-prose code,
+:root[data-wiki-theme="windows-10"] button,
+:root[data-wiki-theme="windows-10"] input,
+:root[data-wiki-theme="windows-10"] select,
+:root[data-wiki-theme="windows-10"] textarea {
+  border-radius: 2px;
+}
+
+:root[data-wiki-theme="windows-10"] [data-wiki-surface="nav"] {
+  border-top: 3px solid var(--wiki-accent);
+  border-bottom: 1px solid var(--wiki-border);
+  backdrop-filter: blur(12px);
+}
+
+:root[data-wiki-theme="windows-10"] [data-wiki-surface="panel"] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+:root.dark[data-wiki-theme="windows-10"] [data-wiki-surface="panel"] {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+:root.dark[data-wiki-theme="windows-10"] [data-wiki-surface="accent"] {
+  color: #0b1926;
+  font-weight: 600;
 }
 
 /* Wikidiota Parody Edition Accent Rule */
