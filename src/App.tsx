@@ -153,6 +153,9 @@ import {
   type WorkspaceView,
 } from './types/wiki';
 
+const EMPTY_TAGS: string[] = [];
+const TEMPLATE_PRESET_TAGS: string[] = ['predefinicao', 'template'];
+
 function parseHashRoute(): {
   view: WorkspaceView;
   slug: string;
@@ -2449,6 +2452,7 @@ function WikiWorkspace() {
 
               {user && !isBlocked ? (
                 <MarkdownEditor
+                  key={`create-${createPresetSlug || 'blank'}`}
                   mode="create"
                   initialSlug={createPresetSlug}
                   initialTitle={
@@ -2477,8 +2481,8 @@ function WikiWorkspace() {
                   initialTags={
                     createPresetSlug.startsWith('predefinicao-') ||
                     createPresetSlug.startsWith('template-')
-                      ? ['predefinicao', 'template']
-                      : []
+                      ? TEMPLATE_PRESET_TAGS
+                      : EMPTY_TAGS
                   }
                   initialVisibility="public"
                   initialIsLocked={false}
@@ -3398,6 +3402,7 @@ function WikiWorkspace() {
 
               {activeTab === 'edit' && user && canEditActivePage && (
                 <MarkdownEditor
+                  key={`edit-${activePage.slug}`}
                   mode="edit"
                   initialSlug={activePage.slug}
                   initialTitle={activePage.title}

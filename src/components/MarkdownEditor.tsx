@@ -208,9 +208,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const contentRef = React.useRef(content);
   contentRef.current = content;
 
+  const baselineCategory = initialCategory || 'general';
+  const baselineTags = initialTags.join(', ');
+
   const isDirty = React.useMemo(() => {
-    const baselineCategory = initialCategory || 'general';
-    const baselineTags = initialTags.join(', ');
     return (
       title !== initialTitle ||
       (mode === 'create' && slug !== initialSlug) ||
@@ -231,9 +232,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     content,
     initialContent,
     category,
-    initialCategory,
+    baselineCategory,
     tagsText,
-    initialTags,
+    baselineTags,
     visibility,
     initialVisibility,
     isLocked,
@@ -242,6 +243,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     initialHeaderImageUrl,
     summary,
   ]);
+
+  const isDirtyRef = React.useRef(isDirty);
+  isDirtyRef.current = isDirty;
+  const sessionIdentityRef = React.useRef(`${mode}:${initialSlug}`);
 
   React.useEffect(() => {
     onDirtyChange?.(isDirty);
@@ -254,12 +259,19 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   }, [onDirtyChange]);
 
   React.useEffect(() => {
+    const nextIdentity = `${mode}:${initialSlug}`;
+    const isSameSession = sessionIdentityRef.current === nextIdentity;
+    if (isSameSession && isDirtyRef.current) {
+      return;
+    }
+    sessionIdentityRef.current = nextIdentity;
+
     setSlug(initialSlug);
     setSlugTouched(mode === 'edit' || Boolean(initialSlug));
     setTitle(initialTitle);
     setContent(initialContent);
-    setCategory(initialCategory || 'general');
-    setTagsText(initialTags.join(', '));
+    setCategory(baselineCategory);
+    setTagsText(baselineTags);
     setVisibility(initialVisibility);
     setIsLocked(initialIsLocked);
     setHeaderImageUrl(initialHeaderImageUrl);
@@ -282,8 +294,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     initialSlug,
     initialTitle,
     initialContent,
-    initialCategory,
-    initialTags,
+    baselineCategory,
+    baselineTags,
     initialVisibility,
     initialIsLocked,
     initialHeaderImageUrl,
