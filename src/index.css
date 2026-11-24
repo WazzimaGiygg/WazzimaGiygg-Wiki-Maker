@@ -359,6 +359,50 @@
   --wiki-table-head-bg: #251d2a;
 }
 
+:root[data-wiki-theme="android-alpha"] {
+  --wiki-canvas: #dfe3e8;
+  --wiki-surface: #ffffff;
+  --wiki-surface-nav: #e9edf1;
+  --wiki-surface-footer: #e9edf1;
+  --wiki-surface-alt: #f1f4f7;
+  --wiki-border: #bcc5d0;
+  --wiki-heading: #14181f;
+  --wiki-text: #222933;
+  --wiki-muted: #525e6e;
+  --wiki-accent: #3f6b11;
+  --wiki-accent-hover: #32560d;
+  --wiki-accent-soft: #ecfccb;
+  --wiki-accent-soft-text: #365314;
+  --wiki-inline-code-bg: #e7ecf1;
+  --wiki-inline-code-text: #14181f;
+  --wiki-code-bg: #14181f;
+  --wiki-code-text: #d9f99d;
+  --wiki-table-head-bg: #e9edf2;
+  --wiki-font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --wiki-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root.dark[data-wiki-theme="android-alpha"] {
+  --wiki-canvas: #111316;
+  --wiki-surface: #191c21;
+  --wiki-surface-nav: #1e2228;
+  --wiki-surface-footer: #16191e;
+  --wiki-surface-alt: #22262d;
+  --wiki-border: #343b46;
+  --wiki-heading: #f3f5f7;
+  --wiki-text: #d2d8e0;
+  --wiki-muted: #949fab;
+  --wiki-accent: #a4c639;
+  --wiki-accent-hover: #b7d94c;
+  --wiki-accent-soft: rgba(164, 198, 57, 0.16);
+  --wiki-accent-soft-text: #d9f99d;
+  --wiki-inline-code-bg: #252a33;
+  --wiki-inline-code-text: #e9eef5;
+  --wiki-code-bg: #0c0e11;
+  --wiki-code-text: #d9f99d;
+  --wiki-table-head-bg: #22262d;
+}
+
 @layer base {
   html {
     font-family: var(--wiki-font-sans);
@@ -559,6 +603,40 @@
 
 :root.dark[data-wiki-theme="wikidiota"] [data-wiki-surface="accent"] {
   color: #120e14;
+}
+
+/* Android Alpha (2008) Status Bar Accent, Brushed Chrome & Droid Green Buttons */
+:root[data-wiki-theme="android-alpha"] [data-wiki-surface="nav"] {
+  border-top: 4px solid #a4c639;
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+:root[data-wiki-theme="android-alpha"]:not(.dark) [data-wiki-surface="panel"] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 1px 3px rgba(20, 24, 31, 0.08);
+}
+
+:root[data-wiki-theme="android-alpha"]:not(.dark) [data-wiki-surface="accent"] {
+  background: linear-gradient(180deg, #5a8f1b 0%, #3f6b11 100%);
+  border-color: #2f510b;
+  color: #ffffff;
+}
+
+:root[data-wiki-theme="android-alpha"]:not(.dark) [data-wiki-surface="accent"]:hover {
+  background: linear-gradient(180deg, #659f20 0%, #487914 100%);
+  border-color: #254108;
+}
+
+:root[data-wiki-theme="android-alpha"] [data-wiki-surface="progress"] {
+  background-color: #a4c639;
+}
+
+:root.dark[data-wiki-theme="android-alpha"] [data-wiki-surface="panel"] {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+:root.dark[data-wiki-theme="android-alpha"] [data-wiki-surface="accent"] {
+  color: #111316;
+  font-weight: 600;
 }
 
 /* Editorial Markdown typography inside the Wiki reading canvas */

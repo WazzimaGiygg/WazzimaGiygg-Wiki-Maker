@@ -6,6 +6,7 @@ export type WikiThemeId =
   | 'windows-1'
   | 'windows-95'
   | 'windows-xp'
+  | 'android-alpha'
   | 'wikidiota';
 
 export type RgbTuple = [number, number, number];
@@ -425,6 +426,52 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         muted: [184, 167, 189],
         border: [59, 45, 66],
         accent: [248, 113, 113],
+        missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'android-alpha',
+    name: 'Android Alpha (2008)',
+    tagline:
+      'Visual inicial do Android (M3/1.0): barra de status com filete verde-droide (#a4c639), aço escovado, grafite fosco e botões chanfrados.',
+    typographyLabel: 'DM Sans + Plus Jakarta Sans',
+    editionLabel: 'Coleção Mobile 2008',
+    lightSwatches: ['bg-[#dfe3e8]', 'bg-[#ffffff]', 'bg-[#a4c639]'],
+    darkSwatches: ['bg-[#111316]', 'bg-[#191c21]', 'bg-[#a4c639]'],
+    metaThemeColor: {
+      light: '#3f6b11',
+      dark: '#191c21',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 255, 255],
+        surfaceBg: [241, 244, 247],
+        chipBg: [236, 252, 203],
+        blockquoteBg: [244, 247, 249],
+        codeBlockBg: [20, 24, 31],
+        codeBlockText: [217, 249, 157],
+        codeBlockBorder: [188, 197, 208],
+        heading: [20, 24, 31],
+        body: [34, 41, 51],
+        muted: [82, 94, 110],
+        border: [188, 197, 208],
+        accent: [63, 107, 17],
+        missingLink: [180, 83, 9],
+      },
+      dark: {
+        pageBg: [25, 28, 33],
+        surfaceBg: [17, 19, 22],
+        chipBg: [39, 48, 32],
+        blockquoteBg: [34, 38, 45],
+        codeBlockBg: [12, 14, 17],
+        codeBlockText: [217, 249, 157],
+        codeBlockBorder: [52, 59, 70],
+        heading: [243, 245, 247],
+        body: [210, 216, 224],
+        muted: [148, 159, 171],
+        border: [52, 59, 70],
+        accent: [164, 198, 57],
         missingLink: [251, 191, 36],
       },
     },
