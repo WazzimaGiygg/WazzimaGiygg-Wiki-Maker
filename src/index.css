@@ -359,6 +359,50 @@
   --wiki-table-head-bg: #2b2b2b;
 }
 
+:root[data-wiki-theme="fandom"] {
+  --wiki-canvas: #f3eef6;
+  --wiki-surface: #ffffff;
+  --wiki-surface-nav: rgba(255, 255, 255, 0.96);
+  --wiki-surface-footer: #f6f1f9;
+  --wiki-surface-alt: #f8f5fb;
+  --wiki-border: #ddd2e5;
+  --wiki-heading: #1e0d29;
+  --wiki-text: #2d1b38;
+  --wiki-muted: #6b5678;
+  --wiki-accent: #c80048;
+  --wiki-accent-hover: #a6003b;
+  --wiki-accent-soft: #ffe4ee;
+  --wiki-accent-soft-text: #9b0036;
+  --wiki-inline-code-bg: #f2eaf7;
+  --wiki-inline-code-text: #1e0d29;
+  --wiki-code-bg: #1b0e24;
+  --wiki-code-text: #f5e9ff;
+  --wiki-table-head-bg: #f2eaf7;
+  --wiki-font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --wiki-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root.dark[data-wiki-theme="fandom"] {
+  --wiki-canvas: #130918;
+  --wiki-surface: #1e1126;
+  --wiki-surface-nav: rgba(30, 17, 38, 0.96);
+  --wiki-surface-footer: #180d1f;
+  --wiki-surface-alt: #281833;
+  --wiki-border: #432a54;
+  --wiki-heading: #faf5ff;
+  --wiki-text: #e6dced;
+  --wiki-muted: #b59ec4;
+  --wiki-accent: #ff4785;
+  --wiki-accent-hover: #ff70a0;
+  --wiki-accent-soft: rgba(250, 0, 90, 0.22);
+  --wiki-accent-soft-text: #ffb3cd;
+  --wiki-inline-code-bg: #2e1d3b;
+  --wiki-inline-code-text: #faf5ff;
+  --wiki-code-bg: #0c0610;
+  --wiki-code-text: #f5e9ff;
+  --wiki-table-head-bg: #281833;
+}
+
 :root[data-wiki-theme="wikidiota"] {
   --wiki-canvas: #f6f2e9;
   --wiki-surface: #ffffff;
@@ -669,6 +713,29 @@
 
 :root.dark[data-wiki-theme="windows-10"] [data-wiki-surface="accent"] {
   color: #0b1926;
+  font-weight: 600;
+}
+
+/* FandomDesktop Coral Stripe & Community Aubergine Chrome */
+:root[data-wiki-theme="fandom"] [data-wiki-surface="nav"] {
+  border-top: 4px solid #fa005a;
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+:root[data-wiki-theme="fandom"] [data-wiki-surface="progress"] {
+  background-color: #fa005a;
+}
+
+:root[data-wiki-theme="fandom"]:not(.dark) [data-wiki-surface="panel"] {
+  box-shadow: 0 2px 8px rgba(40, 0, 51, 0.06);
+}
+
+:root.dark[data-wiki-theme="fandom"] [data-wiki-surface="panel"] {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.42);
+}
+
+:root.dark[data-wiki-theme="fandom"] [data-wiki-surface="accent"] {
+  color: #130918;
   font-weight: 600;
 }
 

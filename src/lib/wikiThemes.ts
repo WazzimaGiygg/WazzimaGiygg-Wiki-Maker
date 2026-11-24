@@ -8,6 +8,7 @@ export type WikiThemeId =
   | 'windows-xp'
   | 'windows-10'
   | 'android-alpha'
+  | 'fandom'
   | 'wikidiota';
 
 export type RgbTuple = [number, number, number];
@@ -421,6 +422,52 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         muted: [163, 163, 163],
         border: [61, 61, 61],
         accent: [76, 194, 255],
+        missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'fandom',
+    name: 'Fandom (Desktop)',
+    tagline:
+      'Inspirado no FandomDesktop: coral vibrante (#fa005a), fundo ameixa profundo (#130918) no modo escuro e leitura limpa em cartões claros.',
+    typographyLabel: 'Outfit + Plus Jakarta Sans',
+    editionLabel: 'Coleção Comunidades',
+    lightSwatches: ['bg-[#f3eef6]', 'bg-[#ffffff]', 'bg-[#fa005a]'],
+    darkSwatches: ['bg-[#130918]', 'bg-[#1e1126]', 'bg-[#ff4785]'],
+    metaThemeColor: {
+      light: '#c80048',
+      dark: '#1e1126',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 255, 255],
+        surfaceBg: [248, 245, 251],
+        chipBg: [255, 228, 238],
+        blockquoteBg: [248, 245, 251],
+        codeBlockBg: [27, 14, 36],
+        codeBlockText: [245, 233, 255],
+        codeBlockBorder: [221, 210, 229],
+        heading: [30, 13, 41],
+        body: [45, 27, 56],
+        muted: [107, 86, 120],
+        border: [221, 210, 229],
+        accent: [200, 0, 72],
+        missingLink: [180, 83, 9],
+      },
+      dark: {
+        pageBg: [30, 17, 38],
+        surfaceBg: [19, 9, 24],
+        chipBg: [67, 29, 58],
+        blockquoteBg: [40, 24, 51],
+        codeBlockBg: [12, 6, 16],
+        codeBlockText: [245, 233, 255],
+        codeBlockBorder: [67, 42, 84],
+        heading: [250, 245, 255],
+        body: [230, 220, 237],
+        muted: [181, 158, 196],
+        border: [67, 42, 84],
+        accent: [255, 71, 133],
         missingLink: [251, 191, 36],
       },
     },
