@@ -1,9 +1,12 @@
 import React from 'react';
 import type { User } from 'firebase/auth';
 import {
+  AlertTriangle,
   Bold,
   BookMarked,
   Braces,
+  ChevronDown,
+  ChevronUp,
   Code,
   Code2,
   ExternalLink,
@@ -20,12 +23,16 @@ import {
   Lock,
   PanelRight,
   Quote,
+  Redo2,
+  Replace,
   Save,
   SplitSquareHorizontal,
   Table,
   Trash2,
+  Undo2,
   Unlock,
   Upload,
+  X,
 } from 'lucide-react';
 import {
   type PageVisibility,
@@ -99,6 +106,7 @@ interface MarkdownEditorProps {
   }) => Promise<void>;
   onCancel: () => void;
   onNavigateSlug: (slug: string) => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 type EditorPaneMode = 'formatted' | 'code' | 'split' | 'preview';
@@ -139,6 +147,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onSave,
   onCancel,
   onNavigateSlug,
+  onDirtyChange,
 }) => {
   const [slug, setSlug] = React.useState(initialSlug);
   const [slugTouched, setSlugTouched] = React.useState(mode === 'edit' || Boolean(initialSlug));
@@ -168,9 +177,81 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [infoboxModalOpen, setInfoboxModalOpen] = React.useState(false);
   const [templateModalOpen, setTemplateModalOpen] = React.useState(false);
 
+  // Unified Undo (Ctrl+Z) / Redo (Ctrl+R) content history
+  const historyStackRef = React.useRef<{
+    items: string[];
+    index: number;
+    lastPushAt: number;
+  }>({
+    items: [initialContent],
+    index: 0,
+    lastPushAt: 0,
+  });
+  const [historyMeta, setHistoryMeta] = React.useState<{ canUndo: boolean; canRedo: boolean }>({
+    canUndo: false,
+    canRedo: false,
+  });
+
+  // Find & Replace (Ctrl+H) state
+  const [findReplaceOpen, setFindReplaceOpen] = React.useState(false);
+  const [findQuery, setFindQuery] = React.useState('');
+  const [replaceQuery, setReplaceQuery] = React.useState('');
+  const [findCaseSensitive, setFindCaseSensitive] = React.useState(false);
+  const [activeMatchIndex, setActiveMatchIndex] = React.useState(0);
+  const [replaceStatus, setReplaceStatus] = React.useState<string | null>(null);
+
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const formattedPaneRef = React.useRef<FormattedEditorHandle | null>(null);
   const bannerFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const findInputRef = React.useRef<HTMLInputElement | null>(null);
+  const replaceInputRef = React.useRef<HTMLInputElement | null>(null);
+  const contentRef = React.useRef(content);
+  contentRef.current = content;
+
+  const isDirty = React.useMemo(() => {
+    const baselineCategory = initialCategory || 'general';
+    const baselineTags = initialTags.join(', ');
+    return (
+      title !== initialTitle ||
+      (mode === 'create' && slug !== initialSlug) ||
+      content !== initialContent ||
+      category !== baselineCategory ||
+      tagsText !== baselineTags ||
+      visibility !== initialVisibility ||
+      isLocked !== initialIsLocked ||
+      headerImageUrl !== initialHeaderImageUrl ||
+      summary.trim().length > 0
+    );
+  }, [
+    mode,
+    slug,
+    initialSlug,
+    title,
+    initialTitle,
+    content,
+    initialContent,
+    category,
+    initialCategory,
+    tagsText,
+    initialTags,
+    visibility,
+    initialVisibility,
+    isLocked,
+    initialIsLocked,
+    headerImageUrl,
+    initialHeaderImageUrl,
+    summary,
+  ]);
+
+  React.useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  React.useEffect(() => {
+    return () => {
+      onDirtyChange?.(false);
+    };
+  }, [onDirtyChange]);
 
   React.useEffect(() => {
     setSlug(initialSlug);
@@ -188,6 +269,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setSendAdminNotice(false);
     setAdminNoticeReason('');
     setLocalError(null);
+    setFindReplaceOpen(false);
+    setReplaceStatus(null);
+    historyStackRef.current = {
+      items: [initialContent],
+      index: 0,
+      lastPushAt: 0,
+    };
+    setHistoryMeta({ canUndo: false, canRedo: false });
   }, [
     mode,
     initialSlug,
@@ -200,6 +289,173 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     initialHeaderImageUrl,
   ]);
 
+  const syncHistoryMeta = React.useCallback(() => {
+    const stack = historyStackRef.current;
+    setHistoryMeta({
+      canUndo: stack.index > 0,
+      canRedo: stack.index < stack.items.length - 1,
+    });
+  }, []);
+
+  const commitContentChange = React.useCallback(
+    (nextRaw: string, discrete = false) => {
+      const capped = nextRaw.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH);
+      setContent(capped);
+      const stack = historyStackRef.current;
+      const currentSnap = stack.items[stack.index] ?? '';
+      if (capped === currentSnap) return;
+
+      const now = Date.now();
+      const canCoalesce =
+        !discrete &&
+        stack.index > 0 &&
+        stack.index === stack.items.length - 1 &&
+        now - stack.lastPushAt < 550 &&
+        Math.abs(capped.length - currentSnap.length) <= 2 &&
+        !capped.endsWith('\n') &&
+        !currentSnap.endsWith('\n');
+
+      if (canCoalesce) {
+        stack.items[stack.index] = capped;
+      } else {
+        const sliced = stack.items.slice(0, stack.index + 1);
+        sliced.push(capped);
+        if (sliced.length > 150) {
+          sliced.shift();
+        }
+        stack.items = sliced;
+        stack.index = sliced.length - 1;
+      }
+      stack.lastPushAt = discrete ? 0 : now;
+      syncHistoryMeta();
+    },
+    [syncHistoryMeta]
+  );
+
+  const handleUndo = React.useCallback(() => {
+    const stack = historyStackRef.current;
+    if (stack.index <= 0) return;
+    stack.index -= 1;
+    stack.lastPushAt = 0;
+    const targetValue = stack.items[stack.index] ?? '';
+    setContent(targetValue);
+    syncHistoryMeta();
+  }, [syncHistoryMeta]);
+
+  const handleRedo = React.useCallback(() => {
+    const stack = historyStackRef.current;
+    if (stack.index >= stack.items.length - 1) return;
+    stack.index += 1;
+    stack.lastPushAt = 0;
+    const targetValue = stack.items[stack.index] ?? '';
+    setContent(targetValue);
+    syncHistoryMeta();
+  }, [syncHistoryMeta]);
+
+  const findMatches = React.useMemo(() => {
+    if (!findQuery) return [] as { start: number; end: number }[];
+    const haystack = findCaseSensitive ? content : content.toLowerCase();
+    const needle = findCaseSensitive ? findQuery : findQuery.toLowerCase();
+    if (!needle) return [] as { start: number; end: number }[];
+
+    const matches: { start: number; end: number }[] = [];
+    let pos = 0;
+    while (pos <= haystack.length) {
+      const idx = haystack.indexOf(needle, pos);
+      if (idx === -1) break;
+      matches.push({ start: idx, end: idx + needle.length });
+      pos = idx + Math.max(1, needle.length);
+      if (matches.length >= 2000) break;
+    }
+    return matches;
+  }, [content, findQuery, findCaseSensitive]);
+
+  React.useEffect(() => {
+    if (findMatches.length === 0) {
+      setActiveMatchIndex(0);
+    } else if (activeMatchIndex >= findMatches.length) {
+      setActiveMatchIndex(0);
+    }
+  }, [findMatches.length, activeMatchIndex]);
+
+  const highlightMatchInTextarea = React.useCallback((match: { start: number; end: number }) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(match.start, match.end);
+    });
+  }, []);
+
+  const navigateMatch = React.useCallback(
+    (delta: number) => {
+      if (findMatches.length === 0) return;
+      const nextIdx = (activeMatchIndex + delta + findMatches.length) % findMatches.length;
+      setActiveMatchIndex(nextIdx);
+      setReplaceStatus(null);
+      if (paneMode === 'code' || paneMode === 'split') {
+        highlightMatchInTextarea(findMatches[nextIdx]);
+      }
+    },
+    [findMatches, activeMatchIndex, paneMode, highlightMatchInTextarea]
+  );
+
+  const handleReplaceCurrent = React.useCallback(() => {
+    if (findMatches.length === 0) return;
+    const safeIdx = Math.min(activeMatchIndex, findMatches.length - 1);
+    const match = findMatches[safeIdx];
+    const nextContent =
+      content.slice(0, match.start) + replaceQuery + content.slice(match.end);
+    commitContentChange(nextContent, true);
+    setReplaceStatus('1 substituição aplicada');
+  }, [findMatches, activeMatchIndex, content, replaceQuery, commitContentChange]);
+
+  const handleReplaceAll = React.useCallback(() => {
+    if (findMatches.length === 0) return;
+    const count = findMatches.length;
+    let rebuilt = '';
+    let cursor = 0;
+    for (const m of findMatches) {
+      rebuilt += content.slice(cursor, m.start) + replaceQuery;
+      cursor = m.end;
+    }
+    rebuilt += content.slice(cursor);
+    commitContentChange(rebuilt, true);
+    setActiveMatchIndex(0);
+    setReplaceStatus(
+      count === 1 ? '1 substituição aplicada' : `${count} substituições aplicadas`
+    );
+  }, [findMatches, content, replaceQuery, commitContentChange]);
+
+  const openFindReplace = React.useCallback(() => {
+    let seedQuery = '';
+    const el = textareaRef.current;
+    if (el && document.activeElement === el && el.selectionEnd > el.selectionStart) {
+      const selected = contentRef.current.slice(el.selectionStart, el.selectionEnd);
+      if (!selected.includes('\n') && selected.length <= 120) {
+        seedQuery = selected;
+      }
+    } else {
+      const sel = window.getSelection()?.toString() || '';
+      if (sel && !sel.includes('\n') && sel.length <= 120) {
+        seedQuery = sel;
+      }
+    }
+    if (seedQuery) {
+      setFindQuery(seedQuery);
+    }
+    setReplaceStatus(null);
+    setFindReplaceOpen(true);
+    if (paneMode === 'preview') {
+      setPaneMode('code');
+      setFocusedPane('code');
+    }
+    requestAnimationFrame(() => {
+      findInputRef.current?.focus();
+      findInputRef.current?.select();
+    });
+  }, [paneMode]);
+
   const handleTitleChange = (value: string) => {
     setTitle(value);
     if (mode === 'create' && !slugTouched) {
@@ -210,15 +466,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const insertSnippet = (before: string, after = '', fallbackText = 'text') => {
     const el = textareaRef.current;
     if (!el) {
-      setContent((prev) => `${prev}${before}${fallbackText}${after}`);
+      commitContentChange(`${contentRef.current}${before}${fallbackText}${after}`, true);
       return;
     }
 
     const start = el.selectionStart;
     const end = el.selectionEnd;
-    const selected = content.slice(start, end) || fallbackText;
-    const next = content.slice(0, start) + before + selected + after + content.slice(end);
-    setContent(next);
+    const currentVal = contentRef.current;
+    const selected = currentVal.slice(start, end) || fallbackText;
+    const next = currentVal.slice(0, start) + before + selected + after + currentVal.slice(end);
+    commitContentChange(next, true);
 
     requestAnimationFrame(() => {
       el.focus();
@@ -230,19 +487,23 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const insertBlockAtCursor = (blockText: string) => {
     const el = textareaRef.current;
+    const currentVal = contentRef.current;
     if (!el) {
-      setContent((prev) => (prev.trim() ? `${blockText}\n\n${prev}` : `${blockText}\n`));
+      commitContentChange(
+        currentVal.trim() ? `${blockText}\n\n${currentVal}` : `${blockText}\n`,
+        true
+      );
       return;
     }
 
     const start = el.selectionStart;
     const end = el.selectionEnd;
-    const before = content.slice(0, start);
-    const after = content.slice(end);
+    const before = currentVal.slice(0, start);
+    const after = currentVal.slice(end);
     const prefix = before && !before.endsWith('\n\n') ? (before.endsWith('\n') ? '\n' : '\n\n') : '';
     const suffix = after && !after.startsWith('\n\n') ? (after.startsWith('\n') ? '\n' : '\n\n') : '\n';
     const next = `${before}${prefix}${blockText}${suffix}${after}`;
-    setContent(next);
+    commitContentChange(next, true);
 
     const nextCaret = before.length + prefix.length + blockText.length + suffix.length;
     requestAnimationFrame(() => {
@@ -369,6 +630,53 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     });
   };
 
+  // Capture Ctrl+H (Find & Replace), Ctrl+Z (Undo), Ctrl+R (Redo) safely so browser defaults (history/reload) never fire while editing
+  React.useEffect(() => {
+    const handleCaptureShortcuts = (e: KeyboardEvent) => {
+      if (e.isComposing || infoboxModalOpen || templateModalOpen) return;
+      const isMod = e.metaKey || e.ctrlKey;
+      if (!isMod || e.altKey) return;
+
+      const keyLower = e.key.toLowerCase();
+      const target = e.target as HTMLElement | null;
+      const isSingleLineInput = target?.tagName === 'INPUT';
+
+      if (!e.shiftKey && keyLower === 'h') {
+        e.preventDefault();
+        e.stopPropagation();
+        openFindReplace();
+        return;
+      }
+
+      if (!e.shiftKey && keyLower === 'r') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleRedo();
+        return;
+      }
+
+      if (keyLower === 'z' && !isSingleLineInput) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      }
+
+      if (!e.shiftKey && keyLower === 'y' && !isSingleLineInput) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleCaptureShortcuts, true);
+    return () => window.removeEventListener('keydown', handleCaptureShortcuts, true);
+  }, [infoboxModalOpen, templateModalOpen, openFindReplace, handleUndo, handleRedo]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.nativeEvent.isComposing || infoboxModalOpen || templateModalOpen) return;
 
@@ -438,6 +746,20 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           className="px-4 py-3 text-sm rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300"
         >
           {activeError}
+        </div>
+      )}
+
+      {isDirty && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-2.5 px-3.5 py-2.5 text-xs rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50/90 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200"
+        >
+          <AlertTriangle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0" />
+          <span>
+            <strong>Alterações não salvas:</strong> se você sair deste artigo sem salvar, perderá
+            todas as modificações feitas.
+          </span>
         </div>
       )}
 
@@ -798,6 +1120,56 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               <div className="flex flex-wrap items-center gap-1">
                 <button
                   type="button"
+                  title="Desfazer (Ctrl+Z)"
+                  disabled={!historyMeta.canUndo}
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={handleUndo}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 disabled:opacity-35 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  <Undo2 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Refazer (Ctrl+R)"
+                  disabled={!historyMeta.canRedo}
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={handleRedo}
+                  className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 disabled:opacity-35 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                >
+                  <Redo2 className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Localizar e substituir no editor (Ctrl+H)"
+                  aria-pressed={findReplaceOpen}
+                  onClick={() => {
+                    if (findReplaceOpen) {
+                      setFindReplaceOpen(false);
+                    } else {
+                      openFindReplace();
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                    findReplaceOpen
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Replace className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">Substituir</span>
+                </button>
+
+                <span
+                  aria-hidden="true"
+                  className="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-0.5"
+                />
+
+                <button
+                  type="button"
                   title="Negrito (**texto**) — Ctrl+B"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
@@ -1026,6 +1398,141 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             </div>
           )}
 
+          {findReplaceOpen && (
+            <div
+              role="region"
+              aria-label="Localizar e substituir no editor"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setFindReplaceOpen(false);
+                }
+              }}
+              className="mb-3 p-3 rounded-xl border border-blue-200 dark:border-blue-800/70 bg-blue-50/70 dark:bg-[#0f1623] space-y-2"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex-1 min-w-[170px] flex items-center gap-1.5">
+                  <input
+                    ref={findInputRef}
+                    type="text"
+                    value={findQuery}
+                    onChange={(e) => {
+                      setFindQuery(e.target.value);
+                      setReplaceStatus(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        navigateMatch(e.shiftKey ? -1 : 1);
+                      }
+                    }}
+                    placeholder="Localizar texto..."
+                    aria-label="Texto para localizar"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                  />
+                  <button
+                    type="button"
+                    aria-pressed={findCaseSensitive}
+                    onClick={() => setFindCaseSensitive((v) => !v)}
+                    title="Diferenciar maiúsculas e minúsculas"
+                    className={`px-2 py-1.5 text-xs font-mono rounded-lg border transition-colors cursor-pointer shrink-0 ${
+                      findCaseSensitive
+                        ? 'border-blue-700 bg-blue-700 text-white'
+                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    Aa
+                  </button>
+                </div>
+
+                <div className="flex-1 min-w-[170px]">
+                  <input
+                    ref={replaceInputRef}
+                    type="text"
+                    value={replaceQuery}
+                    onChange={(e) => {
+                      setReplaceQuery(e.target.value);
+                      setReplaceStatus(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleReplaceCurrent();
+                      }
+                    }}
+                    placeholder="Substituir por..."
+                    aria-label="Substituir por"
+                    className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-mono tabular-nums text-slate-500 dark:text-slate-400 px-1">
+                    {findQuery
+                      ? findMatches.length > 0
+                        ? `${activeMatchIndex + 1} / ${findMatches.length}`
+                        : '0 / 0'
+                      : '—'}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={findMatches.length === 0}
+                    onClick={() => navigateMatch(-1)}
+                    title="Ocorrência anterior (Shift+Enter)"
+                    aria-label="Ocorrência anterior"
+                    className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={findMatches.length === 0}
+                    onClick={() => navigateMatch(1)}
+                    title="Próxima ocorrência (Enter)"
+                    aria-label="Próxima ocorrência"
+                    className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={findMatches.length === 0}
+                    onClick={handleReplaceCurrent}
+                    className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:border-blue-700 hover:text-blue-700 dark:hover:text-blue-400 disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    Substituir
+                  </button>
+                  <button
+                    type="button"
+                    disabled={findMatches.length === 0}
+                    onClick={handleReplaceAll}
+                    className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    Substituir tudo
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setFindReplaceOpen(false)}
+                    aria-label="Fechar localizar e substituir"
+                    title="Fechar (Esc)"
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/70 dark:hover:bg-slate-800 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              {replaceStatus && (
+                <p className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                  {replaceStatus}
+                </p>
+              )}
+            </div>
+          )}
+
           <div
             className={`grid gap-4 ${
               paneMode === 'split' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
@@ -1049,7 +1556,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   value={content}
                   maxLength={VALIDATION_LIMITS.CONTENT_MAX_LENGTH}
                   onFocus={() => setFocusedPane('code')}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={(e) => commitContentChange(e.target.value, false)}
                   placeholder="Write in Markdown... Use [[slug]] for links, {{Notice|...}} or {{Aviso|...}} for MediaWiki templates, or :::infobox for infoboxes. Press Ctrl+Enter to save."
                   className={`w-full min-h-[420px] p-4 text-sm font-mono leading-relaxed ${
                     paneMode === 'split' || enableVisualToolbar ? 'rounded-b-xl' : 'rounded-xl'
@@ -1077,9 +1584,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 <FormattedMarkdownPane
                   ref={formattedPaneRef}
                   value={content}
-                  onChange={(nextMarkdown) =>
-                    setContent(nextMarkdown.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH))
-                  }
+                  onChange={(nextMarkdown) => commitContentChange(nextMarkdown, false)}
                   onActiveFormatsChange={setActiveRichFormats}
                   roundedClassName={
                     paneMode === 'split' || enableVisualToolbar ? 'rounded-b-xl' : 'rounded-xl'
@@ -1091,8 +1596,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
           <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
             <span>
-              GFM, {'{{Predefinições}}'}, :::infobox, &lt;ref&gt; &amp; [[links]] · Formatado,
-              Código ou Lado a lado · Ctrl+Enter para salvar
+              Ctrl+Z desfazer · Ctrl+R refazer · Ctrl+H substituir · Ctrl+Enter salvar
             </span>
             <span>
               {content.length.toLocaleString('en-US')} /{' '}

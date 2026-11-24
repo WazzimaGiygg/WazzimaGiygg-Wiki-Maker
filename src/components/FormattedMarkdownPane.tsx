@@ -95,7 +95,19 @@ export const FormattedMarkdownPane = React.forwardRef<
 
       const nextHtml = markdownToEditorHtml(value);
       if (el.innerHTML !== nextHtml) {
+        const hadFocus = document.activeElement === el;
         el.innerHTML = nextHtml;
+        if (hadFocus) {
+          const sel = window.getSelection();
+          if (sel) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            savedRangeRef.current = range.cloneRange();
+          }
+        }
       }
       lastSyncedMarkdownRef.current = value;
       setIsEmpty(!value.trim());
@@ -374,6 +386,16 @@ export const FormattedMarkdownPane = React.forwardRef<
           applyRichCommand('italic');
           return;
         }
+        // Defer Undo (Ctrl+Z), Redo (Ctrl+R / Ctrl+Y), and Replace (Ctrl+H) to MarkdownEditor's unified history/panel
+        if (keyLower === 'z' || keyLower === 'r' || keyLower === 'y' || keyLower === 'h') {
+          e.preventDefault();
+          return;
+        }
+      }
+
+      if (isMod && e.shiftKey && keyLower === 'z') {
+        e.preventDefault();
+        return;
       }
 
       if (isMod && e.shiftKey && keyLower === 'l') {

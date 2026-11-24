@@ -25,13 +25,16 @@ const SHORTCUT_GROUPS: {
     items: [
       { keys: ['Ctrl', 'Enter'], description: 'Save revision or publish new page' },
       { keys: ['Ctrl', 'S'], description: 'Save revision or publish new page' },
+      { keys: ['Ctrl', 'Z'], description: 'Desfazer alteração no editor' },
+      { keys: ['Ctrl', 'R'], description: 'Refazer alteração no editor (também Ctrl+Y / Ctrl+Shift+Z)' },
+      { keys: ['Ctrl', 'H'], description: 'Localizar e substituir texto no editor' },
       { keys: ['Ctrl', 'B'], description: 'Wrap selection in bold (**text**)' },
       { keys: ['Ctrl', 'I'], description: 'Wrap selection in italic (*text*)' },
       { keys: ['Ctrl', 'Shift', 'L'], description: 'Insert [[slug|Label]] internal wiki link' },
       { keys: ['Ctrl', 'Shift', 'R'], description: 'Insert <ref>...</ref> bibliographic citation' },
       { keys: ['Ctrl', 'Shift', 'I'], description: 'Open Insert Infobox builder' },
       { keys: ['Ctrl', 'Shift', 'T'], description: 'Open Insert MediaWiki Predefinição picker' },
-      { keys: ['Ctrl', 'Shift', 'P'], description: 'Cycle Write / Split / Preview panes' },
+      { keys: ['Ctrl', 'Shift', 'P'], description: 'Alternar Formatado / Código / Lado a lado / Visualizar' },
     ],
   },
 ];

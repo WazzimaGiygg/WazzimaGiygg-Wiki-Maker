@@ -2,6 +2,7 @@ import React from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import {
+  AlertTriangle,
   ArrowUp,
   BookOpen,
   Check,
@@ -264,6 +265,14 @@ function WikiWorkspace() {
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [toasts, setToasts] = React.useState<ToastNotification[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [pendingLeaveAction, setPendingLeaveAction] = React.useState<(() => void) | null>(null);
+  const hasUnsavedChangesRef = React.useRef(false);
+  hasUnsavedChangesRef.current = hasUnsavedChanges;
+  const notifiedDirtySessionRef = React.useRef(false);
+  const currentRouteHashRef = React.useRef<string>(
+    typeof window !== 'undefined' ? window.location.hash || '#/page/start' : '#/page/start'
+  );
   const [isOnline, setIsOnline] = React.useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
@@ -280,6 +289,71 @@ function WikiWorkspace() {
   const dismissToast = React.useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const isEditorSessionOpen = view === 'create' || (view === 'page' && activeTab === 'edit');
+  const isEditorSessionOpenRef = React.useRef(isEditorSessionOpen);
+  isEditorSessionOpenRef.current = isEditorSessionOpen;
+  const isSavingRef = React.useRef(isSaving);
+  isSavingRef.current = isSaving;
+
+  React.useEffect(() => {
+    if (!isEditorSessionOpen) {
+      setHasUnsavedChanges(false);
+      notifiedDirtySessionRef.current = false;
+    }
+  }, [isEditorSessionOpen]);
+
+  React.useEffect(() => {
+    if (!isEditorSessionOpen || !hasUnsavedChanges) return;
+    if (!notifiedDirtySessionRef.current) {
+      notifiedDirtySessionRef.current = true;
+      pushToast({
+        tone: 'warning',
+        title: 'Alterações não salvas',
+        description:
+          'Este artigo foi modificado. Se você sair do artigo sem salvar, perderá todas as alterações.',
+        durationMs: 7000,
+      });
+    }
+  }, [isEditorSessionOpen, hasUnsavedChanges, pushToast]);
+
+  React.useEffect(() => {
+    if (!isEditorSessionOpen || !hasUnsavedChanges) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isEditorSessionOpen, hasUnsavedChanges]);
+
+  const guardUnsavedLeave = React.useCallback((action: () => void) => {
+    if (isEditorSessionOpenRef.current && hasUnsavedChangesRef.current && !isSavingRef.current) {
+      setPendingLeaveAction(() => action);
+      return;
+    }
+    action();
+  }, []);
+
+  const confirmLeaveWithoutSaving = () => {
+    const action = pendingLeaveAction;
+    setPendingLeaveAction(null);
+    hasUnsavedChangesRef.current = false;
+    setHasUnsavedChanges(false);
+    notifiedDirtySessionRef.current = false;
+    action?.();
+  };
+
+  const requestTabChange = React.useCallback(
+    (nextTab: PageTab) => {
+      if (activeTab === 'edit' && nextTab !== 'edit') {
+        guardUnsavedLeave(() => setActiveTab(nextTab));
+        return;
+      }
+      setActiveTab(nextTab);
+    },
+    [activeTab, guardUnsavedLeave]
+  );
 
   const { theme: activeTheme, colorScheme: themeColorScheme } = React.useMemo(
     () => resolveSiteTheme(extensionsState),
@@ -456,6 +530,21 @@ function WikiWorkspace() {
   // Listen for browser back/forward hash navigation
   React.useEffect(() => {
     const handleHashChange = () => {
+      const incomingHash = window.location.hash || '#/page/start';
+      if (
+        isEditorSessionOpenRef.current &&
+        hasUnsavedChangesRef.current &&
+        !isSavingRef.current &&
+        incomingHash !== currentRouteHashRef.current
+      ) {
+        window.history.replaceState(null, '', currentRouteHashRef.current);
+        setPendingLeaveAction(() => () => {
+          window.location.hash = incomingHash;
+        });
+        return;
+      }
+
+      currentRouteHashRef.current = incomingHash;
       const next = parseHashRoute();
       setView(next.view);
       if (next.legalSection) {
@@ -483,19 +572,23 @@ function WikiWorkspace() {
 
   const navigateToPage = React.useCallback(
     (slug: string) => {
-      const normalized = toWikiSlug(slug) || 'start';
-      setActiveSlug(normalized);
-      setView('page');
-      setActiveTab('read');
-      setSaveError(null);
-      setConfirmDeleteOpen(false);
-      if (autoExitPrintOnNavigate) {
-        setIsPrintView(false);
-      }
-      setCopiedPageLink(false);
-      window.location.hash = `#/page/${normalized}`;
+      guardUnsavedLeave(() => {
+        const normalized = toWikiSlug(slug) || 'start';
+        const nextHash = `#/page/${normalized}`;
+        currentRouteHashRef.current = nextHash;
+        setActiveSlug(normalized);
+        setView('page');
+        setActiveTab('read');
+        setSaveError(null);
+        setConfirmDeleteOpen(false);
+        if (autoExitPrintOnNavigate) {
+          setIsPrintView(false);
+        }
+        setCopiedPageLink(false);
+        window.location.hash = nextHash;
+      });
     },
-    [autoExitPrintOnNavigate]
+    [autoExitPrintOnNavigate, guardUnsavedLeave]
   );
 
   // Auth listener
@@ -1045,42 +1138,57 @@ function WikiWorkspace() {
   ]);
 
   const navigateToCreate = (presetSlug = '') => {
-    const normalized = presetSlug ? toWikiSlug(presetSlug) : '';
-    if (normalized && existingSlugs.has(normalized)) {
-      navigateToPage(normalized);
-      return;
-    }
-    setCreatePresetSlug(normalized);
-    setView('create');
-    setSaveError(null);
-    setConfirmDeleteOpen(false);
-    setIsPrintView(false);
-    window.location.hash = normalized ? `#/new/${normalized}` : '#/new';
+    guardUnsavedLeave(() => {
+      const normalized = presetSlug ? toWikiSlug(presetSlug) : '';
+      if (normalized && existingSlugs.has(normalized)) {
+        navigateToPage(normalized);
+        return;
+      }
+      const nextHash = normalized ? `#/new/${normalized}` : '#/new';
+      currentRouteHashRef.current = nextHash;
+      setCreatePresetSlug(normalized);
+      setView('create');
+      setSaveError(null);
+      setConfirmDeleteOpen(false);
+      setIsPrintView(false);
+      window.location.hash = nextHash;
+    });
   };
 
   const navigateToIndex = (mode: 'index' | 'recent') => {
-    setView(mode);
-    setSaveError(null);
-    setConfirmDeleteOpen(false);
-    setIsPrintView(false);
-    window.location.hash = mode === 'recent' ? '#/recent' : '#/pages';
+    guardUnsavedLeave(() => {
+      const nextHash = mode === 'recent' ? '#/recent' : '#/pages';
+      currentRouteHashRef.current = nextHash;
+      setView(mode);
+      setSaveError(null);
+      setConfirmDeleteOpen(false);
+      setIsPrintView(false);
+      window.location.hash = nextHash;
+    });
   };
 
   const navigateToAdmin = () => {
-    setView('admin');
-    setSaveError(null);
-    setConfirmDeleteOpen(false);
-    setIsPrintView(false);
-    window.location.hash = '#/admin';
+    guardUnsavedLeave(() => {
+      currentRouteHashRef.current = '#/admin';
+      setView('admin');
+      setSaveError(null);
+      setConfirmDeleteOpen(false);
+      setIsPrintView(false);
+      window.location.hash = '#/admin';
+    });
   };
 
   const navigateToLegal = (section: LegalSectionTab) => {
-    setLegalSection(section);
-    setView('legal');
-    setSaveError(null);
-    setConfirmDeleteOpen(false);
-    setIsPrintView(false);
-    window.location.hash = section === 'terms' ? '#/terms' : '#/privacy';
+    guardUnsavedLeave(() => {
+      const nextHash = section === 'terms' ? '#/terms' : '#/privacy';
+      currentRouteHashRef.current = nextHash;
+      setLegalSection(section);
+      setView('legal');
+      setSaveError(null);
+      setConfirmDeleteOpen(false);
+      setIsPrintView(false);
+      window.location.hash = nextHash;
+    });
   };
 
   const navigateToEcosystem = (subpage?: EcosystemSubpage) => {
@@ -1088,14 +1196,18 @@ function WikiWorkspace() {
       navigateToPage('start');
       return;
     }
-    const targetSubpage: EcosystemSubpage = typeof subpage === 'string' ? subpage : 'overview';
-    setEcosystemSubpage(targetSubpage);
-    setView('ecosystem');
-    setSaveError(null);
-    setConfirmDeleteOpen(false);
-    setIsPrintView(false);
-    window.location.hash =
-      targetSubpage === 'overview' ? '#/ecosystem' : `#/ecosystem/${targetSubpage}`;
+    guardUnsavedLeave(() => {
+      const targetSubpage: EcosystemSubpage = typeof subpage === 'string' ? subpage : 'overview';
+      const nextHash =
+        targetSubpage === 'overview' ? '#/ecosystem' : `#/ecosystem/${targetSubpage}`;
+      currentRouteHashRef.current = nextHash;
+      setEcosystemSubpage(targetSubpage);
+      setView('ecosystem');
+      setSaveError(null);
+      setConfirmDeleteOpen(false);
+      setIsPrintView(false);
+      window.location.hash = nextHash;
+    });
   };
 
   React.useEffect(() => {
@@ -1142,7 +1254,9 @@ function WikiWorkspace() {
   };
 
   const handleSignOut = async () => {
-    await signOut(auth);
+    guardUnsavedLeave(() => {
+      void signOut(auth);
+    });
   };
 
   const isAdmin = Boolean(
@@ -1188,6 +1302,10 @@ function WikiWorkspace() {
 
       // Esc -> Close confirmation/modal/drawer, exit Print View, or return from Edit to Read mode
       if (e.key === 'Escape') {
+        if (pendingLeaveAction) {
+          setPendingLeaveAction(null);
+          return;
+        }
         if (mobileMenuOpen) {
           setMobileMenuOpen(false);
           return;
@@ -1205,7 +1323,7 @@ function WikiWorkspace() {
           return;
         }
         if (view === 'page' && activeTab === 'edit' && !isSaving && target?.tagName !== 'SELECT') {
-          setActiveTab('read');
+          requestTabChange('read');
         }
         return;
       }
@@ -1275,9 +1393,11 @@ function WikiWorkspace() {
     shortcutsOpen,
     isPrintView,
     confirmDeleteOpen,
+    pendingLeaveAction,
     isSaving,
     shortcutsExt.enabled,
     sidebarFilterExt.enabled,
+    requestTabChange,
   ]);
 
   const handleCreateSave = async (data: {
@@ -1296,6 +1416,9 @@ function WikiWorkspace() {
     setSaveError(null);
     try {
       const createdSlug = await createWikiPage(data, user);
+      hasUnsavedChangesRef.current = false;
+      setHasUnsavedChanges(false);
+      notifiedDirtySessionRef.current = false;
       navigateToPage(createdSlug);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to create page.');
@@ -1384,6 +1507,9 @@ function WikiWorkspace() {
           }
         }
       }
+      hasUnsavedChangesRef.current = false;
+      setHasUnsavedChanges(false);
+      notifiedDirtySessionRef.current = false;
       setActiveTab('read');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to update page.');
@@ -2263,6 +2389,7 @@ function WikiWorkspace() {
                   onSave={handleCreateSave}
                   onCancel={() => navigateToPage('start')}
                   onNavigateSlug={navigateToPage}
+                  onDirtyChange={setHasUnsavedChanges}
                 />
               ) : user && isBlocked ? (
                 <div className="py-8 space-y-4">
@@ -2646,7 +2773,7 @@ function WikiWorkspace() {
                   <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg">
                     <button
                       type="button"
-                      onClick={() => setActiveTab('read')}
+                      onClick={() => requestTabChange('read')}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
                         activeTab === 'read'
                           ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
@@ -2697,7 +2824,7 @@ function WikiWorkspace() {
                     {historyExt.enabled && (
                       <button
                         type="button"
-                        onClick={() => setActiveTab('history')}
+                        onClick={() => requestTabChange('history')}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
                           activeTab === 'history'
                             ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
@@ -2712,7 +2839,7 @@ function WikiWorkspace() {
                     {canViewDiscussion && (
                       <button
                         type="button"
-                        onClick={() => setActiveTab('comments')}
+                        onClick={() => requestTabChange('comments')}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
                           activeTab === 'comments'
                             ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
@@ -2727,7 +2854,7 @@ function WikiWorkspace() {
                     {sourceExt.enabled && (
                       <button
                         type="button"
-                        onClick={() => setActiveTab('source')}
+                        onClick={() => requestTabChange('source')}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
                           activeTab === 'source'
                             ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
@@ -3143,8 +3270,9 @@ function WikiWorkspace() {
                       : activePage.authorName
                   }
                   onSave={handleEditSave}
-                  onCancel={() => setActiveTab('read')}
+                  onCancel={() => requestTabChange('read')}
                   onNavigateSlug={navigateToPage}
+                  onDirtyChange={setHasUnsavedChanges}
                 />
               )}
 
@@ -3364,6 +3492,53 @@ function WikiWorkspace() {
       </footer>
 
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      {pendingLeaveAction && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="unsaved-leave-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-[2px]"
+          onClick={() => setPendingLeaveAction(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f1623] shadow-xl p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h2
+                  id="unsaved-leave-modal-title"
+                  className="font-display text-base font-semibold text-slate-900 dark:text-slate-100"
+                >
+                  Sair sem salvar alterações?
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Este artigo foi alterado. Se você sair do artigo sem salvar, perderá todas as
+                  alterações realizadas nesta sessão de edição.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setPendingLeaveAction(null)}
+                className="px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Continuar editando
+              </button>
+              <button
+                type="button"
+                onClick={confirmLeaveWithoutSaving}
+                className="px-3.5 py-2 text-xs font-medium rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors cursor-pointer"
+              >
+                Sair e perder alterações
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {shortcutsExt.enabled && (
         <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       )}
