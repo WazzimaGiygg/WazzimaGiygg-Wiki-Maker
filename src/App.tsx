@@ -5,6 +5,8 @@ import {
   AlertTriangle,
   ArrowUp,
   BookOpen,
+  Bookmark,
+  BookmarkCheck,
   Check,
   Code2,
   Copy,
@@ -48,6 +50,7 @@ import { ShortcutsModal } from './components/ShortcutsModal';
 import { Sidebar } from './components/Sidebar';
 import { ToastContainer, type ToastNotification } from './components/ToastContainer';
 import { UserEditsPanel } from './components/UserEditsPanel';
+import { WatchlistProfilePanel } from './components/WatchlistProfilePanel';
 import { WikiInfobox } from './components/WikiInfobox';
 import { fetchCurrentUserGovernance, notifyUserDiscussionPage } from './lib/adminService';
 import {
@@ -114,6 +117,7 @@ import {
 } from './lib/templateExampleArticle';
 import {
   addPageComment,
+  addPageToWatchlist,
   buildPersonalSlugs,
   createWikiPage,
   deletePageComment,
@@ -125,6 +129,7 @@ import {
   fetchPageRevisions,
   fetchUserEdits,
   isUserOrDiscussionPage,
+  removePageFromWatchlist,
   restorePageRevision,
   seedStarterWiki,
   syncUserDocuments,
@@ -142,6 +147,7 @@ import {
   type PageVisibility,
   type RecentEditorEntry,
   type UserEdit,
+  type WatchlistItem,
   WIKI_CATEGORIES,
   type WikiPage,
   type WorkspaceView,
@@ -248,6 +254,9 @@ function WikiWorkspace() {
   const [personalAuthorProfile, setPersonalAuthorProfile] = React.useState<CollaboratorProfile | null>(null);
   const [personalUserEdits, setPersonalUserEdits] = React.useState<UserEdit[]>([]);
   const [personalEditsLoading, setPersonalEditsLoading] = React.useState(false);
+  const [watchlistItems, setWatchlistItems] = React.useState<WatchlistItem[]>([]);
+  const [watchlistLoading, setWatchlistLoading] = React.useState(false);
+  const [watchlistBusySlug, setWatchlistBusySlug] = React.useState<string | null>(null);
 
   const [isSaving, setIsSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
@@ -464,6 +473,7 @@ function WikiWorkspace() {
   const pageIndexExt = extensionsState.byId['page-index-views'];
   const privacyBannerExt = extensionsState.byId['privacy-banner'];
   const headerBannerExt = extensionsState.byId['page-header-banner'];
+  const watchlistExt = extensionsState.byId.watchlist;
   const externalLinkConfig = React.useMemo(
     () => resolveExternalLinkConfig(extensionsState),
     [extensionsState]
@@ -1057,6 +1067,35 @@ function WikiWorkspace() {
     return unsub;
   }, [authReady, view, activePage?.slug, activePage?.visibility, activePage?.authorId, ratingsExt.enabled]);
 
+  // Subscribe to current user's Watchlist bookmarks stored under their collaborator profile
+  React.useEffect(() => {
+    if (!authReady || !isWikiBootReady || !user || !watchlistExt.enabled) {
+      setWatchlistItems([]);
+      setWatchlistLoading(false);
+      return;
+    }
+    setWatchlistLoading(true);
+    const watchlistPath = `collaborators/${user.uid}/watchlist`;
+    const q = query(
+      collection(db, 'collaborators', user.uid, 'watchlist'),
+      where('userId', '==', user.uid)
+    );
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list = snap.docs.map((d) => d.data() as WatchlistItem);
+        list.sort((a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0));
+        setWatchlistItems(list);
+        setWatchlistLoading(false);
+      },
+      (error) => {
+        setWatchlistLoading(false);
+        handleFirestoreError(error, OperationType.LIST, watchlistPath);
+      }
+    );
+    return unsub;
+  }, [authReady, isWikiBootReady, user?.uid, watchlistExt.enabled]);
+
   // Fetch revisions whenever user switches to History tab
   React.useEffect(() => {
     if (!historyExt.enabled || view !== 'page' || activeTab !== 'history' || !activePage) return;
@@ -1647,6 +1686,74 @@ function WikiWorkspace() {
     }
   };
 
+  const watchedSlugSet = React.useMemo(
+    () => new Set(watchlistItems.map((item) => item.pageSlug)),
+    [watchlistItems]
+  );
+  const isActivePageWatched = Boolean(activePage && watchedSlugSet.has(activePage.slug));
+
+  const handleToggleWatchPage = async (targetPage: WikiPage) => {
+    if (!watchlistExt.enabled) return;
+    if (!user) {
+      await handleSignIn();
+      return;
+    }
+    if (isBlocked || watchlistBusySlug === targetPage.slug) return;
+    const currentlyWatched = watchedSlugSet.has(targetPage.slug);
+    setWatchlistBusySlug(targetPage.slug);
+    try {
+      if (currentlyWatched) {
+        await removePageFromWatchlist(targetPage.slug, user.uid);
+        pushToast({
+          tone: 'info',
+          title: 'Removed from Watchlist',
+          description: `"${targetPage.title}" was removed from your profile watchlist.`,
+          meta: `:${targetPage.slug}`,
+          durationMs: 2800,
+        });
+      } else {
+        await addPageToWatchlist(targetPage, user);
+        pushToast({
+          tone: 'success',
+          title: 'Added to Watchlist',
+          description: `"${targetPage.title}" is now bookmarked in your profile Watchlist.`,
+          meta: `:${targetPage.slug}`,
+          durationMs: 2800,
+        });
+      }
+    } catch (err) {
+      pushToast({
+        tone: 'warning',
+        title: 'Could not update Watchlist',
+        description:
+          err instanceof Error ? err.message : 'Unable to save this watchlist change.',
+        meta: `:${targetPage.slug}`,
+        durationMs: 4200,
+      });
+    } finally {
+      setWatchlistBusySlug((prev) => (prev === targetPage.slug ? null : prev));
+    }
+  };
+
+  const handleRemoveFromWatchlist = async (slug: string) => {
+    if (!user || isBlocked || watchlistBusySlug === slug) return;
+    setWatchlistBusySlug(slug);
+    try {
+      await removePageFromWatchlist(slug, user.uid);
+    } catch (err) {
+      pushToast({
+        tone: 'warning',
+        title: 'Could not remove from Watchlist',
+        description:
+          err instanceof Error ? err.message : 'Unable to remove this bookmark right now.',
+        meta: `:${slug}`,
+        durationMs: 4200,
+      });
+    } finally {
+      setWatchlistBusySlug((prev) => (prev === slug ? null : prev));
+    }
+  };
+
   const handleCopySource = async () => {
     if (!activePage) return;
     await navigator.clipboard.writeText(activePage.content);
@@ -2157,9 +2264,20 @@ function WikiWorkspace() {
           showQuickCreate={quickCreateExt.enabled}
           showSidebarFilter={sidebarFilterExt.enabled}
           activeTagFilter={sidebarTagFilter}
+          onSelectTagFilter={(tag) => setSidebarTagFilter(tag)}
           onClearTagFilter={() => setSidebarTagFilter(null)}
           showUserProfileLinks={userProfilesExt.enabled}
           showPwaInstall={pwaInstallExt.enabled}
+          showWatchlist={watchlistExt.enabled}
+          watchlistItems={watchlistItems}
+          watchlistLoading={watchlistLoading}
+          isBlocked={isBlocked}
+          onWatchCurrentPage={
+            view === 'page' && activePage
+              ? () => void handleToggleWatchPage(activePage)
+              : undefined
+          }
+          onRemoveWatchlistItem={(slug) => void handleRemoveFromWatchlist(slug)}
           onOpenMobile={() => setMobileMenuOpen(true)}
           onCloseMobile={() => setMobileMenuOpen(false)}
           onSelectPage={navigateToPage}
@@ -2572,6 +2690,44 @@ function WikiWorkspace() {
                       data-wiki-chrome="edit-tools"
                       className="print:hidden flex flex-wrap items-center gap-2 shrink-0"
                     >
+                      {watchlistExt.enabled && (
+                        <button
+                          type="button"
+                          aria-pressed={isActivePageWatched}
+                          disabled={Boolean(
+                            user && (isBlocked || watchlistBusySlug === activePage.slug)
+                          )}
+                          onClick={() => void handleToggleWatchPage(activePage)}
+                          title={
+                            !user
+                              ? 'Sign in with Google to add this article to your Watchlist'
+                              : isActivePageWatched
+                              ? 'Remove this article from your profile Watchlist'
+                              : 'Bookmark this article in your profile Watchlist'
+                          }
+                          aria-label={
+                            isActivePageWatched
+                              ? 'Remove article from Watchlist'
+                              : 'Watch article in profile Watchlist'
+                          }
+                          data-wiki-surface={isActivePageWatched ? 'accent' : 'inset'}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${
+                            isActivePageWatched
+                              ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
+                              : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          {watchlistBusySlug === activePage.slug ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                          ) : isActivePageWatched ? (
+                            <BookmarkCheck className="w-3.5 h-3.5 shrink-0" />
+                          ) : (
+                            <Bookmark className="w-3.5 h-3.5 shrink-0" />
+                          )}
+                          <span>{isActivePageWatched ? 'Watching' : 'Watch'}</span>
+                        </button>
+                      )}
+
                       {copyLinkExt.enabled && copyLinkExt.settings.showInHeader !== false && (
                         <button
                           type="button"
@@ -3081,6 +3237,20 @@ function WikiWorkspace() {
                         onSelectPage={navigateToPage}
                       />
                     )}
+
+                    {watchlistExt.enabled &&
+                      user &&
+                      isPersonalProfilePage &&
+                      activePage.authorId === user.uid && (
+                        <WatchlistProfilePanel
+                          authorName={activePage.authorName}
+                          watchlistItems={watchlistItems}
+                          allPages={allPages}
+                          isBlocked={isBlocked}
+                          onSelectPage={navigateToPage}
+                          onRemoveFromWatchlist={handleRemoveFromWatchlist}
+                        />
+                      )}
 
                     {isPersonalDiscussionPage && canViewDiscussion && (
                       <section

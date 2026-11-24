@@ -332,4 +332,20 @@ export const DIRTY_DOZEN_PAYLOADS: DirtyDozenCase[] = [
     },
     expected: 'PERMISSION_DENIED',
   },
+  {
+    id: 20,
+    name: 'Cross-User Watchlist Bookmark Spoofing & Private Page Watch Bypass',
+    operation: 'create',
+    path: '/collaborators/uid_victim/watchlist/start',
+    actorUid: 'uid_attacker',
+    emailVerified: true,
+    payload: {
+      userId: 'uid_victim',
+      pageSlug: 'start',
+      pageTitle: 'Start',
+      pageCategory: 'general',
+      pageVisibility: 'public',
+    },
+    expected: 'PERMISSION_DENIED',
+  },
 ];

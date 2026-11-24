@@ -256,6 +256,21 @@ service cloud.firestore {
         && data.createdAt is timestamp;
     }
 
+    function isValidWatchlistItem(data, userId, pageSlug) {
+      return data.keys().hasAll([
+          'userId', 'pageSlug', 'pageTitle', 'pageCategory', 'pageVisibility', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'userId', 'pageSlug', 'pageTitle', 'pageCategory', 'pageVisibility', 'createdAt'
+        ])
+        && data.userId is string && data.userId == userId && isValidId(data.userId)
+        && data.pageSlug is string && data.pageSlug == pageSlug && isValidId(data.pageSlug)
+        && data.pageTitle is string && data.pageTitle.size() >= 1 && data.pageTitle.size() <= 160
+        && data.pageCategory is string && data.pageCategory.size() >= 1 && data.pageCategory.size() <= 40 && data.pageCategory.matches('^[a-z0-9\\-]+$')
+        && data.pageVisibility in ['public', 'private']
+        && data.createdAt is timestamp;
+    }
+
     function isValidUserPrivateInfo(data, userId) {
       return data.keys().hasAll(['uid', 'email', 'updatedAt'])
         && data.keys().hasOnly(['uid', 'email', 'updatedAt'])
@@ -729,6 +744,41 @@ service cloud.firestore {
         allow delete: if isVerified()
           && isValidId(userId)
           && isValidId(editId)
+          && isNotBlocked()
+          && (isOwner(userId) || canModerateTarget(userId));
+      }
+
+      // Subcollection: /collaborators/{userId}/watchlist/{pageSlug}
+      match /watchlist/{pageSlug} {
+        allow get: if isValidId(userId) && isValidId(pageSlug) && (
+          isOwner(userId) || isAdmin()
+        );
+
+        allow list: if isSignedIn() && (
+          resource.data.userId == request.auth.uid || isAdmin()
+        );
+
+        allow create: if isVerified()
+          && isValidId(userId)
+          && isValidId(pageSlug)
+          && isOwner(userId)
+          && isValidWatchlistItem(incoming(), userId, pageSlug)
+          && incoming().createdAt == request.time
+          && isNotBlocked()
+          && exists(/databases/$(database)/documents/collaborators/$(userId))
+          && exists(/databases/$(database)/documents/pages/$(pageSlug))
+          && incoming().pageVisibility == get(/databases/$(database)/documents/pages/$(pageSlug)).data.visibility
+          && (
+            get(/databases/$(database)/documents/pages/$(pageSlug)).data.visibility == 'public' ||
+            get(/databases/$(database)/documents/pages/$(pageSlug)).data.authorId == request.auth.uid ||
+            isAdmin()
+          );
+
+        allow update: if false;
+
+        allow delete: if isVerified()
+          && isValidId(userId)
+          && isValidId(pageSlug)
           && isNotBlocked()
           && (isOwner(userId) || canModerateTarget(userId));
       }

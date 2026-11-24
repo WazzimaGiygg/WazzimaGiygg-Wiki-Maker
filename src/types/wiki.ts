@@ -82,7 +82,8 @@ export type WikiExtensionId =
   | 'page-metadata'
   | 'page-index-views'
   | 'privacy-banner'
-  | 'page-header-banner';
+  | 'page-header-banner'
+  | 'watchlist';
 
 export type WikiExtensionCategory =
   | 'appearance'
@@ -240,6 +241,16 @@ export interface UserEdit {
   pageVisibility: PageVisibility;
   summary: string;
   version: number;
+  createdAt: Timestamp | null;
+}
+
+export interface WatchlistItem {
+  id: string;
+  userId: string;
+  pageSlug: string;
+  pageTitle: string;
+  pageCategory: string;
+  pageVisibility: PageVisibility;
   createdAt: Timestamp | null;
 }
 

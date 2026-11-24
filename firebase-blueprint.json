@@ -608,6 +608,52 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "WatchlistItem": {
+      "title": "WatchlistItem",
+      "description": "Bookmarked wiki article tracked in a collaborator's personal Watchlist.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pageSlug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "pageTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "pageCategory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[a-z0-9\\-]+$"
+        },
+        "pageVisibility": {
+          "type": "string",
+          "enum": ["public", "private"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "pageSlug",
+        "pageTitle",
+        "pageCategory",
+        "pageVisibility",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -634,6 +680,10 @@
     "/collaborators/{userId}/edits/{editId}": {
       "schema": { "$ref": "#/entities/UserEdit" },
       "description": "Activity log of wiki edits authored by the collaborator."
+    },
+    "/collaborators/{userId}/watchlist/{pageSlug}": {
+      "schema": { "$ref": "#/entities/WatchlistItem" },
+      "description": "Bookmarked wiki articles watched by the collaborator."
     },
     "/users/{userId}/private/{docId}": {
       "schema": { "$ref": "#/entities/UserPrivateInfo" },

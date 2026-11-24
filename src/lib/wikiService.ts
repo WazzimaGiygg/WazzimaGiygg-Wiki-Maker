@@ -21,6 +21,7 @@ import {
   type RecentEditorEntry,
   type UserEdit,
   VALIDATION_LIMITS,
+  type WatchlistItem,
   type WikiPage,
 } from '../types/wiki';
 import {
@@ -963,6 +964,91 @@ export async function deletePageRating(slug: string, userId: string): Promise<vo
   }
 }
 
+export async function addPageToWatchlist(page: WikiPage, user: User): Promise<void> {
+  const slug = page.slug;
+  if (!isValidWikiSlug(slug) || !isValidWikiSlug(user.uid)) {
+    throw new Error('Invalid watchlist identifier.');
+  }
+
+  const collabRef = doc(db, 'collaborators', user.uid);
+  const pageRef = doc(db, 'pages', slug);
+  const watchlistRef = doc(db, 'collaborators', user.uid, 'watchlist', slug);
+  const watchlistPath = `collaborators/${user.uid}/watchlist/${slug}`;
+
+  try {
+    const collabSnap = await getDoc(collabRef);
+    if (!collabSnap.exists()) {
+      await syncUserDocuments(user);
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, `collaborators/${user.uid}`);
+  }
+
+  let pageSnap;
+  try {
+    pageSnap = await getDoc(pageRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, `pages/${slug}`);
+  }
+
+  if (!pageSnap.exists()) {
+    if (page.authorId === 'builtin-editorial') {
+      await createWikiPage(
+        {
+          slug: page.slug,
+          title: page.title,
+          content: page.content,
+          category: page.category,
+          tags: page.tags,
+          visibility: 'public',
+          isLocked: false,
+          summary: 'Initial publication of built-in article',
+        },
+        user
+      );
+      try {
+        pageSnap = await getDoc(pageRef);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.GET, `pages/${slug}`);
+      }
+    } else {
+      throw new Error('This article no longer exists.');
+    }
+  }
+
+  const livePage = pageSnap.data() as WikiPage;
+
+  try {
+    const existingWatchSnap = await getDoc(watchlistRef);
+    if (existingWatchSnap.exists()) {
+      return;
+    }
+
+    await setDoc(watchlistRef, {
+      userId: user.uid,
+      pageSlug: slug,
+      pageTitle: sanitizeString(livePage.title, VALIDATION_LIMITS.TITLE_MAX_LENGTH) || slug,
+      pageCategory: sanitizeCategory(livePage.category),
+      pageVisibility: livePage.visibility,
+      createdAt: serverTimestamp(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, watchlistPath);
+  }
+}
+
+export async function removePageFromWatchlist(slug: string, userId: string): Promise<void> {
+  if (!isValidWikiSlug(slug) || !isValidWikiSlug(userId)) {
+    throw new Error('Invalid watchlist identifier.');
+  }
+  const watchlistPath = `collaborators/${userId}/watchlist/${slug}`;
+  try {
+    await deleteDoc(doc(db, 'collaborators', userId, 'watchlist', slug));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, watchlistPath);
+  }
+}
+
 export async function fetchCollaboratorProfile(
   userId: string
 ): Promise<CollaboratorProfile | null> {
@@ -1476,4 +1562,4 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
   }
 }
 
-export type { PageComment, PageRating };
+export type { PageComment, PageRating, WatchlistItem };

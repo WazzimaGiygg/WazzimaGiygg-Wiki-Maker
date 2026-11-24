@@ -9,6 +9,7 @@
 6. **Governance & Anti-Escalation**: Only verified, non-blocked admins (`!exists(/blocked_users/uid)` and `/admins/{uid}.data.role in ['admin', 'bureaucrat']`) hold governance privileges. Regular admins cannot block, unblock, or LGPD-purge admins or bureaucrats (`canModerateTarget(uid)`), no actor may modify their own `/admins/{uid}` record or target the primary bootstrapped bureaucrat (`isTargetBootstrappedBureaucrat(uid)`), and LGPD audit log entries require `canModerateTarget(targetUid)`.
 7. **Evaluation Order (Denial-of-Wallet Guard)**: Every write rule validates `isVerified()`, `isValidId()`, static blueprint schema (`keys().hasAll`/`hasOnly`), and temporal/immutability invariants before issuing `exists()` or `get()` lookups.
 8. **Page Header Banner Integrity**: Optional `headerImageUrl` on `/pages/{slug}` must be empty, an `http(s)://` URL (`<= 1000` chars), or a raster-only base64 data URI (`png|jpeg|jpg|webp|gif|avif`, `<= 200000` chars); SVG, HTML, and `javascript:` payloads are rejected.
+9. **Profile Watchlist Isolation & Target Integrity**: `/collaborators/{userId}/watchlist/{pageSlug}` is strictly owner/admin readable (`allow list` requires `resource.data.userId == request.auth.uid || isAdmin()`), enforces `userId == request.auth.uid`, verifies both parent collaborator and target `/pages/{pageSlug}` exist, and blocks watching another author's `private` page.
 
 ## 2. Adversarial Red Team Payloads
 1. **Identity Spoofing on Page Create**: Authenticated user `uid_attacker` creates `/pages/hijack` with `authorId: "uid_victim"`. -> **Expected: PERMISSION_DENIED**
@@ -30,3 +31,4 @@
 17. **Unsafe External Link Prefix Injection**: Even a bureaucrat attempts to store `externalLinkPrefix: "javascript:alert(1)"` inside `/extensions/external-link-prefix`. -> **Expected: PERMISSION_DENIED**
 18. **Out-of-Bounds Rating Score or Cross-User Vote Spoofing**: Signed-in user `uid_attacker` submits `score: 99` or writes `/pages/start/ratings/uid_victim`. -> **Expected: PERMISSION_DENIED**
 19. **Unsafe Header Image URI / SVG XSS Injection**: Collaborator creates or updates `/pages/start` with `headerImageUrl: "data:image/svg+xml;base64,..."` or `"javascript:alert(1)"`. -> **Expected: PERMISSION_DENIED**
+20. **Cross-User Watchlist Spoofing & Private Page Bookmarking**: Signed-in user `uid_attacker` writes `/collaborators/uid_victim/watchlist/start` or bookmarks a private page owned by `uid_victim`. -> **Expected: PERMISSION_DENIED**

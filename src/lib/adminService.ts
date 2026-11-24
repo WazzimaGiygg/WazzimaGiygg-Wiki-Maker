@@ -1048,15 +1048,23 @@ export async function executeLgpdUserRemoval(
   let deletedEditLogs = 0;
 
   try {
-    const [collabSnap, privSnap, blockedSnap, adminSnap, userEditsSnap, pagesSnap] =
-      await Promise.all([
-        getDoc(doc(db, 'collaborators', targetUid)),
-        getDoc(doc(db, 'users', targetUid, 'private', 'info')),
-        getDoc(doc(db, 'blocked_users', targetUid)),
-        getDoc(doc(db, 'admins', targetUid)),
-        getDocs(collection(db, 'collaborators', targetUid, 'edits')),
-        getDocs(collection(db, 'pages')),
-      ]);
+    const [
+      collabSnap,
+      privSnap,
+      blockedSnap,
+      adminSnap,
+      userEditsSnap,
+      userWatchlistSnap,
+      pagesSnap,
+    ] = await Promise.all([
+      getDoc(doc(db, 'collaborators', targetUid)),
+      getDoc(doc(db, 'users', targetUid, 'private', 'info')),
+      getDoc(doc(db, 'blocked_users', targetUid)),
+      getDoc(doc(db, 'admins', targetUid)),
+      getDocs(collection(db, 'collaborators', targetUid, 'edits')),
+      getDocs(collection(db, 'collaborators', targetUid, 'watchlist')),
+      getDocs(collection(db, 'pages')),
+    ]);
 
     const collabData = collabSnap.exists() ? (collabSnap.data() as CollaboratorProfile) : null;
 
@@ -1081,6 +1089,10 @@ export async function executeLgpdUserRemoval(
     userEditsSnap.forEach((d) => {
       ops.push({ type: 'delete', ref: d.ref });
       deletedEditLogs += 1;
+    });
+
+    userWatchlistSnap.forEach((d) => {
+      ops.push({ type: 'delete', ref: d.ref });
     });
 
     const pages = pagesSnap.docs.map((d) => ({

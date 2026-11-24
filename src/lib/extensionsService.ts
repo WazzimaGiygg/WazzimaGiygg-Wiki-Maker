@@ -268,6 +268,7 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   'page-index-views': [],
   'privacy-banner': [],
   'page-header-banner': [],
+  watchlist: [],
 };
 
 export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
@@ -815,6 +816,22 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     updatedAt: null,
     persisted: false,
   },
+  {
+    id: 'watchlist',
+    scope: 'site',
+    name: 'Lista de Observação (Watchlist)',
+    description:
+      'Permite marcar artigos como observados no perfil do usuário e exibir a visualização Watchlist com páginas favoritadas na barra lateral.',
+    category: 'navigation',
+    enabled: true,
+    sortOrder: 32,
+    settings: {},
+    updatedBy: 'system-default',
+    updatedByName: 'Built-in Default',
+    createdAt: null,
+    updatedAt: null,
+    persisted: false,
+  },
 ];
 
 export type SiteExtensionsMap = Record<WikiExtensionId, ResolvedWikiExtension>;
@@ -982,6 +999,7 @@ export function sanitizeExtensionSettings(
     case 'page-index-views':
     case 'privacy-banner':
     case 'page-header-banner':
+    case 'watchlist':
       return {};
   }
 }
