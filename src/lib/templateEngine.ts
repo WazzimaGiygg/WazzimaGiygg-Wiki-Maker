@@ -158,6 +158,76 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     ],
   },
   {
+    id: 'eliminacao-rapida',
+    name: 'Eliminação rápida',
+    aliases: ['eliminacao rapida', 'er', 'speedy delete', 'speedy deletion', 'db', 'delete'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Marca o artigo para eliminação rápida e envia automaticamente um alerta para a página de discussão do autor ao salvar.',
+    exampleSnippet:
+      '{{Eliminação rápida|motivo=Página de teste ou sem conteúdo enciclopédico mínimo|regra=ER1}}',
+    params: [
+      {
+        key: 'motivo',
+        label: 'Motivo da eliminação rápida',
+        placeholder: 'Descreva o critério ou justificativa...',
+        defaultValue: 'Conteúdo impróprio, teste ou fora do escopo editorial da wiki.',
+        required: true,
+      },
+      {
+        key: 'regra',
+        label: 'Regra / Critério (opcional)',
+        placeholder: 'ER1',
+        defaultValue: 'ER1',
+      },
+      {
+        key: 'proponente',
+        label: 'Proponente (opcional)',
+        placeholder: 'Seu nome de colaborador',
+        defaultValue: '',
+      },
+    ],
+  },
+  {
+    id: 'bloqueio',
+    name: 'Bloqueio',
+    aliases: ['bloqueio', 'bloqueado', 'block', 'blocked', 'user blocked'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Aviso de bloqueio administrativo inserido automaticamente na página pessoal do colaborador bloqueado.',
+    exampleSnippet:
+      '{{Bloqueio|motivo=Violação reiterada das políticas editoriais|administrador=Administração|duracao=Indeterminado}}',
+    params: [
+      {
+        key: 'motivo',
+        label: 'Motivo do bloqueio',
+        placeholder: 'Descreva o motivo administrativo...',
+        defaultValue: 'Violação das regras editoriais ou de conduta.',
+        required: true,
+      },
+      {
+        key: 'administrador',
+        label: 'Administrador responsável',
+        placeholder: 'Administração',
+        defaultValue: 'Administração',
+      },
+      {
+        key: 'duracao',
+        label: 'Duração',
+        placeholder: 'Indeterminado',
+        defaultValue: 'Indeterminado',
+      },
+      {
+        key: 'data',
+        label: 'Data (opcional)',
+        placeholder: '2026-11-25',
+        defaultValue: '',
+      },
+    ],
+  },
+  {
     id: 'principal',
     name: 'Principal',
     aliases: ['principal', 'artigo principal', 'main'],
@@ -1036,6 +1106,17 @@ export interface TemplateExpansionOptions {
   visitedSlugs?: Set<string>;
 }
 
+function isSpeedyDeletionKey(key: string): boolean {
+  return (
+    key === 'eliminacao rapida' ||
+    key === 'er' ||
+    key === 'speedy delete' ||
+    key === 'speedy deletion' ||
+    key === 'db' ||
+    key === 'delete'
+  );
+}
+
 function resolveBuiltinTemplate(
   cleanName: string,
   call: ParsedTemplateCall,
@@ -1195,6 +1276,64 @@ function resolveBuiltinTemplate(
       kicker: 'Template · Content Notice',
       title: work ? `Contains spoilers for ${work}` : 'Contains plot spoilers',
       body: 'The following section discloses key narrative developments or endings.',
+    });
+  }
+
+  // 6b. {{Eliminação rápida}} / {{ER}} / {{Speedy delete}} / {{DB}}
+  if (isSpeedyDeletionKey(key)) {
+    const reason = pickParam(
+      call,
+      ['motivo', 'reason', 'justificativa', 'texto', 'text', '1'],
+      'Este artigo foi proposto para eliminação rápida por não atender aos critérios mínimos da wiki.'
+    );
+    const rule = pickParam(call, ['regra', 'rule', 'criterio', 'critério', '2']);
+    const proponent = pickParam(call, ['proponente', 'editor', 'usuario', 'usuário', 'by']);
+    const dateVal = pickParam(call, ['data', 'date']);
+    const metaParts = [
+      proponent ? `Proponente: ${proponent}` : '',
+      dateVal ? `Data: ${dateVal}` : '',
+    ].filter(Boolean);
+
+    return serializePredefinicaoBlock({
+      variant: 'alert',
+      kicker: 'Predefinição · Eliminação rápida',
+      title: rule
+        ? `Página proposta para eliminação rápida (${rule})`
+        : 'Página proposta para eliminação rápida',
+      body: `Motivo: ${reason} — Um alerta automático é enviado à página de discussão do autor ao inserir esta marcação. Consulte as [Regras de Uso do WikiMaker](#/terms) antes de remover este aviso.`,
+      meta: metaParts.length > 0 ? metaParts.join(' · ') : undefined,
+    });
+  }
+
+  // 6c. {{Bloqueio}} / {{Bloqueado}} / {{Block}} / {{Blocked}} / {{User blocked}}
+  if (
+    key === 'bloqueio' ||
+    key === 'bloqueado' ||
+    key === 'block' ||
+    key === 'blocked' ||
+    key === 'user blocked'
+  ) {
+    const reason = pickParam(
+      call,
+      ['motivo', 'reason', 'texto', 'text', '1'],
+      'Violação das políticas editoriais ou de conduta da wiki.'
+    );
+    const admin = pickParam(call, ['administrador', 'admin', 'by', 'moderador', '2']);
+    const duration = pickParam(call, ['duracao', 'duration', 'prazo', '3'], 'Indeterminado');
+    const dateVal = pickParam(call, ['data', 'date', '4']);
+    const metaParts = [
+      admin ? `Responsável: ${admin}` : '',
+      dateVal ? `Aplicado em: ${dateVal}` : '',
+    ].filter(Boolean);
+
+    return serializePredefinicaoBlock({
+      variant: 'alert',
+      kicker: 'Predefinição · Bloqueio de Conta',
+      title: 'Esta conta está bloqueada para edições',
+      body: `Motivo do bloqueio: ${reason}. Duração: ${duration}.${
+        admin ? ` Aplicado por: ${admin}.` : ''
+      } Consulte a página de discussão para mais detalhes e leia as [Regras de Uso do WikiMaker](#/terms).`,
+      meta: metaParts.length > 0 ? metaParts.join(' · ') : undefined,
     });
   }
 
@@ -1893,6 +2032,64 @@ export function resolveWikiTemplates(
       return out;
     })
     .join('');
+}
+
+export interface SpeedyDeletionTemplateMatch {
+  reason: string;
+  rule: string;
+  proponent: string;
+}
+
+/**
+ * Scans article markdown (ignoring fenced code blocks, `<noinclude>` blocks, and
+ * existing serialized `:::infobox` / `:::predefinicao` blocks) for a
+ * `{{Eliminação rápida|...}}` (or alias `{{ER}}`, `{{Speedy delete}}`, `{{DB}}`) call.
+ */
+export function extractSpeedyDeletionTemplate(markdown: string): SpeedyDeletionTemplateMatch | null {
+  if (!markdown || !markdown.includes('{{')) return null;
+
+  const cleaned = markdown.replace(/<noinclude>[\s\S]*?<\/noinclude>/gi, '');
+  const segments = cleaned.split(FENCE_AND_INFOBOX_SPLIT_REGEX);
+
+  for (let segIdx = 0; segIdx < segments.length; segIdx++) {
+    const segment = segments[segIdx];
+    if (!segment || segIdx % 2 === 1) continue;
+
+    let cursor = 0;
+    while (cursor < segment.length) {
+      const openIdx = segment.indexOf('{{', cursor);
+      if (openIdx === -1) break;
+
+      if (segment[openIdx + 2] === '{') {
+        const closeTriple = findMatchingTripleBraceEnd(segment, openIdx);
+        if (closeTriple !== -1) {
+          cursor = closeTriple;
+          continue;
+        }
+      }
+
+      const closeIdx = findMatchingDoubleBraceEnd(segment, openIdx);
+      if (closeIdx === -1) break;
+
+      const inner = segment.slice(openIdx + 2, closeIdx - 2);
+      const call = parseTemplateCallBody(inner);
+      if (call) {
+        const { cleanName } = stripTemplateNamespace(call.rawName);
+        const key = normalizeTemplateKey(cleanName);
+        if (isSpeedyDeletionKey(key)) {
+          return {
+            reason: pickParam(call, ['motivo', 'reason', 'justificativa', 'texto', 'text', '1']),
+            rule: pickParam(call, ['regra', 'rule', 'criterio', 'critério', '2']),
+            proponent: pickParam(call, ['proponente', 'editor', 'usuario', 'usuário', 'by']),
+          };
+        }
+      }
+
+      cursor = closeIdx;
+    }
+  }
+
+  return null;
 }
 
 function findMatchingDoubleBraceEnd(text: string, openIdx: number): number {

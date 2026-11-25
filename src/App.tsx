@@ -52,7 +52,11 @@ import { ToastContainer, type ToastNotification } from './components/ToastContai
 import { UserEditsPanel } from './components/UserEditsPanel';
 import { WatchlistProfilePanel } from './components/WatchlistProfilePanel';
 import { WikiInfobox } from './components/WikiInfobox';
-import { fetchCurrentUserGovernance, notifyUserDiscussionPage } from './lib/adminService';
+import {
+  fetchCurrentUserGovernance,
+  notifyAuthorSpeedyDeletion,
+  notifyUserDiscussionPage,
+} from './lib/adminService';
 import {
   applyExternalLinkPrefix,
   bootAndSubscribeSiteExtensions,
@@ -102,6 +106,7 @@ import { applyDynamicSeo } from './lib/seoManager';
 import {
   ENGLISH_COMMUNITY_TEMPLATES,
   expandTemplatesInWikitext,
+  extractSpeedyDeletionTemplate,
   STARTER_TEMPLATE_CATEGORY,
   STARTER_TEMPLATE_CONTENT,
   STARTER_TEMPLATE_SLUG,
@@ -1546,6 +1551,40 @@ function WikiWorkspace() {
                 onAction: () => navigateToPage(targetDiscussionSlug),
               });
             }
+          }
+        }
+
+        const prevSpeedy = extractSpeedyDeletionTemplate(activePage.content);
+        const nextSpeedy = extractSpeedyDeletionTemplate(data.content);
+        if (
+          nextSpeedy &&
+          !prevSpeedy &&
+          !isPersonalDiscussionPage &&
+          activePage.authorId !== user.uid &&
+          activePage.authorId !== 'builtin-editorial' &&
+          activePage.authorId !== 'lgpd-anonymized'
+        ) {
+          const speedyNotice = await notifyAuthorSpeedyDeletion({
+            targetUid: activePage.authorId,
+            targetDisplayName: activePage.authorName,
+            actor: user,
+            actorIsAdmin: isAdmin,
+            pageSlug: activePage.slug,
+            pageTitle: data.title,
+            version: activePage.version + 1,
+            reason: nextSpeedy.reason,
+            rule: nextSpeedy.rule,
+          });
+
+          if (speedyNotice.notified && speedyNotice.discussionPageSlug) {
+            const targetDiscussionSlug = speedyNotice.discussionPageSlug;
+            pushToast({
+              tone: 'info',
+              title: 'Alerta de Eliminação rápida enviado',
+              description: `O autor ${activePage.authorName} foi avisado em :${targetDiscussionSlug}.`,
+              actionLabel: 'Abrir discussão',
+              onAction: () => navigateToPage(targetDiscussionSlug),
+            });
           }
         }
       }

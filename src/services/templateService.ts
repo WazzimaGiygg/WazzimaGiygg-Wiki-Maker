@@ -11,6 +11,7 @@ import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { toWikiSlug } from '../lib/markdownUtils';
 import {
   ENGLISH_COMMUNITY_TEMPLATES,
+  extractSpeedyDeletionTemplate,
   listCustomWikiTemplates,
   prepareTemplateSourceForDirectView,
   resolveWikiTemplates,
@@ -22,6 +23,7 @@ import {
   STARTER_TEMPLATE_TAGS,
   STARTER_TEMPLATE_TITLE,
   WIKI_TEMPLATE_CATALOG,
+  type SpeedyDeletionTemplateMatch,
   type StarterTemplateSeed,
   type TemplateBlockVariant,
   type TemplateExpansionOptions,
@@ -37,6 +39,7 @@ import {
 
 export {
   ENGLISH_COMMUNITY_TEMPLATES,
+  extractSpeedyDeletionTemplate,
   prepareTemplateSourceForDirectView,
   resolveWikiTemplates,
   serializePredefinicaoBlock,
@@ -50,6 +53,7 @@ export {
 };
 
 export type {
+  SpeedyDeletionTemplateMatch,
   StarterTemplateSeed,
   TemplateBlockVariant,
   TemplateExpansionOptions,

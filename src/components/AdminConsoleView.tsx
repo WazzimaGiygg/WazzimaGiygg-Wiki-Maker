@@ -260,9 +260,17 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
         }
       );
       setFeedbackMsg(
-        notice.notified && notice.discussionPageSlug
-          ? `Blocked user ${blockModalUser.displayName}. Write permissions revoked and notification inserted into :${notice.discussionPageSlug}.`
-          : `Blocked user ${blockModalUser.displayName}. Write permissions revoked.`
+        [
+          `Blocked user ${blockModalUser.displayName}. Write permissions revoked`,
+          notice.personalPageSlug
+            ? `{{Bloqueio}} inserted on :${notice.personalPageSlug}`
+            : null,
+          notice.notified && notice.discussionPageSlug
+            ? `notification inserted into :${notice.discussionPageSlug}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('; ') + '.'
       );
       setFeedbackDiscussionSlug(notice.notified ? notice.discussionPageSlug : null);
       setBlockModalUser(null);
@@ -319,9 +327,17 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
         ? `Sanction & account block applied to ${sanctionModalTarget.displayName}`
         : `Sanction applied to ${sanctionModalTarget.displayName}`;
       setFeedbackMsg(
-        res.notified && res.discussionPageSlug
-          ? `${actionDesc}. Notification inserted into :${res.discussionPageSlug}.`
-          : `${actionDesc}.`
+        [
+          actionDesc,
+          res.blockedApplied && res.personalPageSlug
+            ? `{{Bloqueio}} inserted on :${res.personalPageSlug}`
+            : null,
+          res.notified && res.discussionPageSlug
+            ? `Notification inserted into :${res.discussionPageSlug}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('. ') + '.'
       );
       setFeedbackDiscussionSlug(res.notified ? res.discussionPageSlug : null);
       setSanctionModalTarget(null);
