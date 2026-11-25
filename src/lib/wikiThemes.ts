@@ -11,6 +11,7 @@ export type WikiThemeId =
   | 'fandom'
   | 'google-material'
   | 'team-fortress-2'
+  | 'stardew-valley'
   | 'wikidiota';
 
 export type RgbTuple = [number, number, number];
@@ -661,6 +662,52 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         border: [74, 64, 56],
         accent: [207, 106, 50],
         missingLink: [245, 185, 153],
+      },
+    },
+  },
+  {
+    id: 'stardew-valley',
+    name: 'Stardew Valley',
+    tagline:
+      'Inspirado na Vila dos Pelicanos: pergaminho de diálogo (#fff8e1), moldura de madeira (#b68453), verde Junimo (#2f7a24) e ouro Carambola (#f5b82e) no modo noturno.',
+    typographyLabel: 'Pixelify Sans + Plus Jakarta Sans',
+    editionLabel: 'Coleção Vila dos Pelicanos',
+    lightSwatches: ['bg-[#efe0b9]', 'bg-[#fff8e1]', 'bg-[#2f7a24]'],
+    darkSwatches: ['bg-[#13111c]', 'bg-[#1d192b]', 'bg-[#f5b82e]'],
+    metaThemeColor: {
+      light: '#2f7a24',
+      dark: '#1d192b',
+    },
+    pdf: {
+      light: {
+        pageBg: [255, 248, 225],
+        surfaceBg: [247, 235, 202],
+        chipBg: [226, 244, 207],
+        blockquoteBg: [247, 235, 202],
+        codeBlockBg: [45, 27, 16],
+        codeBlockText: [255, 248, 225],
+        codeBlockBorder: [182, 132, 83],
+        heading: [61, 35, 20],
+        body: [74, 46, 27],
+        muted: [122, 85, 57],
+        border: [182, 132, 83],
+        accent: [47, 122, 36],
+        missingLink: [154, 52, 18],
+      },
+      dark: {
+        pageBg: [29, 25, 43],
+        surfaceBg: [19, 17, 28],
+        chipBg: [54, 46, 78],
+        blockquoteBg: [38, 33, 56],
+        codeBlockBg: [15, 12, 22],
+        codeBlockText: [253, 243, 209],
+        codeBlockBorder: [72, 61, 99],
+        heading: [253, 243, 209],
+        body: [230, 218, 182],
+        muted: [169, 155, 184],
+        border: [72, 61, 99],
+        accent: [245, 184, 46],
+        missingLink: [251, 146, 60],
       },
     },
   },

@@ -579,6 +579,50 @@
   --wiki-table-head-bg: #2f2925;
 }
 
+:root[data-wiki-theme="stardew-valley"] {
+  --wiki-canvas: #efe0b9;
+  --wiki-surface: #fff8e1;
+  --wiki-surface-nav: rgba(246, 230, 190, 0.96);
+  --wiki-surface-footer: #ead6a6;
+  --wiki-surface-alt: #f7ebca;
+  --wiki-border: #b68453;
+  --wiki-heading: #3d2314;
+  --wiki-text: #4a2e1b;
+  --wiki-muted: #7a5539;
+  --wiki-accent: #2f7a24;
+  --wiki-accent-hover: #24601b;
+  --wiki-accent-soft: #e2f4cf;
+  --wiki-accent-soft-text: #225419;
+  --wiki-inline-code-bg: #efe0ba;
+  --wiki-inline-code-text: #3d2314;
+  --wiki-code-bg: #2d1b10;
+  --wiki-code-text: #fff8e1;
+  --wiki-table-head-bg: #f1e1b5;
+  --wiki-font-display: "Pixelify Sans", ui-sans-serif, system-ui, sans-serif;
+  --wiki-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root.dark[data-wiki-theme="stardew-valley"] {
+  --wiki-canvas: #13111c;
+  --wiki-surface: #1d192b;
+  --wiki-surface-nav: rgba(29, 25, 43, 0.96);
+  --wiki-surface-footer: #171423;
+  --wiki-surface-alt: #262138;
+  --wiki-border: #483d63;
+  --wiki-heading: #fdf3d1;
+  --wiki-text: #e6dab6;
+  --wiki-muted: #a99bb8;
+  --wiki-accent: #f5b82e;
+  --wiki-accent-hover: #f9cb5c;
+  --wiki-accent-soft: rgba(245, 184, 46, 0.16);
+  --wiki-accent-soft-text: #fde68a;
+  --wiki-inline-code-bg: #2b2540;
+  --wiki-inline-code-text: #fdf3d1;
+  --wiki-code-bg: #0f0c16;
+  --wiki-code-text: #fdf3d1;
+  --wiki-table-head-bg: #262138;
+}
+
 @layer base {
   html {
     font-family: var(--wiki-font-sans);
@@ -941,6 +985,55 @@
 :root[data-wiki-theme="team-fortress-2"] .wiki-prose h4,
 :root[data-wiki-theme="team-fortress-2"] .font-display {
   letter-spacing: 0.01em;
+}
+
+/* Stardew Valley (Pelican Town) Wooden Dialogue Frame, Meadow Stripe & Starfruit Night Mode */
+:root[data-wiki-theme="stardew-valley"] [data-wiki-surface="nav"] {
+  background-image: linear-gradient(
+    90deg,
+    #5b9e32 0%,
+    #5b9e32 50%,
+    #e5a119 50%,
+    #e5a119 100%
+  );
+  background-size: 100% 4px;
+  background-repeat: no-repeat;
+  background-position: top;
+  border-bottom: 2px solid var(--wiki-border);
+}
+
+:root[data-wiki-theme="stardew-valley"]:not(.dark) [data-wiki-surface="panel"] {
+  border-width: 2px;
+  border-color: #a46a3e;
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 230, 0.8), 0 2px 0 #8f563b,
+    0 5px 14px rgba(61, 35, 20, 0.08);
+}
+
+:root[data-wiki-theme="stardew-valley"]:not(.dark) [data-wiki-surface="inset"] {
+  border-color: #c49363;
+}
+
+:root.dark[data-wiki-theme="stardew-valley"] [data-wiki-surface="panel"] {
+  border-width: 2px;
+  border-color: #514470;
+  box-shadow: inset 0 0 0 1px rgba(245, 184, 46, 0.1), 0 3px 12px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-wiki-theme="stardew-valley"] [data-wiki-surface="progress"] {
+  background-color: #e5a119;
+}
+
+:root.dark[data-wiki-theme="stardew-valley"] [data-wiki-surface="accent"] {
+  color: #1d192b;
+  font-weight: 600;
+}
+
+:root[data-wiki-theme="stardew-valley"] .wiki-prose h1,
+:root[data-wiki-theme="stardew-valley"] .wiki-prose h2,
+:root[data-wiki-theme="stardew-valley"] .wiki-prose h3,
+:root[data-wiki-theme="stardew-valley"] .wiki-prose h4,
+:root[data-wiki-theme="stardew-valley"] .font-display {
+  letter-spacing: 0.015em;
 }
 
 /* Editorial Markdown typography inside the Wiki reading canvas */
