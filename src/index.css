@@ -875,6 +875,7 @@
   font-weight: 600;
   letter-spacing: -0.015em;
   text-wrap: balance;
+  text-align: left;
 }
 
 .wiki-prose h1 {
@@ -902,6 +903,12 @@
 .wiki-prose p {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.wiki-prose p:not([align]):not([style*="text-align"]):not(.text-left):not(.text-center):not(.text-right),
+.wiki-prose li:not([align]):not([style*="text-align"]):not(.text-left):not(.text-center):not(.text-right),
+.wiki-prose blockquote:not([align]):not([style*="text-align"]):not(.text-left):not(.text-center):not(.text-right) {
+  text-align: justify;
 }
 
 .wiki-prose ul,
@@ -958,6 +965,7 @@
   overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.6;
+  text-align: left;
 }
 
 .wiki-prose pre code {

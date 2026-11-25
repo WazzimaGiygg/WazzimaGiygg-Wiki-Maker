@@ -186,7 +186,7 @@ export const WikiTemplateBlock: React.FC<WikiTemplateBlockProps> = ({
           <Icon className="w-3.5 h-3.5 shrink-0" />
           <span>{template.kicker}</span>
         </div>
-        <blockquote className="text-base sm:text-lg font-display italic text-slate-900 dark:text-slate-100 leading-relaxed">
+        <blockquote className="text-base sm:text-lg font-display italic text-slate-900 dark:text-slate-100 leading-relaxed text-justify">
           “{renderInlineMarkdown(template.body)}”
         </blockquote>
         {(template.author || template.source) && (
@@ -230,7 +230,7 @@ export const WikiTemplateBlock: React.FC<WikiTemplateBlockProps> = ({
       )}
 
       {template.body && (
-        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+        <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed text-justify">
           {renderInlineMarkdown(template.body)}
         </div>
       )}

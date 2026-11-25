@@ -216,6 +216,8 @@ interface StyledToken {
 interface LaidOutLine {
   tokens: Array<StyledToken & { width: number }>;
   height: number;
+  endedWithNewline?: boolean;
+  justifyWidth?: number;
 }
 
 function buildLinkDestination(slug: string): string {
@@ -549,11 +551,11 @@ class WikiPdfWriter {
     let currentLine: Array<StyledToken & { width: number }> = [];
     let currentWidth = 0;
 
-    const pushLine = () => {
+    const pushLine = (endedWithNewline = false) => {
       while (currentLine.length > 0 && currentLine[currentLine.length - 1].isSpace) {
         currentLine.pop();
       }
-      lines.push({ tokens: currentLine, height: lineHeight });
+      lines.push({ tokens: currentLine, height: lineHeight, endedWithNewline });
       currentLine = [];
       currentWidth = 0;
     };
@@ -599,14 +601,14 @@ class WikiPdfWriter {
 
     for (const item of rawTokens) {
       if ('newline' in item) {
-        pushLine();
+        pushLine(true);
       } else {
         appendToken(item);
       }
     }
 
     if (currentLine.length > 0 || lines.length === 0) {
-      pushLine();
+      pushLine(true);
     }
 
     return lines;
@@ -615,8 +617,20 @@ class WikiPdfWriter {
   drawLaidOutLine(
     line: LaidOutLine,
     xStart: number,
-    baselineY: number
+    baselineY: number,
+    justifyWidth?: number
   ): void {
+    let extraPerSpace = 0;
+    const targetWidth = justifyWidth ?? line.justifyWidth;
+    if (targetWidth && !line.endedWithNewline) {
+      const naturalWidth = line.tokens.reduce((sum, t) => sum + t.width, 0);
+      const spaceCount = line.tokens.filter((t) => t.isSpace).length;
+      const deficit = targetWidth - naturalWidth;
+      if (spaceCount > 0 && deficit > 0.5 && naturalWidth >= targetWidth * 0.55) {
+        extraPerSpace = deficit / spaceCount;
+      }
+    }
+
     let cursorX = xStart;
 
     for (const tok of line.tokens) {
@@ -663,7 +677,7 @@ class WikiPdfWriter {
         );
       }
 
-      cursorX += tok.width;
+      cursorX += tok.width + (tok.isSpace ? extraPerSpace : 0);
     }
   }
 
@@ -678,6 +692,7 @@ class WikiPdfWriter {
       bold?: boolean;
       italic?: boolean;
       spaceAfter?: number;
+      justify?: boolean;
     }
   ): void {
     const fontSize = options.fontSize ?? 10;
@@ -696,7 +711,12 @@ class WikiPdfWriter {
     for (const line of lines) {
       this.ensureSpace(line.height);
       const baselineY = this.y + fontSize * 0.85;
-      this.drawLaidOutLine(line, options.x, baselineY);
+      this.drawLaidOutLine(
+        line,
+        options.x,
+        baselineY,
+        options.justify ? options.maxWidth : undefined
+      );
       this.y += line.height;
     }
 
@@ -1022,7 +1042,7 @@ class WikiPdfWriter {
     if (titleLines.length > 0) cy += 3;
 
     for (const line of bodyLines) {
-      this.drawLaidOutLine(line, MARGIN_X + padX, cy + 7.5);
+      this.drawLaidOutLine(line, MARGIN_X + padX, cy + 7.5, innerWidth);
       cy += line.height;
     }
     if (bodyLines.length > 0) cy += 2;
@@ -1084,6 +1104,7 @@ class WikiPdfWriter {
       lineHeightRatio: 1.54,
       color: this.theme.body,
       spaceAfter: 7,
+      justify: true,
     });
   }
 
@@ -1172,7 +1193,7 @@ class WikiPdfWriter {
 
       let cy = this.y + padY;
       for (const entry of sliceLines) {
-        this.drawLaidOutLine(entry.line, x + padX, cy + 8);
+        this.drawLaidOutLine(entry.line, x + padX, cy + 8, innerWidth);
         cy += entry.line.height + entry.extraGapAfter;
       }
 
@@ -1315,6 +1336,7 @@ class WikiPdfWriter {
             lineHeightRatio: 1.48,
             color: this.theme.body,
             spaceAfter: ci === item.children.length - 1 ? 3 : 4,
+            justify: true,
           });
         } else if (child.type === 'list') {
           await this.renderList(child, itemX, itemWidth, depth + 1);
