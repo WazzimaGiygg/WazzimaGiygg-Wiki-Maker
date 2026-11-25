@@ -71,6 +71,17 @@ function sanitizeString(value: string, maxLen: number): string {
   return value.trim().slice(0, maxLen);
 }
 
+function sanitizeTemplateInline(value: string, maxLen: number): string {
+  return value
+    .replace(/\r?\n+/g, ' ')
+    .replace(/\|/g, '—')
+    .replace(/\{\{/g, '((')
+    .replace(/\}\}/g, '))')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLen);
+}
+
 function sanitizeCategory(category: string): string {
   const normalized = category
     .normalize('NFD')
@@ -253,11 +264,35 @@ This personal page and identification infobox were created automatically when **
 > Every edit **${displayName}** makes across the wiki is listed in the **Edit History** section below. Visit [[${discussionPageSlug}|the discussion page]] to start a conversation.`;
 }
 
+function buildWelcomeNoticeSection(displayName: string, personalPageSlug: string): string {
+  const now = new Date();
+  const dateOnly = now.toISOString().slice(0, 10);
+  const dateTimeUtc = `${dateOnly} ${now.toISOString().slice(11, 16)} UTC`;
+  const safeInlineName = sanitizeTemplateInline(displayName, 80) || 'Colaborador';
+  const safeLinkLabel = safeInlineName.replace(/[[\]]/g, '') || 'Colaborador';
+
+  return [
+    `## Boas-vindas à wiki (${dateOnly})`,
+    '',
+    `{{Aviso|tipo=sucesso|título=Boas-vindas, ${safeInlineName}!|texto=Olá, ${safeInlineName}! Seu acesso foi criado com sucesso no WazzimaGiygg Maker. Esta é a sua página de discussão pessoal — aqui você pode receber mensagens de outros colaboradores, tirar dúvidas e acompanhar avisos da comunidade.|data=${dateTimeUtc}}}`,
+    '',
+    `- **Sua página pessoal:** [[${personalPageSlug}|${safeLinkLabel}]] (\`:${personalPageSlug}\`)`,
+    `- **Primeiros passos:** Confira o [[markdown-guide|Guia de Markdown e Predefinições]] ou explore a [[start|Página Inicial]]`,
+    `- **Discussões:** Outros usuários podem deixar comentários e mensagens para você logo abaixo ou editar esta conversa conforme as regras da wiki.`,
+  ].join('\n');
+}
+
 function buildDiscussionPageContent(
   displayName: string,
   personalPageSlug: string
 ): string {
-  return `This is the dedicated discussion page for **${displayName}**.
+  const welcomeSection = buildWelcomeNoticeSection(displayName, personalPageSlug);
+
+  return `${welcomeSection}
+
+---
+
+This is the dedicated discussion page for **${displayName}**.
 
 Return to [[${personalPageSlug}|${displayName}'s Personal Page]] or post a message directly in the discussion thread below.
 
@@ -388,13 +423,15 @@ export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
         );
       }
 
+      let pendingWelcomeCommentPage: WikiPage | null = null;
+
       if (!discussionSnap.exists()) {
         const discussionTitle = sanitizeString(
           `Discussion: ${displayName}`,
           VALIDATION_LIMITS.TITLE_MAX_LENGTH
         );
         const discussionContent = buildDiscussionPageContent(displayName, resolvedPersonalSlug);
-        const discussionSummary = 'Created personal discussion page';
+        const discussionSummary = 'Created personal discussion page with welcome message';
         batch.set(discussionRef, {
           slug: resolvedDiscussionSlug,
           title: discussionTitle,
@@ -436,9 +473,78 @@ export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
             createdAt: serverTimestamp(),
           }
         );
+      } else if (isNewUser) {
+        const existingDiscussion = discussionSnap.data() as WikiPage;
+        if (!existingDiscussion.content.includes('Boas-vindas')) {
+          if (existingDiscussion.authorId === user.uid) {
+            const welcomeSection = buildWelcomeNoticeSection(displayName, resolvedPersonalSlug);
+            const combinedContent = existingDiscussion.content.trim()
+              ? `${welcomeSection}\n\n---\n\n${existingDiscussion.content.trimStart()}`
+              : welcomeSection;
+            const boundedContent = combinedContent.slice(0, VALIDATION_LIMITS.CONTENT_MAX_LENGTH);
+            const nextVersion = existingDiscussion.version + 1;
+            const welcomeSummary = 'Added welcome message to personal discussion page';
+
+            batch.update(discussionRef, {
+              content: boundedContent,
+              lastEditorId: user.uid,
+              lastEditorName: displayName,
+              recentEditors: computeNextRecentEditors(existingDiscussion, {
+                uid: user.uid,
+                name: displayName,
+              }),
+              version: nextVersion,
+              updatedAt: serverTimestamp(),
+            });
+            batch.set(doc(db, 'pages', resolvedDiscussionSlug, 'revisions', `v_${nextVersion}`), {
+              pageSlug: resolvedDiscussionSlug,
+              pageVisibility: existingDiscussion.visibility,
+              pageAuthorId: existingDiscussion.authorId,
+              title: existingDiscussion.title,
+              content: boundedContent,
+              editorId: user.uid,
+              editorName: displayName,
+              summary: welcomeSummary,
+              version: nextVersion,
+              createdAt: serverTimestamp(),
+            });
+            batch.set(
+              doc(
+                db,
+                'collaborators',
+                user.uid,
+                'edits',
+                buildEditDocId(resolvedDiscussionSlug, nextVersion)
+              ),
+              {
+                editorId: user.uid,
+                pageSlug: resolvedDiscussionSlug,
+                pageTitle: existingDiscussion.title,
+                pageVisibility: existingDiscussion.visibility,
+                summary: welcomeSummary,
+                version: nextVersion,
+                createdAt: serverTimestamp(),
+              }
+            );
+          } else if (existingDiscussion.visibility === 'public') {
+            pendingWelcomeCommentPage = existingDiscussion;
+          }
+        }
       }
 
       await batch.commit();
+
+      if (pendingWelcomeCommentPage) {
+        try {
+          await addPageComment(
+            pendingWelcomeCommentPage,
+            `Boas-vindas à wiki, ${displayName}! Seu acesso foi conectado com sucesso ao WazzimaGiygg Maker.`,
+            user
+          );
+        } catch (commentError) {
+          console.warn('Could not post fallback welcome comment:', commentError);
+        }
+      }
     } else if (needsProfileRefresh) {
       await updateDoc(collabRef, {
         displayName,

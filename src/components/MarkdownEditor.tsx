@@ -26,6 +26,7 @@ import {
   Redo2,
   Replace,
   Save,
+  ShieldAlert,
   SplitSquareHorizontal,
   Table,
   Trash2,
@@ -46,6 +47,7 @@ import {
   uploadPageHeaderImage,
 } from '../lib/headerImageService';
 import { toWikiSlug } from '../lib/markdownUtils';
+import { checkArticleProfanity } from '../lib/profanityFilter';
 import { ArticleViewer } from './ArticleViewer';
 import {
   type ActiveRichFormats,
@@ -205,8 +207,34 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const bannerFileInputRef = React.useRef<HTMLInputElement | null>(null);
   const findInputRef = React.useRef<HTMLInputElement | null>(null);
   const replaceInputRef = React.useRef<HTMLInputElement | null>(null);
+  const summaryInputRef = React.useRef<HTMLInputElement | null>(null);
+  const profanityCursorRef = React.useRef(0);
   const contentRef = React.useRef(content);
   contentRef.current = content;
+
+  const profanityCheck = React.useMemo(
+    () =>
+      checkArticleProfanity({
+        title,
+        slug: mode === 'create' ? slug : undefined,
+        tags: tagsText,
+        summary,
+        content,
+      }),
+    [title, mode, slug, tagsText, summary, content]
+  );
+
+  const profanityFieldLabels = React.useMemo(
+    () => Array.from(new Set(profanityCheck.matches.map((m) => m.fieldLabel))),
+    [profanityCheck.matches]
+  );
+
+  React.useEffect(() => {
+    if (!profanityCheck.hasProfanity) {
+      profanityCursorRef.current = 0;
+      setLocalError((prev) => (prev?.startsWith('Filtro de linguagem:') ? null : prev));
+    }
+  }, [profanityCheck.hasProfanity]);
 
   const baselineCategory = initialCategory || 'general';
   const baselineTags = initialTags.join(', ');
@@ -623,6 +651,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       .filter(Boolean)
       .slice(0, VALIDATION_LIMITS.TAGS_MAX_COUNT);
 
+    if (profanityCheck.hasProfanity) {
+      const affectedFieldsText = profanityFieldLabels.join(', ');
+      const maskedPreview = profanityCheck.uniqueMaskedTerms.slice(0, 5).join(', ');
+      setLocalError(
+        `Filtro de linguagem: foram encontrados termos não permitidos em ${affectedFieldsText} (${maskedPreview}). Remova ou substitua essas palavras antes de salvar.`
+      );
+      return;
+    }
+
     await onSave({
       slug: normalizedSlug,
       title: title.trim(),
@@ -748,6 +785,45 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
   };
 
+  const locateNextProfanityMatch = React.useCallback(() => {
+    if (profanityCheck.matches.length === 0) return;
+    const idx = profanityCursorRef.current % profanityCheck.matches.length;
+    profanityCursorRef.current = idx + 1;
+    const match = profanityCheck.matches[idx];
+
+    if (match.field === 'content') {
+      if (paneMode === 'preview' || paneMode === 'formatted') {
+        setPaneMode('code');
+        setFocusedPane('code');
+      }
+      requestAnimationFrame(() => {
+        const el = textareaRef.current;
+        if (el) {
+          el.focus();
+          el.setSelectionRange(match.start, match.end);
+        }
+      });
+      return;
+    }
+
+    if (match.field === 'summary') {
+      summaryInputRef.current?.focus();
+      summaryInputRef.current?.setSelectionRange(match.start, match.end);
+      return;
+    }
+
+    const fieldIdMap: Record<'title' | 'slug' | 'tags', string> = {
+      title: 'wiki-title-input',
+      slug: 'wiki-slug-input',
+      tags: 'wiki-tags-input',
+    };
+    const targetInput = document.getElementById(fieldIdMap[match.field]) as HTMLInputElement | null;
+    if (targetInput) {
+      targetInput.focus();
+      targetInput.setSelectionRange(match.start, match.end);
+    }
+  }, [profanityCheck.matches, paneMode]);
+
   const activeError = localError || errorMessage;
 
   return (
@@ -758,6 +834,40 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           className="px-4 py-3 text-sm rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300"
         >
           {activeError}
+        </div>
+      )}
+
+      {profanityCheck.hasProfanity && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-xs rounded-lg border border-rose-300 dark:border-rose-800/80 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200"
+        >
+          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+            <ShieldAlert className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-semibold">
+                Aviso de moderação automática: termos não permitidos detectados antes de salvar
+              </p>
+              <p className="text-rose-800 dark:text-rose-300">
+                Campos afetados: <strong>{profanityFieldLabels.join(', ')}</strong> · Termos
+                identificados:{' '}
+                <span className="font-mono">
+                  {profanityCheck.uniqueMaskedTerms.slice(0, 6).join(', ')}
+                  {profanityCheck.uniqueMaskedTerms.length > 6 ? '…' : ''}
+                </span>{' '}
+                ({profanityCheck.matches.length}{' '}
+                {profanityCheck.matches.length === 1 ? 'ocorrência' : 'ocorrências'}).
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={locateNextProfanityMatch}
+            className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-rose-300 dark:border-rose-700 bg-white dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            Localizar no editor
+          </button>
         </div>
       )}
 
@@ -1679,10 +1789,34 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         </div>
       )}
 
+      {/* Pre-save Profanity Reminder near Save Controls */}
+      {profanityCheck.hasProfanity && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 text-xs rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50/80 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-700 dark:text-rose-400 shrink-0" />
+            <span>
+              Revise os termos não permitidos em{' '}
+              <strong>{profanityFieldLabels.join(', ')}</strong> antes de salvar.
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={locateNextProfanityMatch}
+            className="font-medium underline hover:no-underline cursor-pointer"
+          >
+            Ir para ocorrência
+          </button>
+        </div>
+      )}
+
       {/* Summary & Save Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
         <div className="flex-1">
           <input
+            ref={summaryInputRef}
             type="text"
             value={summary}
             maxLength={VALIDATION_LIMITS.SUMMARY_MAX_LENGTH}
