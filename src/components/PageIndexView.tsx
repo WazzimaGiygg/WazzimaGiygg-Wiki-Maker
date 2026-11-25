@@ -1,8 +1,23 @@
 import React from 'react';
-import { Archive, Check, Loader2, Lock, Plus, Search } from 'lucide-react';
+import type { Timestamp } from 'firebase/firestore';
+import {
+  Archive,
+  Calendar,
+  Check,
+  History,
+  Loader2,
+  Lock,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  User as UserIcon,
+  X,
+} from 'lucide-react';
 import { WIKI_CATEGORIES, type WikiPage } from '../types/wiki';
 import { exportPublicWikiArchiveZip } from '../lib/archiveExportService';
-import { formatRelativeTime } from '../lib/markdownUtils';
+import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
+
+type DateFilterMode = 'exact' | 'from' | 'to' | 'range';
 
 interface PageIndexViewProps {
   mode: 'index' | 'recent';
@@ -12,6 +27,15 @@ interface PageIndexViewProps {
   enableZipExport?: boolean;
   onSelectPage: (slug: string) => void;
   onNewPage: () => void;
+}
+
+function toLocalDateInputValue(timestamp: Timestamp | null | undefined): string | null {
+  if (!timestamp) return null;
+  const date = timestamp.toDate();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export const PageIndexView: React.FC<PageIndexViewProps> = ({
@@ -25,14 +49,61 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
 }) => {
   const [search, setSearch] = React.useState('');
   const [categoryFilter, setCategoryFilter] = React.useState<string>('all');
+  const [onlyLastFiveEdits, setOnlyLastFiveEdits] = React.useState(false);
+  const [advancedSearchOpen, setAdvancedSearchOpen] = React.useState(false);
+  const [dateMode, setDateMode] = React.useState<DateFilterMode>('exact');
+  const [dateFrom, setDateFrom] = React.useState('');
+  const [dateTo, setDateTo] = React.useState('');
+  const [editorFilter, setEditorFilter] = React.useState('');
+  const [pageIdFilter, setPageIdFilter] = React.useState('');
   const [exportingZip, setExportingZip] = React.useState(false);
   const [exportNotice, setExportNotice] = React.useState<string | null>(null);
   const [exportError, setExportError] = React.useState<string | null>(null);
+
+  const editorDatalistId = React.useId();
 
   const publicPagesCount = React.useMemo(
     () => pages.filter((p) => p.visibility === 'public').length,
     [pages]
   );
+
+  const availableEditors = React.useMemo(() => {
+    const names = new Set<string>();
+    for (const page of pages) {
+      if (page.lastEditorName.trim()) {
+        names.add(page.lastEditorName.trim());
+      }
+      for (const entry of page.recentEditors ?? []) {
+        if (entry.name.trim()) {
+          names.add(entry.name.trim());
+        }
+      }
+    }
+    return Array.from(names).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [pages]);
+
+  const hasActiveDateFilter =
+    dateMode === 'range' ? Boolean(dateFrom || dateTo) : Boolean(dateFrom);
+  const activeAdvancedCount =
+    (hasActiveDateFilter ? 1 : 0) +
+    (editorFilter.trim() ? 1 : 0) +
+    (pageIdFilter.trim() ? 1 : 0);
+  const hasAnyFilter =
+    categoryFilter !== 'all' || Boolean(search.trim()) || activeAdvancedCount > 0;
+
+  const clearAdvancedFilters = () => {
+    setDateMode('exact');
+    setDateFrom('');
+    setDateTo('');
+    setEditorFilter('');
+    setPageIdFilter('');
+  };
+
+  const clearAllFilters = () => {
+    setCategoryFilter('all');
+    setSearch('');
+    clearAdvancedFilters();
+  };
 
   const handleExportArchive = async () => {
     setExportingZip(true);
@@ -55,26 +126,87 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
 
   const sortedAndFiltered = React.useMemo(() => {
     const q = search.trim().toLowerCase();
+    const eq = editorFilter.trim().toLowerCase();
+    const idq = pageIdFilter.trim().replace(/^:+/, '').toLowerCase();
+
     const filtered = pages.filter((p) => {
       const matchesCat = categoryFilter === 'all' || p.category === categoryFilter;
-      const matchesQuery =
-        !q ||
-        p.title.toLowerCase().includes(q) ||
-        p.slug.toLowerCase().includes(q) ||
-        p.lastEditorName.toLowerCase().includes(q);
-      return matchesCat && matchesQuery;
+      if (!matchesCat) return false;
+
+      if (q) {
+        const matchesQuick =
+          p.title.toLowerCase().includes(q) ||
+          p.slug.toLowerCase().includes(q) ||
+          p.lastEditorName.toLowerCase().includes(q) ||
+          (p.recentEditors ?? []).some((ed) => ed.name.toLowerCase().includes(q));
+        if (!matchesQuick) return false;
+      }
+
+      if (hasActiveDateFilter) {
+        const updatedKey = toLocalDateInputValue(p.updatedAt);
+        if (!updatedKey) return false;
+        if (dateMode === 'exact' && updatedKey !== dateFrom) return false;
+        if (dateMode === 'from' && updatedKey < dateFrom) return false;
+        if (dateMode === 'to' && updatedKey > dateFrom) return false;
+        if (dateMode === 'range') {
+          if (dateFrom && dateTo) {
+            const [minDate, maxDate] =
+              dateFrom <= dateTo ? [dateFrom, dateTo] : [dateTo, dateFrom];
+            if (updatedKey < minDate || updatedKey > maxDate) return false;
+          } else if (dateFrom && updatedKey < dateFrom) {
+            return false;
+          } else if (dateTo && updatedKey > dateTo) {
+            return false;
+          }
+        }
+      }
+
+      if (eq) {
+        const matchesEditor =
+          p.lastEditorName.toLowerCase().includes(eq) ||
+          p.lastEditorId.toLowerCase().includes(eq) ||
+          (p.recentEditors ?? []).some(
+            (ed) =>
+              ed.name.toLowerCase().includes(eq) || ed.uid.toLowerCase().includes(eq)
+          );
+        if (!matchesEditor) return false;
+      }
+
+      if (idq) {
+        if (!p.slug.toLowerCase().includes(idq)) return false;
+      }
+
+      return true;
     });
 
-    if (mode === 'recent') {
+    if (mode === 'recent' || onlyLastFiveEdits) {
       return [...filtered].sort((a, b) => {
         const ta = a.updatedAt?.toMillis() ?? 0;
         const tb = b.updatedAt?.toMillis() ?? 0;
-        return tb - ta;
+        if (tb !== ta) return tb - ta;
+        return a.title.localeCompare(b.title, 'en-US');
       });
     }
 
     return [...filtered].sort((a, b) => a.title.localeCompare(b.title, 'en-US'));
-  }, [pages, search, categoryFilter, mode]);
+  }, [
+    pages,
+    search,
+    categoryFilter,
+    mode,
+    onlyLastFiveEdits,
+    hasActiveDateFilter,
+    dateMode,
+    dateFrom,
+    dateTo,
+    editorFilter,
+    pageIdFilter,
+  ]);
+
+  const displayedPages = React.useMemo(
+    () => (onlyLastFiveEdits ? sortedAndFiltered.slice(0, 5) : sortedAndFiltered),
+    [onlyLastFiveEdits, sortedAndFiltered]
+  );
 
   return (
     <div className="space-y-6">
@@ -146,53 +278,306 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
       )}
 
       {/* Filters Row */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg">
-          <button
-            type="button"
-            onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-              categoryFilter === 'all'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            All ({pages.length})
-          </button>
-          {WIKI_CATEGORIES.map((cat) => (
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg">
             <button
-              key={cat.id}
               type="button"
-              onClick={() => setCategoryFilter(cat.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
-                categoryFilter === cat.id
+              onClick={() => setCategoryFilter('all')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                categoryFilter === 'all'
                   ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
-              {cat.label}
+              All ({pages.length})
             </button>
-          ))}
+            {WIKI_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setCategoryFilter(cat.id)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                  categoryFilter === cat.id
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+            <button
+              type="button"
+              aria-pressed={onlyLastFiveEdits}
+              onClick={() => setOnlyLastFiveEdits((prev) => !prev)}
+              data-wiki-surface={onlyLastFiveEdits ? 'accent' : 'inset'}
+              title="Exibir apenas as 5 páginas editadas mais recentemente"
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                onlyLastFiveEdits
+                  ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
+                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <History className="w-3.5 h-3.5 shrink-0" />
+              <span>Últimas 5 edições</span>
+            </button>
+
+            <button
+              type="button"
+              aria-expanded={advancedSearchOpen}
+              onClick={() => setAdvancedSearchOpen((prev) => !prev)}
+              data-wiki-surface={
+                advancedSearchOpen || activeAdvancedCount > 0 ? 'nav-active' : 'inset'
+              }
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                advancedSearchOpen || activeAdvancedCount > 0
+                  ? 'border-blue-700/60 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-200'
+                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" />
+              <span>Busca avançada</span>
+              {activeAdvancedCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-700 text-white font-mono text-[10px] tabular-nums">
+                  {activeAdvancedCount}
+                </span>
+              )}
+            </button>
+
+            <div className="relative flex-1 sm:w-64 sm:flex-none">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search title, :slug, or author..."
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title, :slug, or author..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
-          />
-        </div>
+        {/* Advanced Search Panel */}
+        {advancedSearchOpen && (
+          <section
+            aria-label="Busca avançada de páginas"
+            data-wiki-surface="inset"
+            className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0b0f17] space-y-3"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                <span>Busca avançada por data, editor ou ID da página</span>
+              </div>
+              {activeAdvancedCount > 0 && (
+                <button
+                  type="button"
+                  onClick={clearAdvancedFilters}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                  <span>Limpar busca avançada</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Date Filter */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <label
+                    htmlFor="page-index-date-from"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Data da edição</span>
+                  </label>
+                  <select
+                    aria-label="Modo do filtro de data"
+                    value={dateMode}
+                    onChange={(e) => {
+                      const nextMode = e.target.value as DateFilterMode;
+                      setDateMode(nextMode);
+                      if (nextMode !== 'range') {
+                        setDateTo('');
+                      }
+                    }}
+                    className="px-2 py-0.5 text-[11px] rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-700 dark:text-slate-200 focus:outline-none focus:border-blue-700"
+                  >
+                    <option value="exact">Dia exato</option>
+                    <option value="from">A partir de</option>
+                    <option value="to">Até</option>
+                    <option value="range">Período</option>
+                  </select>
+                </div>
+
+                <div className={`grid gap-2 ${dateMode === 'range' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  <input
+                    id="page-index-date-from"
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    aria-label={dateMode === 'range' ? 'Data inicial da edição' : 'Data da edição'}
+                    className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                  />
+                  {dateMode === 'range' && (
+                    <input
+                      id="page-index-date-to"
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      aria-label="Data final da edição"
+                      className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Editor Filter */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="page-index-editor-filter"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
+                >
+                  <UserIcon className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Editor</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="page-index-editor-filter"
+                    type="text"
+                    list={editorDatalistId}
+                    value={editorFilter}
+                    onChange={(e) => setEditorFilter(e.target.value)}
+                    placeholder="Nome ou UID do editor..."
+                    className="w-full px-3 py-1.5 pr-7 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                  />
+                  {editorFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setEditorFilter('')}
+                      aria-label="Limpar filtro de editor"
+                      className="p-0.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <datalist id={editorDatalistId}>
+                    {availableEditors.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+
+              {/* Page ID (:slug) Filter */}
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="page-index-id-filter"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
+                >
+                  <span className="font-mono text-slate-400">:</span>
+                  <span>ID da página (:slug)</span>
+                </label>
+                <div className="relative flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] overflow-hidden focus-within:border-blue-700">
+                  <span className="pl-2.5 pr-1 text-xs font-mono text-slate-400 select-none">
+                    :
+                  </span>
+                  <input
+                    id="page-index-id-filter"
+                    type="text"
+                    value={pageIdFilter}
+                    onChange={(e) => setPageIdFilter(e.target.value)}
+                    placeholder="start, guia-markdown..."
+                    className="w-full py-1.5 pr-7 text-xs font-mono bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
+                  />
+                  {pageIdFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setPageIdFilter('')}
+                      aria-label="Limpar filtro de ID da página"
+                      className="p-0.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Active Limit / Filter Summary Bar */}
+        {(onlyLastFiveEdits || hasAnyFilter) && (
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="tabular-nums">
+                {onlyLastFiveEdits ? (
+                  <>
+                    Exibindo{' '}
+                    <strong className="font-semibold text-slate-900 dark:text-slate-100">
+                      {displayedPages.length}
+                    </strong>{' '}
+                    {displayedPages.length === 1 ? 'edição mais recente' : 'edições mais recentes'}
+                    {sortedAndFiltered.length > displayedPages.length && (
+                      <> (de {sortedAndFiltered.length} páginas correspondentes)</>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    Exibindo{' '}
+                    <strong className="font-semibold text-slate-900 dark:text-slate-100">
+                      {displayedPages.length}
+                    </strong>{' '}
+                    de {pages.length} {pages.length === 1 ? 'página' : 'páginas'}
+                  </>
+                )}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {onlyLastFiveEdits && sortedAndFiltered.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => setOnlyLastFiveEdits(false)}
+                  className="text-blue-700 dark:text-blue-400 hover:underline font-medium cursor-pointer"
+                >
+                  Mostrar todas ({sortedAndFiltered.length})
+                </button>
+              )}
+              {hasAnyFilter && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:underline cursor-pointer"
+                >
+                  Limpar todos os filtros
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Data Table */}
-      {sortedAndFiltered.length === 0 ? (
-        <div className="py-12 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#0f1623]">
+      {displayedPages.length === 0 ? (
+        <div className="py-12 px-4 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#0f1623] space-y-3">
           <p className="text-sm text-slate-600 dark:text-slate-400">
             No pages found for the selected filters.
           </p>
+          {hasAnyFilter && (
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Limpar filtros</span>
+            </button>
+          )}
         </div>
       ) : (
         <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-[#0f1623]">
@@ -208,7 +593,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
-                {sortedAndFiltered.map((page) => {
+                {displayedPages.map((page) => {
                   const catLabel =
                     WIKI_CATEGORIES.find((c) => c.id === page.category)?.label ?? page.category;
                   return (
@@ -240,8 +625,16 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                       <td className="py-3 px-4 text-right font-mono text-xs tabular-nums text-slate-600 dark:text-slate-300">
                         v{page.version}
                       </td>
-                      <td className="py-3 px-4 text-right font-mono text-xs tabular-nums text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                        {formatRelativeTime(page.updatedAt)}
+                      <td
+                        className="py-3 px-4 text-right font-mono text-xs tabular-nums text-slate-500 dark:text-slate-400 whitespace-nowrap"
+                        title={formatAbsoluteTime(page.updatedAt)}
+                      >
+                        <div>{formatRelativeTime(page.updatedAt)}</div>
+                        {page.updatedAt && (
+                          <div className="text-[11px] text-slate-400 dark:text-slate-500">
+                            {formatAbsoluteTime(page.updatedAt)}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
