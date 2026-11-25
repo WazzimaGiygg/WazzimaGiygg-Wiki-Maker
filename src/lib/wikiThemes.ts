@@ -10,6 +10,7 @@ export type WikiThemeId =
   | 'android-alpha'
   | 'fandom'
   | 'google-material'
+  | 'team-fortress-2'
   | 'wikidiota';
 
 export type RgbTuple = [number, number, number];
@@ -614,6 +615,52 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
         border: [52, 59, 70],
         accent: [164, 198, 57],
         missingLink: [251, 191, 36],
+      },
+    },
+  },
+  {
+    id: 'team-fortress-2',
+    name: 'Team Fortress 2',
+    tagline:
+      'Inspirado em Mann Co. e Badlands (1968): papel creme envelhecido, metal de guerra #25201d, vermelho RED (#b8383b), azul BLU (#5885a2) e laranja Australium (#cf6a32).',
+    typographyLabel: 'Oswald + Plus Jakarta Sans',
+    editionLabel: 'Coleção Badlands 1968',
+    lightSwatches: ['bg-[#e8dfcb]', 'bg-[#fbf7ed]', 'bg-[#b8383b]'],
+    darkSwatches: ['bg-[#191614]', 'bg-[#25201d]', 'bg-[#cf6a32]'],
+    metaThemeColor: {
+      light: '#b8383b',
+      dark: '#25201d',
+    },
+    pdf: {
+      light: {
+        pageBg: [251, 247, 237],
+        surfaceBg: [242, 234, 216],
+        chipBg: [253, 232, 228],
+        blockquoteBg: [242, 234, 216],
+        codeBlockBg: [35, 29, 25],
+        codeBlockText: [245, 235, 214],
+        codeBlockBorder: [197, 182, 153],
+        heading: [35, 29, 25],
+        body: [46, 38, 33],
+        muted: [108, 93, 76],
+        border: [197, 182, 153],
+        accent: [184, 56, 59],
+        missingLink: [140, 35, 38],
+      },
+      dark: {
+        pageBg: [37, 32, 29],
+        surfaceBg: [25, 22, 20],
+        chipBg: [74, 42, 36],
+        blockquoteBg: [47, 41, 37],
+        codeBlockBg: [18, 16, 14],
+        codeBlockText: [245, 235, 214],
+        codeBlockBorder: [74, 64, 56],
+        heading: [245, 235, 214],
+        body: [223, 210, 188],
+        muted: [168, 153, 132],
+        border: [74, 64, 56],
+        accent: [207, 106, 50],
+        missingLink: [245, 185, 153],
       },
     },
   },

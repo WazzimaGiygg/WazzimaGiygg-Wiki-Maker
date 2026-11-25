@@ -535,6 +535,50 @@
   --wiki-table-head-bg: #22262d;
 }
 
+:root[data-wiki-theme="team-fortress-2"] {
+  --wiki-canvas: #e8dfcb;
+  --wiki-surface: #fbf7ed;
+  --wiki-surface-nav: rgba(244, 236, 218, 0.96);
+  --wiki-surface-footer: #efe7d4;
+  --wiki-surface-alt: #f2ead8;
+  --wiki-border: #c5b699;
+  --wiki-heading: #231d19;
+  --wiki-text: #2e2621;
+  --wiki-muted: #6c5d4c;
+  --wiki-accent: #b8383b;
+  --wiki-accent-hover: #962a2d;
+  --wiki-accent-soft: #fde8e4;
+  --wiki-accent-soft-text: #8c2326;
+  --wiki-inline-code-bg: #ebe1cc;
+  --wiki-inline-code-text: #231d19;
+  --wiki-code-bg: #231d19;
+  --wiki-code-text: #f5ebd6;
+  --wiki-table-head-bg: #ebe1cc;
+  --wiki-font-display: "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --wiki-font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root.dark[data-wiki-theme="team-fortress-2"] {
+  --wiki-canvas: #191614;
+  --wiki-surface: #25201d;
+  --wiki-surface-nav: rgba(31, 27, 24, 0.96);
+  --wiki-surface-footer: #1d1916;
+  --wiki-surface-alt: #2f2925;
+  --wiki-border: #4a4038;
+  --wiki-heading: #f5ebd6;
+  --wiki-text: #dfd2bc;
+  --wiki-muted: #a89984;
+  --wiki-accent: #cf6a32;
+  --wiki-accent-hover: #e07c44;
+  --wiki-accent-soft: rgba(184, 56, 59, 0.28);
+  --wiki-accent-soft-text: #f5b999;
+  --wiki-inline-code-bg: #362f2a;
+  --wiki-inline-code-text: #f5ebd6;
+  --wiki-code-bg: #12100e;
+  --wiki-code-text: #f5ebd6;
+  --wiki-table-head-bg: #2f2925;
+}
+
 @layer base {
   html {
     font-family: var(--wiki-font-sans);
@@ -857,6 +901,46 @@
 :root.dark[data-wiki-theme="android-alpha"] [data-wiki-surface="accent"] {
   color: #111316;
   font-weight: 600;
+}
+
+/* Team Fortress 2 (Badlands 1968) RED/BLU Split Header, Aged Mann Co. Cards & Australium HUD */
+:root[data-wiki-theme="team-fortress-2"] [data-wiki-surface="nav"] {
+  background-image: linear-gradient(
+    90deg,
+    #b8383b 0%,
+    #b8383b 50%,
+    #5885a2 50%,
+    #5885a2 100%
+  );
+  background-size: 100% 4px;
+  background-repeat: no-repeat;
+  background-position: top;
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+:root[data-wiki-theme="team-fortress-2"]:not(.dark) [data-wiki-surface="panel"] {
+  box-shadow: 0 2px 0 rgba(35, 29, 25, 0.12), 0 4px 14px rgba(35, 29, 25, 0.06);
+}
+
+:root.dark[data-wiki-theme="team-fortress-2"] [data-wiki-surface="panel"] {
+  box-shadow: inset 0 1px 0 rgba(245, 235, 214, 0.06), 0 3px 12px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-wiki-theme="team-fortress-2"] [data-wiki-surface="progress"] {
+  background-color: #cf6a32;
+}
+
+:root.dark[data-wiki-theme="team-fortress-2"] [data-wiki-surface="accent"] {
+  color: #191614;
+  font-weight: 600;
+}
+
+:root[data-wiki-theme="team-fortress-2"] .wiki-prose h1,
+:root[data-wiki-theme="team-fortress-2"] .wiki-prose h2,
+:root[data-wiki-theme="team-fortress-2"] .wiki-prose h3,
+:root[data-wiki-theme="team-fortress-2"] .wiki-prose h4,
+:root[data-wiki-theme="team-fortress-2"] .font-display {
+  letter-spacing: 0.01em;
 }
 
 /* Editorial Markdown typography inside the Wiki reading canvas */
