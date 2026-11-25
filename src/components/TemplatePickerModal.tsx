@@ -373,20 +373,28 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         {!isCreatingNew && (
           <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70 dark:bg-[#0b0f17]/70">
             <div className="flex flex-wrap items-center gap-1">
-              {FILTER_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                    activeTab === tab.id
-                      ? 'bg-blue-700 text-white'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+              {FILTER_TABS.map((tab) => {
+                const count =
+                  tab.id === 'all'
+                    ? WIKI_TEMPLATE_CATALOG.length + communityTemplates.length
+                    : tab.id === 'community'
+                    ? communityTemplates.length
+                    : WIKI_TEMPLATE_CATALOG.filter((item) => item.category === tab.id).length;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                      activeTab === tab.id
+                        ? 'bg-blue-700 text-white'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {tab.label} ({count})
+                  </button>
+                );
+              })}
             </div>
 
             <div className="relative w-full sm:w-64">
