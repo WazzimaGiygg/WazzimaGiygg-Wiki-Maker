@@ -65,6 +65,31 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     ],
   },
   {
+    id: 'boas-vindas',
+    name: 'Boas-vindas',
+    aliases: ['boas-vindas', 'boas vindas', 'welcome'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Caixa de boas-vindas para novos colaboradores e páginas de discussão com link direto para as Regras de Uso do WikiMaker.',
+    exampleSnippet:
+      '{{Boas-vindas|colaborador=Novo Colaborador|tema=WazzimaGiygg Maker}}',
+    params: [
+      {
+        key: 'colaborador',
+        label: 'Nome do colaborador',
+        placeholder: 'Colaborador',
+        defaultValue: 'Colaborador',
+      },
+      {
+        key: 'tema',
+        label: 'Projeto ou tema',
+        placeholder: 'WazzimaGiygg Maker',
+        defaultValue: 'WazzimaGiygg Maker',
+      },
+    ],
+  },
+  {
     id: 'esboco',
     name: 'Esboço',
     aliases: ['esboco', 'stub'],
@@ -1075,6 +1100,28 @@ function resolveBuiltinTemplate(
     return serializePredefinicaoBlock({ variant, kicker, title, body, meta });
   }
 
+  // 1b. {{Boas-vindas}} / {{Welcome}}
+  if (key === 'boas vindas' || key === 'boas-vindas' || key === 'welcome') {
+    const collaborator = pickParam(
+      call,
+      ['colaborador', 'contributor', 'nome', 'user', '1'],
+      'Colaborador'
+    );
+    const topic = pickParam(call, ['tema', 'topic', '2'], 'WazzimaGiygg Maker');
+    const dateVal = pickParam(call, ['data', 'date', 'meta']);
+    const isEnglish = key === 'welcome';
+
+    return serializePredefinicaoBlock({
+      variant: 'success',
+      kicker: isEnglish ? 'Template · Welcome' : 'Predefinição · Boas-vindas',
+      title: isEnglish ? `Welcome, ${collaborator}!` : `Boas-vindas, ${collaborator}!`,
+      body: isEnglish
+        ? `Thank you for contributing to ${topic}. Before creating or editing pages, please review the [WikiMaker Usage Rules & Terms](#/terms), check the [[markdown-guide|Markdown & Templates Guide]], or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].`
+        : `Olá, ${collaborator}! Obrigado por contribuir com ${topic}. Antes de criar ou editar artigos, consulte as [Regras de Uso do WikiMaker](#/terms), confira o [[markdown-guide|Guia de Markdown e Predefinições]] ou explore os [[ecossistema-wazzimagiygg|Produtos do Ecossistema WazzimaGiygg]].`,
+      meta: dateVal || undefined,
+    });
+  }
+
   // 2. {{Esboço}} / {{Stub}}
   if (key === 'esboco' || key === 'stub') {
     const topic = pickParam(call, ['tema', 'topic', '1']);
@@ -1894,19 +1941,19 @@ export const STARTER_TEMPLATE_TITLE = 'Predefinição:Boas-vindas';
 export const STARTER_TEMPLATE_CATEGORY = 'reference';
 export const STARTER_TEMPLATE_TAGS = ['predefinicao', 'template', 'mediawiki', 'onboarding'];
 export const STARTER_TEMPLATE_SUMMARY =
-  'Reusable MediaWiki-style community welcome template with parameter substitution';
+  'Reusable MediaWiki-style community welcome template with usage rules link and parameter substitution';
 export const STARTER_TEMPLATE_CONTENT = `<noinclude>
-This page defines a reusable **MediaWiki-style Predefinição** (\`{{Predefinição:Boas-vindas}}\` or \`{{Boas-vindas|nome=...}}\`). Anything inside \`<noinclude>\` appears only here as template documentation, while content outside \`<noinclude>\` is transcluded into articles.
+Esta página define a **Predefinição de Boas-vindas** (\`{{Predefinição:Boas-vindas}}\` ou \`{{Boas-vindas|colaborador=...|tema=...}}\`) com link direto para as [Regras de Uso do WikiMaker](#/terms). O conteúdo dentro de \`<noinclude>\` aparece apenas aqui como documentação, enquanto o bloco fora de \`<noinclude>\` é transcluído nos artigos e páginas de discussão.
 
-## How to use
+## Como usar
 
 \`\`\`markdown
-{{Predefinição:Boas-vindas|colaborador=WazzimaGiygg|tema=Documentação Aberta}}
+{{Predefinição:Boas-vindas|colaborador=WazzimaGiygg|tema=WazzimaGiygg Maker}}
 \`\`\`
 
-## Example output
+## Visualização ao vivo
 
-</noinclude>{{Aviso|tipo=sucesso|título=Welcome, {{{colaborador|Collaborator}}}!|texto=Thank you for contributing to {{{tema|WazzimaGiygg Maker}}}. Check the [[markdown-guide|Markdown & Templates Guide]] or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].}}`;
+</noinclude>{{Aviso|tipo=sucesso|título=Boas-vindas, {{{colaborador|Colaborador}}}!|texto=Obrigado por contribuir com {{{tema|WazzimaGiygg Maker}}}. Antes de começar, consulte as [Regras de Uso do WikiMaker](#/terms), leia o [[markdown-guide|Guia de Markdown e Predefinições]] ou explore os [[ecossistema-wazzimagiygg|Produtos do Ecossistema WazzimaGiygg]].|data={{{data|}}}}}`;
 
 export const ENGLISH_COMMUNITY_TEMPLATES: StarterTemplateSeed[] = [
   {
@@ -1915,9 +1962,9 @@ export const ENGLISH_COMMUNITY_TEMPLATES: StarterTemplateSeed[] = [
     category: 'reference',
     tags: ['template', 'predefinicao', 'mediawiki', 'onboarding'],
     summary:
-      'Reusable English MediaWiki welcome notice template with contributor and topic parameters',
+      'Reusable English MediaWiki welcome notice template with WikiMaker usage rules link and contributor parameters',
     content: `<noinclude>
-Reusable English **MediaWiki-style template** (\`{{Template:Welcome|contributor=...|topic=...}}\`). Content inside \`<noinclude>\` is displayed only as documentation on this template page.
+Reusable English **MediaWiki-style template** (\`{{Template:Welcome|contributor=...|topic=...}}\`) linking to the [WikiMaker Usage Rules & Terms](#/terms). Content inside \`<noinclude>\` is displayed only as documentation on this template page.
 
 ## Usage
 
@@ -1927,7 +1974,7 @@ Reusable English **MediaWiki-style template** (\`{{Template:Welcome|contributor=
 
 ## Live preview
 
-</noinclude>{{Notice|type=success|title=Welcome, {{{contributor|Collaborator}}}!|text=Thank you for contributing to {{{topic|WazzimaGiygg Maker}}}. Check the [[markdown-guide|Markdown & Templates Guide]] or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].}}`,
+</noinclude>{{Notice|type=success|title=Welcome, {{{contributor|Collaborator}}}!|text=Thank you for contributing to {{{topic|WazzimaGiygg Maker}}}. Please review the [WikiMaker Usage Rules & Terms](#/terms), check the [[markdown-guide|Markdown & Templates Guide]], or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].}}`,
   },
   {
     slug: 'template-editorial-review',

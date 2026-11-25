@@ -263,6 +263,21 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                       );
                     }
 
+                    if (href && href.startsWith('#/')) {
+                      return (
+                        <a
+                          href={href}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.location.hash = href;
+                          }}
+                          className="inline font-medium text-blue-700 dark:text-blue-400 underline decoration-blue-700/30 dark:decoration-blue-400/40 underline-offset-4 hover:decoration-blue-700 dark:hover:decoration-blue-400 transition-colors cursor-pointer"
+                        >
+                          {children}
+                        </a>
+                      );
+                    }
+
                     const prefixedHref = applyExternalLinkPrefix(
                       href,
                       externalLinkPrefix,

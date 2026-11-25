@@ -274,8 +274,9 @@ function buildWelcomeNoticeSection(displayName: string, personalPageSlug: string
   return [
     `## Boas-vindas à wiki (${dateOnly})`,
     '',
-    `{{Aviso|tipo=sucesso|título=Boas-vindas, ${safeInlineName}!|texto=Olá, ${safeInlineName}! Seu acesso foi criado com sucesso no WazzimaGiygg Maker. Esta é a sua página de discussão pessoal — aqui você pode receber mensagens de outros colaboradores, tirar dúvidas e acompanhar avisos da comunidade.|data=${dateTimeUtc}}}`,
+    `{{Boas-vindas|colaborador=${safeInlineName}|tema=WazzimaGiygg Maker|data=${dateTimeUtc}}}`,
     '',
+    `- **Regras de uso:** Consulte as [Regras de Uso do WikiMaker](#/terms) antes de editar ou publicar conteúdo`,
     `- **Sua página pessoal:** [[${personalPageSlug}|${safeLinkLabel}]] (\`:${personalPageSlug}\`)`,
     `- **Primeiros passos:** Confira o [[markdown-guide|Guia de Markdown e Predefinições]] ou explore a [[start|Página Inicial]]`,
     `- **Discussões:** Outros usuários podem deixar comentários e mensagens para você logo abaixo ou editar esta conversa conforme as regras da wiki.`,
@@ -1487,7 +1488,7 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
   }
 }
 
-const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v4';
+const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v5';
 
 const LEGACY_PORTUGUESE_TITLES: Record<string, string> = {
   [DOSSIER_PAGE_SLUG]: 'Investigação LGPD e Marco Civil — WMF e Wikipédia',
@@ -1608,9 +1609,18 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
       } else {
         const existing = snap.data() as WikiPage;
         const legacyTitle = LEGACY_PORTUGUESE_TITLES[item.slug];
-        if (existing.version === 1 && legacyTitle && existing.title === legacyTitle) {
+        const isLegacyPortugueseSeed =
+          existing.version === 1 && legacyTitle && existing.title === legacyTitle;
+        const isWelcomeTemplateMissingRulesLink =
+          existing.version === 1 &&
+          (item.slug === STARTER_TEMPLATE_SLUG || item.slug === 'template-welcome') &&
+          !existing.content.includes('#/terms');
+
+        if (isLegacyPortugueseSeed || isWelcomeTemplateMissingRulesLink) {
           const nextVersion = 2;
-          const translationSummary = 'Translated title and description into English';
+          const upgradeSummary = isWelcomeTemplateMissingRulesLink
+            ? 'Added WikiMaker usage rules link to welcome template'
+            : 'Translated title and description into English';
           pendingWrites += 1;
 
           batch.update(pageRef, {
@@ -1636,7 +1646,7 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
             content: item.content,
             editorId: user.uid,
             editorName: authorName,
-            summary: translationSummary,
+            summary: upgradeSummary,
             version: nextVersion,
             createdAt: serverTimestamp(),
           });
@@ -1648,7 +1658,7 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
               pageSlug: item.slug,
               pageTitle: item.title,
               pageVisibility: existing.visibility,
-              summary: translationSummary,
+              summary: upgradeSummary,
               version: nextVersion,
               createdAt: serverTimestamp(),
             }
