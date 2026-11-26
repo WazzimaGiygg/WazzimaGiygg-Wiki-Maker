@@ -4012,6 +4012,1051 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
       { key: 'Idioma', label: 'Idioma', placeholder: 'Português', defaultValue: 'Português' },
     ],
   },
+  // --- Lote 4: Mais Predefinições Populares da Wikipédia (250+ no total) ---
+  {
+    id: 'vandalismo',
+    name: 'Vandalismo',
+    aliases: ['vandalismo', 'uw-vandalism', 'aviso vandalismo'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Aviso de discussão ao usuário sobre edições destrutivas ou remoção injustificada de conteúdo.',
+    exampleSnippet: '{{Vandalismo|pagina=start|nivel=1}}',
+    params: [
+      { key: 'pagina', label: 'Página afetada (opcional)', placeholder: 'start', defaultValue: '' },
+      { key: 'nivel', label: 'Nível do aviso (1 a 4)', placeholder: '1', defaultValue: '1' },
+    ],
+  },
+  {
+    id: 'teste-edicao',
+    name: 'Teste',
+    aliases: ['teste', 'uw-test', 'edicao de teste'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Mensagem educativa amigável para novos editores que realizaram testes acidentais em artigos.',
+    exampleSnippet: '{{Teste|pagina=start}}',
+    params: [
+      { key: 'pagina', label: 'Página testada (opcional)', placeholder: 'start', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'aviso-spam',
+    name: 'Aviso spam',
+    aliases: ['aviso spam', 'uw-spam', 'links promocionais'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Aviso em página de discussão contra inserção recorrente de propaganda ou links externos promocionais.',
+    exampleSnippet: '{{Aviso spam|pagina=start}}',
+    params: [
+      { key: 'pagina', label: 'Página afetada (opcional)', placeholder: 'start', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'remocao-conteudo',
+    name: 'Remoção de conteúdo',
+    aliases: ['remocao de conteudo', 'uw-delete', 'apagamento indevido'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Aviso educativo quando um editor remove parágrafos referenciados sem apresentar justificativa no resumo.',
+    exampleSnippet: '{{Remoção de conteúdo|pagina=start}}',
+    params: [
+      { key: 'pagina', label: 'Página afetada (opcional)', placeholder: 'start', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'sem-consenso',
+    name: 'Sem consenso',
+    aliases: ['sem consenso', 'discutido', 'debate em curso'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Sinaliza que alterações recentes no verbete aguardam consenso editorial na página de discussão.',
+    exampleSnippet: '{{Sem consenso|motivo=Discutir a estrutura da secção antes de novas reversões.}}',
+    params: [
+      { key: 'motivo', label: 'Resumo do debate', placeholder: 'Motivo da disputa...', defaultValue: 'Modificações controversas devem ser alinhadas previamente na página de discussão.' },
+    ],
+  },
+  {
+    id: 'fusao-historico',
+    name: 'Fusão de histórico',
+    aliases: ['fusao de historico', 'history merge', 'histmerge'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Solicita à administração a união técnica do histórico de revisões de duas páginas duplicadas.',
+    exampleSnippet: '{{Fusão de histórico|alvo=start|motivo=Artigo recriado por copiar-e-colar.}}',
+    params: [
+      { key: 'alvo', label: 'Slug de destino', placeholder: 'start', defaultValue: 'start' },
+      { key: 'motivo', label: 'Motivo', placeholder: 'Histórico dividido...', defaultValue: 'Unificar histórico de edições para preservar atribuição de autoria.' },
+    ],
+  },
+  {
+    id: 'transferir-wikcionario',
+    name: 'Wikcionário',
+    aliases: ['wikcionario', 'transwiki', 'dicionario'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Marca verbetes puramente lexicais ou definições breves mais adequadas a um dicionário.',
+    exampleSnippet: '{{Wikcionário|motivo=Conteúdo restrito à definição etimológica do termo.}}',
+    params: [
+      { key: 'motivo', label: 'Observação', placeholder: 'Definição lexical...', defaultValue: 'Verbete com caráter estritamente dicionarístico.' },
+    ],
+  },
+  {
+    id: 'transferir-wikisource',
+    name: 'Wikisource',
+    aliases: ['wikisource', 'texto integral', 'documento fonte'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Alerta que a página reproduz texto integral de documento histórico ou obra literária de domínio público.',
+    exampleSnippet: '{{Wikisource|obra=Carta Histórica de 1888}}',
+    params: [
+      { key: 'obra', label: 'Título do documento', placeholder: 'Documento original', defaultValue: 'Documento fonte' },
+    ],
+  },
+  {
+    id: 'transferir-wikinoticias',
+    name: 'Wikinotícias',
+    aliases: ['wikinoticias', 'estilo jornalistico', 'noticiario'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Indica que o texto está escrito em formato de reportagem noticiosa pontual em vez de síntese enciclopédica.',
+    exampleSnippet: '{{Wikinotícias|motivo=Reescrever em perspectiva histórica e impessoal.}}',
+    params: [
+      { key: 'motivo', label: 'Ajuste necessário', placeholder: 'Adotar estilo enciclopédico...', defaultValue: 'O texto adota tom jornalístico efêmero em vez de estilo enciclopédico.' },
+    ],
+  },
+  {
+    id: 'nao-enciclopedico',
+    name: 'Não enciclopédico',
+    aliases: ['nao enciclopedico', 'unencyclopedic', 'fora do escopo'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Sinaliza material fora do escopo enciclopédico (panfletos, manifestos pessoais, guias comerciais).',
+    exampleSnippet: '{{Não enciclopédico|motivo=Estrutura em forma de manifesto promocional sem fontes.}}',
+    params: [
+      { key: 'motivo', label: 'Motivo', placeholder: 'Fora do escopo...', defaultValue: 'O conteúdo não segue o propósito informativo de uma enciclopédia.' },
+    ],
+  },
+  {
+    id: 'variante-linguistica',
+    name: 'Variante linguística',
+    aliases: ['variante linguistica', 'pt br', 'pt pt', 'ortografia'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Indica a variante do português (brasileiro ou europeu) adotada originalmente no artigo para preservar consistência.',
+    exampleSnippet: '{{Variante linguística|variante=Português brasileiro}}',
+    params: [
+      { key: 'variante', label: 'Variante adotada', placeholder: 'Português brasileiro', defaultValue: 'Português brasileiro' },
+    ],
+  },
+  {
+    id: 'linguagem-tecnica',
+    name: 'Linguagem técnica',
+    aliases: ['linguagem tecnica', 'technical', 'jargao'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Avisa que o artigo usa jargão excessivamente especializado, pedindo uma introdução acessível a leitores leigos.',
+    exampleSnippet: '{{Linguagem técnica|area=Matemática Pura|motivo=Adicionar explicação intuitiva na introdução.}}',
+    params: [
+      { key: 'area', label: 'Área', placeholder: 'Ciência / Direito...', defaultValue: 'área especializada' },
+      { key: 'motivo', label: 'Sugestão', placeholder: 'Simplificar introdução...', defaultValue: 'Acrescentar introdução acessível antes das definições formais.' },
+    ],
+  },
+  {
+    id: 'secao-longa',
+    name: 'Secção longa',
+    aliases: ['secao longa', 'seccao longa', 'overly detailed', 'detalhamento excessivo'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Indica que uma secção ficou excessivamente extensa ou minuciosa e pode ser resumida.',
+    exampleSnippet: '{{Secção longa|secao=Cronologia|motivo=Condensar eventos secundários mantendo o essencial.}}',
+    params: [
+      { key: 'secao', label: 'Nome da secção', placeholder: 'Histórico', defaultValue: 'Esta secção' },
+      { key: 'motivo', label: 'Motivo', placeholder: 'Resumir detalhes...', defaultValue: 'Resumir pormenores excessivos em favor da síntese enciclopédica.' },
+    ],
+  },
+  {
+    id: 'atualizar-apos',
+    name: 'Atualizar após',
+    aliases: ['atualizar apos', 'update after', 'prazo'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Marca afirmação com prazo conhecido para revisão após determinada data ou conclusão de mandato.',
+    exampleSnippet: '{{Atualizar após|2027|Conferir resultado após a eleição ou término do projeto.}}',
+    params: [
+      { key: '1', label: 'Ano / Data limite', placeholder: '2027', defaultValue: '2027', required: true },
+      { key: '2', label: 'O que verificar', placeholder: 'Confirmar conclusão...', defaultValue: 'Revisar dados após o marco temporal indicado.' },
+    ],
+  },
+  {
+    id: 'morte-recente',
+    name: 'Morte recente',
+    aliases: ['morte recente', 'recent death', 'falecimento recente'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Aviso editorial clássico para biografias de personalidades falecidas recentemente.',
+    exampleSnippet: '{{Morte recente|nome=Personalidade Exemplo}}',
+    params: [
+      { key: 'nome', label: 'Nome (opcional)', placeholder: 'Nome da pessoa', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'homonimos',
+    name: 'Homônimos',
+    aliases: ['homonimos', 'surname', 'given name', 'lista de nomes'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Identifica páginas de índice onomástico que listam pessoas ou lugares com o mesmo sobrenome/prenome.',
+    exampleSnippet: '{{Homônimos|Silva}}',
+    params: [
+      { key: '1', label: 'Nome ou termo compartilhado', placeholder: 'Silva', defaultValue: 'este nome' },
+    ],
+  },
+  {
+    id: 'esboco-bio',
+    name: 'Esboço-bio',
+    aliases: ['esboco-bio', 'bio-stub', 'esboco biografia'],
+    category: 'notices',
+    language: 'pt',
+    description: 'Marca biografia curta como esboço temático biográfico.',
+    exampleSnippet: '{{Esboço-bio|Cientistas e pesquisadores}}',
+    params: [{ key: '1', label: 'Área biográfica', placeholder: 'Biografias', defaultValue: 'Biografias' }],
+  },
+  {
+    id: 'esboco-geo',
+    name: 'Esboço-geo',
+    aliases: ['esboco-geo', 'geo-stub', 'esboco geografia'],
+    category: 'notices',
+    language: 'pt',
+    description: 'Marca artigo curto sobre cidades, rios ou localidades como esboço geográfico.',
+    exampleSnippet: '{{Esboço-geo|Municípios e Geografia}}',
+    params: [{ key: '1', label: 'Região ou tema', placeholder: 'Geografia', defaultValue: 'Geografia' }],
+  },
+  {
+    id: 'esboco-ciencia',
+    name: 'Esboço-ciência',
+    aliases: ['esboco-ciencia', 'science-stub', 'esboco tecnologia'],
+    category: 'notices',
+    language: 'pt',
+    description: 'Marca artigo científico ou tecnológico breve como esboço de ciência.',
+    exampleSnippet: '{{Esboço-ciência|Física e Computação}}',
+    params: [{ key: '1', label: 'Disciplina', placeholder: 'Ciência e Tecnologia', defaultValue: 'Ciência e Tecnologia' }],
+  },
+  {
+    id: 'esboco-jogos',
+    name: 'Esboço-jogos',
+    aliases: ['esboco-jogos', 'vg-stub', 'esboco videogame'],
+    category: 'notices',
+    language: 'pt',
+    description: 'Marca verbete curto sobre jogos eletrônicos ou mecânicas como esboço temático.',
+    exampleSnippet: '{{Esboço-jogos|Jogos Eletrônicos}}',
+    params: [{ key: '1', label: 'Franquia ou gênero', placeholder: 'Jogos Eletrônicos', defaultValue: 'Jogos Eletrônicos' }],
+  },
+  {
+    id: 'wikiprojeto',
+    name: 'WikiProjeto',
+    aliases: ['wikiprojeto', 'wikiproject', 'projeto editorial'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Banner de página de discussão vinculando o verbete a um WikiProjeto com avaliação de qualidade e importância.',
+    exampleSnippet: '{{WikiProjeto|projeto=Tecnologia e Software|qualidade=4|importancia=Alta}}',
+    params: [
+      { key: 'projeto', label: 'Nome do WikiProjeto', placeholder: 'Tecnologia', defaultValue: 'WikiMaker Editorial', required: true },
+      { key: 'qualidade', label: 'Nível de qualidade (1-6)', placeholder: '3', defaultValue: '3' },
+      { key: 'importancia', label: 'Importância (Baixa, Média, Alta)', placeholder: 'Alta', defaultValue: 'Média' },
+    ],
+  },
+  {
+    id: 'arquivo-bot',
+    name: 'Arquivo automático',
+    aliases: ['arquivo automatico', 'autoarchive', 'configuracao arquivo'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Informa em páginas de discussão movimentadas que tópicos inativos são arquivados periodicamente.',
+    exampleSnippet: '{{Arquivo automático|dias=90}}',
+    params: [{ key: 'dias', label: 'Prazo em dias', placeholder: '90', defaultValue: '90' }],
+  },
+  {
+    id: 'em-votacao',
+    name: 'Em votação',
+    aliases: ['em votacao', 'rfc', 'consulta publica'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Convida toda a comunidade a opinar em uma consulta pública (RfC) ou votação aberta.',
+    exampleSnippet: '{{Em votação|tema=Padronização de infoboxes temáticas|prazo=30 de novembro de 2026}}',
+    params: [
+      { key: 'tema', label: 'Tema em consulta', placeholder: 'Proposta editorial...', defaultValue: 'Proposta editorial aberta à comunidade', required: true },
+      { key: 'prazo', label: 'Prazo final', placeholder: '30 de novembro de 2026', defaultValue: 'Em aberto' },
+    ],
+  },
+  {
+    id: 'pagina-usuario',
+    name: 'Página de usuário',
+    aliases: ['pagina de usuario', 'userpage', 'perfil colaborador'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Banner padrão declarando que a página pertence a um colaborador individual e não é um verbete enciclopédico.',
+    exampleSnippet: '{{Página de usuário|usuario=Editor Exemplo}}',
+    params: [{ key: 'usuario', label: 'Nome do usuário', placeholder: 'Colaborador', defaultValue: 'Colaborador' }],
+  },
+  {
+    id: 'pagina-testes',
+    name: 'Página de testes',
+    aliases: ['pagina de testes', 'sandbox', 'rascunho'],
+    category: 'notices',
+    language: 'pt',
+    description:
+      'Banner identificando área pessoal de rascunho e experimentação de sintaxe wiki (`{{User sandbox}}`).',
+    exampleSnippet: '{{Página de testes|autor=Editor Exemplo}}',
+    params: [{ key: 'autor', label: 'Colaborador (opcional)', placeholder: 'Editor', defaultValue: '' }],
+  },
+  // --- Navegação, Hatnotes, Citações, Cronologia, Matemática e Utilitários ---
+  {
+    id: 'hatnote',
+    name: 'Hatnote',
+    aliases: ['hatnote', 'nota topo'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Nota de topo livre em destaque para orientar a navegação do leitor antes do texto.',
+    exampleSnippet: '{{Hatnote|Este artigo trata da arquitetura clássica; para o estilo moderno, veja [[start]].}}',
+    params: [{ key: '1', label: 'Texto da nota', placeholder: 'Orientação...', defaultValue: 'Nota de navegação no topo do artigo.', required: true }],
+  },
+  {
+    id: 'distinguir',
+    name: 'Distinguir',
+    aliases: ['distinguir', 'distinguish2'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Nota de topo personalizada para distinguir dois termos semelhantes com explicação livre.',
+    exampleSnippet: '{{Distinguir|Não confundir com [[markdown-guide|Guia de Markdown]], que trata da sintaxe de edição.}}',
+    params: [{ key: '1', label: 'Mensagem de distinção', placeholder: 'Não confundir com...', defaultValue: 'Não confundir com [[start|Página Inicial]].', required: true }],
+  },
+  {
+    id: 'ver-categoria',
+    name: 'Ver categoria',
+    aliases: ['ver categoria', 'see category', 'categoria'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Aponta diretamente para uma categoria temática relacionada à secção.',
+    exampleSnippet: '{{Ver categoria|Tecnologia}}',
+    params: [{ key: '1', label: 'Nome da categoria', placeholder: 'Tecnologia', defaultValue: 'Geral', required: true }],
+  },
+  {
+    id: 'tracklist',
+    name: 'Tracklist',
+    aliases: ['tracklist', 'lista de faixas', 'faixas'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata lista de faixas musicais de um álbum ou trilha sonora com título e duração.',
+    exampleSnippet: '{{Tracklist|titulo=Lado A|faixa1=Abertura (3:12)|faixa2=Horizonte (4:05)|faixa3=Epílogo (5:18)}}',
+    params: [
+      { key: 'titulo', label: 'Título do disco/lado', placeholder: 'Faixas', defaultValue: 'Lista de faixas' },
+      { key: 'faixa1', label: 'Faixa 1', placeholder: 'Nome (3:10)', defaultValue: 'Faixa 1 (3:20)' },
+      { key: 'faixa2', label: 'Faixa 2', placeholder: 'Nome (4:00)', defaultValue: 'Faixa 2 (4:05)' },
+      { key: 'faixa3', label: 'Faixa 3', placeholder: 'Nome (4:30)', defaultValue: 'Faixa 3 (3:50)' },
+    ],
+  },
+  {
+    id: 'cronologia',
+    name: 'Cronologia',
+    aliases: ['cronologia', 'timeline', 'linha do tempo'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Caixa de sucessão cronológica exibindo item anterior, atual e próximo em séries ou edições.',
+    exampleSnippet: '{{Cronologia|tema=Copas do Mundo|anterior=2022|atual=2026|proximo=2030}}',
+    params: [
+      { key: 'tema', label: 'Série ou tema', placeholder: 'Edições', defaultValue: 'Cronologia' },
+      { key: 'anterior', label: 'Anterior', placeholder: '2022', defaultValue: 'Anterior' },
+      { key: 'atual', label: 'Atual', placeholder: '2026', defaultValue: 'Atual', required: true },
+      { key: 'proximo', label: 'Próximo', placeholder: '2030', defaultValue: 'Próximo' },
+    ],
+  },
+  {
+    id: 'caixa-sucessao',
+    name: 'Sucessão',
+    aliases: ['sucessao', 'succession box', 'antecessor'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Caixa clássica da Wikipédia para cargos, mandatos e títulos indicando antecessor e sucessor.',
+    exampleSnippet: '{{Sucessão|cargo=Direção Editorial|periodo=2022–2026|antecessor=Ana Silva|sucessor=Carlos Mendes}}',
+    params: [
+      { key: 'cargo', label: 'Cargo ou título', placeholder: 'Cargo ocupado', defaultValue: 'Cargo', required: true },
+      { key: 'periodo', label: 'Período', placeholder: '2022–2026', defaultValue: '2022–2026' },
+      { key: 'antecessor', label: 'Antecessor(a)', placeholder: 'Nome anterior', defaultValue: '—' },
+      { key: 'sucessor', label: 'Sucessor(a)', placeholder: 'Próximo nome', defaultValue: '—' },
+    ],
+  },
+  {
+    id: 'commons',
+    name: 'Commons',
+    aliases: ['commons', 'wikimedia commons', 'galeria'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Caixa de ligação para galeria ou acervo multimídia relacionado ao tema.',
+    exampleSnippet: '{{Commons|Arquitetura Moderna}}',
+    params: [{ key: '1', label: 'Categoria no acervo', placeholder: 'Tema', defaultValue: 'Acervo Multimídia', required: true }],
+  },
+  {
+    id: 'link-wikcionario',
+    name: 'Link Wikcionário',
+    aliases: ['link wikcionario', 'wiktionary', 'definicao'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Caixa lateral com ligação para consulta lexical e etimológica no Wikcionário.',
+    exampleSnippet: '{{Link Wikcionário|enciclopédia}}',
+    params: [{ key: '1', label: 'Verbete lexical', placeholder: 'palavra', defaultValue: 'termo', required: true }],
+  },
+  {
+    id: 'link-wikiquote',
+    name: 'Link Wikiquote',
+    aliases: ['link wikiquote', 'citacoes relacionadas'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Caixa lateral apontando para coletânea de frases e citações atribuídas ao autor ou tema.',
+    exampleSnippet: '{{Link Wikiquote|Machado de Assis}}',
+    params: [{ key: '1', label: 'Autor ou tema', placeholder: 'Nome', defaultValue: 'Autor', required: true }],
+  },
+  {
+    id: 'citar-podcast',
+    name: 'Citar podcast',
+    aliases: ['citar podcast', 'cite podcast', 'podcast'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata referência bibliográfica de episódios de podcast em `<ref>`.',
+    exampleSnippet: '{{Citar podcast|título=Computação em Rede|programa=Podcast Ciência Aberta|apresentador=Lopes, R.|ano=2025}}',
+    params: [
+      { key: 'título', label: 'Título do episódio', placeholder: 'Episódio...', defaultValue: 'Episódio de Podcast', required: true },
+      { key: 'programa', label: 'Nome do podcast', placeholder: 'Podcast...', defaultValue: 'Podcast' },
+      { key: 'apresentador', label: 'Apresentador / Convidado', placeholder: 'Nome', defaultValue: '' },
+      { key: 'ano', label: 'Ano', placeholder: '2025', defaultValue: '2025' },
+    ],
+  },
+  {
+    id: 'citar-entrevista',
+    name: 'Citar entrevista',
+    aliases: ['citar entrevista', 'cite interview', 'entrevista'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata citação de entrevista concedida por personalidade ou especialista em `<ref>`.',
+    exampleSnippet: '{{Citar entrevista|entrevistado=Dra. Helena Souza|entrevistador=Revista Pesquisa|titulo=O futuro dos dados abertos|ano=2025}}',
+    params: [
+      { key: 'entrevistado', label: 'Pessoa entrevistada', placeholder: 'Nome', defaultValue: 'Entrevistado', required: true },
+      { key: 'entrevistador', label: 'Entrevistador / Veículo', placeholder: 'Veículo', defaultValue: '' },
+      { key: 'titulo', label: 'Título da entrevista', placeholder: 'Título', defaultValue: 'Entrevista' },
+      { key: 'ano', label: 'Ano', placeholder: '2025', defaultValue: '2025' },
+    ],
+  },
+  {
+    id: 'citar-discurso',
+    name: 'Citar discurso',
+    aliases: ['citar discurso', 'cite speech', 'discurso'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata referência para pronunciamentos públicos, aulas magnas e palestras em `<ref>`.',
+    exampleSnippet: '{{Citar discurso|autor=R. Oliveira|titulo=Abertura do Fórum Digital|evento=Fórum Internacional|ano=2024}}',
+    params: [
+      { key: 'autor', label: 'Orador', placeholder: 'Nome', defaultValue: 'Orador', required: true },
+      { key: 'titulo', label: 'Título do discurso', placeholder: 'Pronunciamento...', defaultValue: 'Discurso' },
+      { key: 'evento', label: 'Evento / Local', placeholder: 'Conferência', defaultValue: '' },
+      { key: 'ano', label: 'Ano', placeholder: '2024', defaultValue: '2024' },
+    ],
+  },
+  {
+    id: 'citar-tweet',
+    name: 'Citar tweet',
+    aliases: ['citar tweet', 'citar post', 'cite tweet', 'rede social'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata referência de comunicado oficial publicado em redes sociais verificadas em `<ref>`.',
+    exampleSnippet: '{{Citar tweet|usuario=@exemplo_oficial|texto=Confirmamos a abertura do acervo público.|data=2026-10-12}}',
+    params: [
+      { key: 'usuario', label: 'Perfil (@usuario)', placeholder: '@conta', defaultValue: '@conta', required: true },
+      { key: 'texto', label: 'Resumo ou trecho', placeholder: 'Publicação oficial...', defaultValue: 'Publicação oficial', required: true },
+      { key: 'data', label: 'Data', placeholder: '2026-10-12', defaultValue: '2026' },
+    ],
+  },
+  {
+    id: 'citar-arquivo',
+    name: 'Citar arquivo',
+    aliases: ['citar arquivo', 'cite archive', 'arquivo historico'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata referência de documentos históricos, códices e fundos arquivísticos em `<ref>`.',
+    exampleSnippet: '{{Citar arquivo|documento=Ata Fundacional nº 04|acervo=Arquivo Nacional|fundo=Fundo República|ano=1932}}',
+    params: [
+      { key: 'documento', label: 'Nome do documento', placeholder: 'Manuscrito / Ata', defaultValue: 'Documento de Arquivo', required: true },
+      { key: 'acervo', label: 'Instituição / Arquivo', placeholder: 'Arquivo Nacional', defaultValue: 'Arquivo Público' },
+      { key: 'fundo', label: 'Fundo / Coleção', placeholder: 'Coleção', defaultValue: '' },
+      { key: 'ano', label: 'Ano', placeholder: '1932', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'citar-software',
+    name: 'Citar software',
+    aliases: ['citar software', 'cite software', 'manual software'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata referência para documentação técnica, releases e repositórios de software em `<ref>`.',
+    exampleSnippet: '{{Citar software|nome=WikiMaker Core|versao=2.4|desenvolvedor=Comunidade Aberta|ano=2026}}',
+    params: [
+      { key: 'nome', label: 'Nome do software', placeholder: 'Software', defaultValue: 'Software', required: true },
+      { key: 'versao', label: 'Versão / Release', placeholder: '1.0', defaultValue: '' },
+      { key: 'desenvolvedor', label: 'Autor / Projeto', placeholder: 'Equipe', defaultValue: '' },
+      { key: 'ano', label: 'Ano', placeholder: '2026', defaultValue: '2026' },
+    ],
+  },
+  {
+    id: 'citar-patente',
+    name: 'Citar patente',
+    aliases: ['citar patente', 'cite patent', 'patente'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata citação de registro de patente industrial ou invenção (INPI/USPTO/EPO) em `<ref>`.',
+    exampleSnippet: '{{Citar patente|numero=BR102024001234|titulo=Sistema de Indexação Distribuída|titular=Laboratório Aberto|ano=2024}}',
+    params: [
+      { key: 'numero', label: 'Número da patente', placeholder: 'BR102024...', defaultValue: 'PAT-0001', required: true },
+      { key: 'titulo', label: 'Título da invenção', placeholder: 'Título', defaultValue: 'Invenção patenteada' },
+      { key: 'titular', label: 'Inventor / Titular', placeholder: 'Nome', defaultValue: '' },
+      { key: 'ano', label: 'Ano', placeholder: '2024', defaultValue: '2024' },
+    ],
+  },
+  {
+    id: 'data-falecimento',
+    name: 'Data de falecimento',
+    aliases: ['data de falecimento', 'death date and age', 'falecimento'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Exibe a data de falecimento e calcula automaticamente a idade final (`falec_ano|mes|dia|nasc_ano|mes|dia`).',
+    exampleSnippet: '{{Data de falecimento|2015|8|20|1940|5|10}}',
+    params: [
+      { key: '1', label: 'Ano falecimento', placeholder: '2015', defaultValue: '2015', required: true },
+      { key: '2', label: 'Mês falecimento', placeholder: '8', defaultValue: '8', required: true },
+      { key: '3', label: 'Dia falecimento', placeholder: '20', defaultValue: '20', required: true },
+      { key: '4', label: 'Ano nascimento', placeholder: '1940', defaultValue: '1940', required: true },
+      { key: '5', label: 'Mês nascimento', placeholder: '5', defaultValue: '5' },
+      { key: '6', label: 'Dia nascimento', placeholder: '10', defaultValue: '10' },
+    ],
+  },
+  {
+    id: 'inicio-fim',
+    name: 'Início e fim',
+    aliases: ['inicio e fim', 'start and end dates', 'periodo'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata intervalos cronológicos padronizados (`2010–2026` ou `2020–presente`).',
+    exampleSnippet: '{{Início e fim|2010|2026}}',
+    params: [
+      { key: '1', label: 'Ano ou data inicial', placeholder: '2010', defaultValue: '2020', required: true },
+      { key: '2', label: 'Ano ou data final (vazio = presente)', placeholder: '2026', defaultValue: 'presente' },
+    ],
+  },
+  {
+    id: 'duracao-tempo',
+    name: 'Duração',
+    aliases: ['duracao', 'duration', 'tempo'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata durações de filmes, músicas ou eventos (`h|min|s` ou `min|s`).',
+    exampleSnippet: '{{Duração|1|42|15}}',
+    params: [
+      { key: '1', label: 'Horas (ou minutos se 2 args)', placeholder: '1', defaultValue: '0' },
+      { key: '2', label: 'Minutos', placeholder: '42', defaultValue: '45' },
+      { key: '3', label: 'Segundos (opcional)', placeholder: '15', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'formatnum',
+    name: 'Formatnum',
+    aliases: ['formatnum', 'numero', 'val'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata grandes números com separadores de milhar e unidade opcional (`1.250.000 km²`).',
+    exampleSnippet: '{{Formatnum|1250000|km²}}',
+    params: [
+      { key: '1', label: 'Número', placeholder: '1250000', defaultValue: '1000', required: true },
+      { key: '2', label: 'Unidade (opcional)', placeholder: 'km²', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'fracao',
+    name: 'Fração',
+    aliases: ['fracao', 'frac', 'sfrac'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata frações matemáticas e números mistos de forma legível (`3 1/4` ou `1/2`).',
+    exampleSnippet: '{{Fração|3|1|4}}',
+    params: [
+      { key: '1', label: 'Numerador (ou inteiro se 3 args)', placeholder: '1', defaultValue: '1', required: true },
+      { key: '2', label: 'Denominador (ou numerador)', placeholder: '2', defaultValue: '2', required: true },
+      { key: '3', label: 'Denominador (se número misto)', placeholder: '', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'raiz-math',
+    name: 'Raiz',
+    aliases: ['raiz', 'sqrt', 'radic'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata radiciação matemática (`√2`, `∛8`).',
+    exampleSnippet: '{{Raiz|2}}',
+    params: [
+      { key: '1', label: 'Radicando', placeholder: '2', defaultValue: '2', required: true },
+      { key: '2', label: 'Índice (opcional, ex: 3)', placeholder: '', defaultValue: '' },
+    ],
+  },
+  {
+    id: 'math-formula',
+    name: 'Math',
+    aliases: ['math', 'formula', 'equacao'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Destaca equações e fórmulas matemáticas inline em tipografia serifada.',
+    exampleSnippet: '{{Math|E = mc²}}',
+    params: [{ key: '1', label: 'Expressão matemática', placeholder: 'E = mc²', defaultValue: 'a² + b² = c²', required: true }],
+  },
+  {
+    id: 'subscrito',
+    name: 'Sub',
+    aliases: ['sub', 'subscrito'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata caracteres em subscrito Unicode/HTML para fórmulas químicas e índices (`H₂O`).',
+    exampleSnippet: 'H{{Sub|2}}O',
+    params: [{ key: '1', label: 'Texto subscrito', placeholder: '2', defaultValue: '2', required: true }],
+  },
+  {
+    id: 'sobrescrito',
+    name: 'Sup',
+    aliases: ['sup', 'sobrescrito'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata caracteres em sobrescrito Unicode/HTML para expoentes e notas (`10⁶`).',
+    exampleSnippet: '10{{Sup|6}}',
+    params: [{ key: '1', label: 'Texto sobrescrito', placeholder: '2', defaultValue: '2', required: true }],
+  },
+  {
+    id: 'sigla',
+    name: 'Sigla',
+    aliases: ['sigla', 'abbr', 'abreviacao'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Exibe uma sigla acompanhada da sua forma por extenso na primeira ocorrência.',
+    exampleSnippet: '{{Sigla|ONU|Organização das Nações Unidas}}',
+    params: [
+      { key: '1', label: 'Sigla', placeholder: 'ONU', defaultValue: 'ONU', required: true },
+      { key: '2', label: 'Significado por extenso', placeholder: 'Organização das Nações Unidas', defaultValue: 'Organização das Nações Unidas' },
+    ],
+  },
+  {
+    id: 'nowrap',
+    name: 'Nowrap',
+    aliases: ['nowrap', 'sem quebra'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Preserva expressões curtas ou unidades unidas sem quebra indesejada.',
+    exampleSnippet: '{{Nowrap|1 773 718 hab.}}',
+    params: [{ key: '1', label: 'Texto sem quebra', placeholder: '100 km/h', defaultValue: '100 km/h', required: true }],
+  },
+  {
+    id: 'espaco-clear',
+    name: 'Clear',
+    aliases: ['clear', 'espaco', 'separador'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Insere separador de fluxo limpo entre secções ou elementos flutuantes.',
+    exampleSnippet: '{{Clear}}',
+    params: [],
+  },
+  {
+    id: 'nota-rodape',
+    name: 'Nota de rodapé',
+    aliases: ['nota de rodape', 'refn', 'observacao'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Insere rapidamente uma nota de rodapé numerada inline dentro de `<ref>`.',
+    exampleSnippet: 'Dado verificado em censo oficial{{Nota de rodapé|Estimativa revisada em 2026.}}.',
+    params: [{ key: '1', label: 'Texto da nota', placeholder: 'Observação...', defaultValue: 'Nota editorial.', required: true }],
+  },
+  {
+    id: 'n-a',
+    name: 'N/A',
+    aliases: ['n/a', 'na', 'desconhecido', 'tbd'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Marcador padrão para células de tabelas comparativas sem valor aplicável ou ainda pendente.',
+    exampleSnippet: '{{N/A}}',
+    params: [{ key: '1', label: 'Texto opcional', placeholder: 'N/D', defaultValue: '' }],
+  },
+  {
+    id: 'avaliacao-estrelas',
+    name: 'Estrelas',
+    aliases: ['estrelas', 'rating', 'nota estrelas'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Exibe classificação visual em estrelas de 1 a 5 (`★★★★☆ (4/5)`).',
+    exampleSnippet: '{{Estrelas|4|5}}',
+    params: [
+      { key: '1', label: 'Nota obtida', placeholder: '4', defaultValue: '4', required: true },
+      { key: '2', label: 'Nota máxima', placeholder: '5', defaultValue: '5' },
+    ],
+  },
+  {
+    id: 'bandeira',
+    name: 'Bandeira',
+    aliases: ['bandeira', 'flag', 'flagicon', 'pais bandeira'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Exibe o ícone da bandeira nacional acompanhado do nome do país (`🇧🇷 Brasil`).',
+    exampleSnippet: '{{Bandeira|Brasil}} · {{Bandeira|Portugal}}',
+    params: [{ key: '1', label: 'País ou código (BR, PT, US, JP...)', placeholder: 'Brasil', defaultValue: 'Brasil', required: true }],
+  },
+  {
+    id: 'site-oficial',
+    name: 'Site oficial',
+    aliases: ['site oficial', 'official website', 'links externos'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Formata ligação destacada para o portal ou sítio eletrônico oficial na secção de ligações externas.',
+    exampleSnippet: '{{Site oficial|https://wazzimagiygg.com|Portal Oficial WazzimaGiygg}}',
+    params: [
+      { key: '1', label: 'URL oficial', placeholder: 'https://...', defaultValue: 'https://exemplo.org', required: true },
+      { key: '2', label: 'Rótulo (opcional)', placeholder: 'Site oficial', defaultValue: 'Site oficial' },
+    ],
+  },
+  {
+    id: 'controle-autoridade',
+    name: 'Controle de autoridade',
+    aliases: ['controle de autoridade', 'authority control', 'viaf'],
+    category: 'navigation',
+    language: 'pt',
+    description: 'Caixa enciclopédica de rodapé agrupando identificadores bibliográficos internacionais (VIAF, ORCID, LCCN, GND).',
+    exampleSnippet: '{{Controle de autoridade|viaf=12345678|orcid=0000-0002-1825-0097|gnd=118575147}}',
+    params: [
+      { key: 'viaf', label: 'VIAF', placeholder: '12345678', defaultValue: '' },
+      { key: 'orcid', label: 'ORCID', placeholder: '0000-0000-0000-0000', defaultValue: '' },
+      { key: 'lccn', label: 'LCCN', placeholder: 'n80000000', defaultValue: '' },
+      { key: 'gnd', label: 'GND', placeholder: '118575147', defaultValue: '' },
+    ],
+  },
+  // --- Mais 20 Infoboxes Especializadas ---
+  {
+    id: 'info-estado',
+    name: 'Info/Estado',
+    aliases: ['info/estado', 'info/uf', 'info/provincia', 'infobox state'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox para estados, províncias, regiões e unidades federativas.',
+    exampleSnippet: '{{Info/Estado|título=Minas Gerais|País=Brasil|Capital=Belo Horizonte|Área=586 513 km²|População=20,5 milhões}}',
+    params: [
+      { key: 'título', label: 'Nome do estado', placeholder: 'Minas Gerais', defaultValue: 'Estado Exemplo', required: true },
+      { key: 'País', label: 'País', placeholder: 'Brasil', defaultValue: 'Brasil' },
+      { key: 'Capital', label: 'Capital', placeholder: 'Capital', defaultValue: 'Capital' },
+      { key: 'População', label: 'População', placeholder: '10 milhões', defaultValue: '10 milhões' },
+    ],
+  },
+  {
+    id: 'info-rio',
+    name: 'Info/Rio',
+    aliases: ['info/rio', 'info/lago', 'infobox river'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox hidrográfica para rios, bacias, cachoeiras e lagos.',
+    exampleSnippet: '{{Info/Rio|nome=Rio São Francisco|País=Brasil|Extensão=2 830 km|Nascente=Serra da Canastra|Foz=Oceano Atlântico}}',
+    params: [
+      { key: 'nome', label: 'Nome do rio/lago', placeholder: 'Rio Amazonas', defaultValue: 'Rio Exemplo', required: true },
+      { key: 'País', label: 'País(es)', placeholder: 'Brasil', defaultValue: 'Brasil' },
+      { key: 'Extensão', label: 'Comprimento', placeholder: '2 830 km', defaultValue: '500 km' },
+      { key: 'Foz', label: 'Desembocadura / Foz', placeholder: 'Oceano Atlântico', defaultValue: 'Oceano' },
+    ],
+  },
+  {
+    id: 'info-montanha',
+    name: 'Info/Montanha',
+    aliases: ['info/montanha', 'info/vulcao', 'infobox mountain'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox orográfica para picos, montanhas, serras e vulcões.',
+    exampleSnippet: '{{Info/Montanha|nome=Pico da Neblina|Altitude=2 995 m|Cordilheira=Serra do Imeri|País=Brasil}}',
+    params: [
+      { key: 'nome', label: 'Nome do pico/montanha', placeholder: 'Pico...', defaultValue: 'Montanha Exemplo', required: true },
+      { key: 'Altitude', label: 'Altitude máxima', placeholder: '2 995 m', defaultValue: '2 000 m' },
+      { key: 'Cordilheira', label: 'Cordilheira / Serra', placeholder: 'Andes', defaultValue: 'Serra' },
+      { key: 'País', label: 'Localização', placeholder: 'Brasil', defaultValue: 'Brasil' },
+    ],
+  },
+  {
+    id: 'info-rodovia',
+    name: 'Info/Rodovia',
+    aliases: ['info/rodovia', 'info/estrada', 'infobox road'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox viária para rodovias, autoestradas e ferrovias.',
+    exampleSnippet: '{{Info/Rodovia|nome=BR-101|Tipo=Rodovia longitudinal|Extensão=4 650 km|Início=Touros (RN)|Fim=São José do Norte (RS)}}',
+    params: [
+      { key: 'nome', label: 'Identificação da via', placeholder: 'BR-101', defaultValue: 'Rodovia Exemplo', required: true },
+      { key: 'Extensão', label: 'Extensão total', placeholder: '1 200 km', defaultValue: '500 km' },
+      { key: 'Início', label: 'Extremidade inicial', placeholder: 'Cidade A', defaultValue: 'Origem' },
+      { key: 'Fim', label: 'Extremidade final', placeholder: 'Cidade B', defaultValue: 'Destino' },
+    ],
+  },
+  {
+    id: 'info-veiculo',
+    name: 'Info/Veículo',
+    aliases: ['info/veiculo', 'info/automovel', 'info/aviao', 'infobox automobile'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox técnica para automóveis, aeronaves, embarcações e locomotivas.',
+    exampleSnippet: '{{Info/Veículo|nome=Modelo S|Fabricante=Montadora Exemplo|Produção=2020–presente|Motorização=Elétrico|Comprimento=4,9 m}}',
+    params: [
+      { key: 'nome', label: 'Nome do modelo', placeholder: 'Modelo...', defaultValue: 'Veículo Exemplo', required: true },
+      { key: 'Fabricante', label: 'Fabricante', placeholder: 'Empresa', defaultValue: 'Fabricante' },
+      { key: 'Produção', label: 'Período de produção', placeholder: '2020–2026', defaultValue: '2020–presente' },
+      { key: 'Motorização', label: 'Propulsão / Motor', placeholder: 'Elétrico', defaultValue: 'Híbrido' },
+    ],
+  },
+  {
+    id: 'info-arma',
+    name: 'Info/Arma',
+    aliases: ['info/arma', 'info/equipamento', 'infobox weapon'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox historiográfica para armamentos, espadas históricas e navios/equipamentos de defesa.',
+    exampleSnippet: '{{Info/Arma|nome=Catapulta Medieval|Tipo=Arma de cerco|Origem=Antiguidade Clássica|Período=Antiguidade–Idade Média}}',
+    params: [
+      { key: 'nome', label: 'Nome do equipamento', placeholder: 'Nome histórico', defaultValue: 'Equipamento Exemplo', required: true },
+      { key: 'Tipo', label: 'Classificação', placeholder: 'Cerco / Naval', defaultValue: 'Histórico' },
+      { key: 'Origem', label: 'Origem', placeholder: 'Região', defaultValue: 'Europa' },
+      { key: 'Período', label: 'Período histórico', placeholder: 'Século XV', defaultValue: 'Histórico' },
+    ],
+  },
+  {
+    id: 'info-mitologia',
+    name: 'Info/Mitologia',
+    aliases: ['info/mitologia', 'info/divindade', 'infobox deity'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox cultural para divindades, heróis mitológicos e figuras folclóricas.',
+    exampleSnippet: '{{Info/Mitologia|nome=Atena|Panteão=Mitologia grega|Domínio=Sabedoria e estratégia|Símbolos=Coruja, oliveira}}',
+    params: [
+      { key: 'nome', label: 'Nome da figura', placeholder: 'Atena', defaultValue: 'Figura Mitológica', required: true },
+      { key: 'Panteão', label: 'Tradição / Mitologia', placeholder: 'Grega / Nórdica / Tupi', defaultValue: 'Clássica' },
+      { key: 'Domínio', label: 'Atribuições', placeholder: 'Sabedoria, mares...', defaultValue: 'Sabedoria' },
+      { key: 'Símbolos', label: 'Símbolos associados', placeholder: 'Coruja, lança', defaultValue: 'Tradicionais' },
+    ],
+  },
+  {
+    id: 'info-religiao',
+    name: 'Info/Religião',
+    aliases: ['info/religiao', 'infobox religion'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox para religiões, denominações, escolas espirituais e filosofias tradicionais.',
+    exampleSnippet: '{{Info/Religião|nome=Tradição Exemplo|Classificação=Filosofia oriental|Fundação=Século V a.C.|Textos=Cânone clássico}}',
+    params: [
+      { key: 'nome', label: 'Nome da tradição', placeholder: 'Tradição...', defaultValue: 'Tradição Exemplo', required: true },
+      { key: 'Classificação', label: 'Classificação', placeholder: 'Monoteísta / Não teísta', defaultValue: 'Tradicional' },
+      { key: 'Fundação', label: 'Origem histórica', placeholder: 'Século...', defaultValue: 'Antiguidade' },
+      { key: 'Textos', label: 'Textos fundamentais', placeholder: 'Escrituras', defaultValue: 'Cânone histórico' },
+    ],
+  },
+  {
+    id: 'info-filosofo',
+    name: 'Info/Filósofo',
+    aliases: ['info/filosofo', 'infobox philosopher'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox biográfica para filósofos, pensadores políticos e teóricos.',
+    exampleSnippet: '{{Info/Filósofo|nome=Baruch Espinoza|Época=Filosofia moderna|Tradição=Racionalismo|Principais interesses=Ética, metafísica}}',
+    params: [
+      { key: 'nome', label: 'Nome do pensador', placeholder: 'Nome completo', defaultValue: 'Filósofo Exemplo', required: true },
+      { key: 'Época', label: 'Época / Período', placeholder: 'Filosofia moderna', defaultValue: 'Moderna' },
+      { key: 'Tradição', label: 'Corrente filosófica', placeholder: 'Racionalismo', defaultValue: 'Racionalismo' },
+      { key: 'Principais interesses', label: 'Áreas de estudo', placeholder: 'Ética, epistemologia', defaultValue: 'Ética e lógica' },
+    ],
+  },
+  {
+    id: 'info-escritor',
+    name: 'Info/Escritor',
+    aliases: ['info/escritor', 'infobox writer'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox biográfica para escritores, poetas, romancistas, jornalistas e dramaturgos.',
+    exampleSnippet: '{{Info/Escritor|nome=Clarice Lispector|Ocupação=Escritora e jornalista|Movimento=Terceira geração modernista|Obras notáveis=A Hora da Estrela}}',
+    params: [
+      { key: 'nome', label: 'Nome literário', placeholder: 'Nome', defaultValue: 'Escritor Exemplo', required: true },
+      { key: 'Ocupação', label: 'Ocupação', placeholder: 'Romancista, poeta', defaultValue: 'Escritor(a)' },
+      { key: 'Movimento', label: 'Escola / Movimento', placeholder: 'Realismo / Modernismo', defaultValue: 'Contemporâneo' },
+      { key: 'Obras notáveis', label: 'Obras principais', placeholder: 'Títulos...', defaultValue: 'Obra principal' },
+    ],
+  },
+  {
+    id: 'info-site',
+    name: 'Info/Site',
+    aliases: ['info/site', 'info/website', 'infobox website'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox para portais web, enciclopédias digitais, redes sociais e plataformas online.',
+    exampleSnippet: '{{Info/Site|nome=WikiMaker|Tipo=Plataforma wiki colaborativa|Lançamento=2025|Idiomas=Português, Inglês|Licença=Código aberto}}',
+    params: [
+      { key: 'nome', label: 'Nome do portal/site', placeholder: 'Portal...', defaultValue: 'Site Exemplo', required: true },
+      { key: 'Tipo', label: 'Categoria', placeholder: 'Enciclopédia / Rede social', defaultValue: 'Portal web' },
+      { key: 'Lançamento', label: 'Ano de lançamento', placeholder: '2025', defaultValue: '2025' },
+      { key: 'Licença', label: 'Licença / Acesso', placeholder: 'Gratuito / Aberto', defaultValue: 'Aberto' },
+    ],
+  },
+  {
+    id: 'info-so',
+    name: 'Info/Sistema',
+    aliases: ['info/so', 'info/sistema', 'infobox os'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox técnica para sistemas operacionais, distribuições Linux e firmwares.',
+    exampleSnippet: '{{Info/Sistema|nome=Debian|Desenvolvedor=Projeto Debian|Núcleo=Linux|Lançamento=1993|Licença=Software livre (DFSG)}}',
+    params: [
+      { key: 'nome', label: 'Sistema operacional', placeholder: 'Linux / Debian', defaultValue: 'Sistema Exemplo', required: true },
+      { key: 'Desenvolvedor', label: 'Desenvolvedor', placeholder: 'Comunidade / Empresa', defaultValue: 'Comunidade' },
+      { key: 'Núcleo', label: 'Kernel / Núcleo', placeholder: 'Linux / Híbrido', defaultValue: 'Monolítico' },
+      { key: 'Licença', label: 'Licença', placeholder: 'GPLv2', defaultValue: 'GPL' },
+    ],
+  },
+  {
+    id: 'info-hardware',
+    name: 'Info/Hardware',
+    aliases: ['info/hardware', 'info/processador', 'info/console', 'infobox cpu'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox para consoles de videogame, processadores, microcomputadores e eletrônicos.',
+    exampleSnippet: '{{Info/Hardware|nome=Super Console|Fabricante=Estúdio Hardware|Lançamento=1990|CPU=16-bit RISC|Mídia=Cartucho}}',
+    params: [
+      { key: 'nome', label: 'Nome do dispositivo', placeholder: 'Console / CPU', defaultValue: 'Hardware Exemplo', required: true },
+      { key: 'Fabricante', label: 'Fabricante', placeholder: 'Empresa', defaultValue: 'Fabricante' },
+      { key: 'Lançamento', label: 'Lançamento', placeholder: '2020', defaultValue: '2020' },
+      { key: 'CPU', label: 'Processador / Arquitetura', placeholder: 'ARM / x86', defaultValue: '64-bit' },
+    ],
+  },
+  {
+    id: 'info-moeda',
+    name: 'Info/Moeda',
+    aliases: ['info/moeda', 'infobox currency'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox econômica para moedas fiduciárias nacionais, históricas e unidades monetárias.',
+    exampleSnippet: '{{Info/Moeda|nome=Real brasileiro|Código ISO=BRL|Símbolo=R$|País=Brasil|Banco central=Banco Central do Brasil}}',
+    params: [
+      { key: 'nome', label: 'Nome da moeda', placeholder: 'Real', defaultValue: 'Moeda Exemplo', required: true },
+      { key: 'Código ISO', label: 'Código ISO 4217', placeholder: 'BRL', defaultValue: 'XXX' },
+      { key: 'Símbolo', label: 'Símbolo', placeholder: 'R$', defaultValue: '$' },
+      { key: 'Banco central', label: 'Emissor', placeholder: 'Banco Central', defaultValue: 'Banco Central' },
+    ],
+  },
+  {
+    id: 'info-ong',
+    name: 'Info/Organização',
+    aliases: ['info/ong', 'info/organizacao', 'infobox organization'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox para ONGs, associações sem fins lucrativos, agências da ONU e institutos.',
+    exampleSnippet: '{{Info/Organização|nome=Cruz Vermelha Internacional|Tipo=Organização humanitária|Fundação=1863|Sede=Genebra, Suíça}}',
+    params: [
+      { key: 'nome', label: 'Nome da organização', placeholder: 'Organização...', defaultValue: 'Organização Exemplo', required: true },
+      { key: 'Tipo', label: 'Natureza', placeholder: 'ONG / Intergovernamental', defaultValue: 'Sem fins lucrativos' },
+      { key: 'Fundação', label: 'Fundação', placeholder: '1945', defaultValue: '2000' },
+      { key: 'Sede', label: 'Sede', placeholder: 'Cidade, País', defaultValue: 'Brasil' },
+    ],
+  },
+  {
+    id: 'info-museu',
+    name: 'Info/Museu',
+    aliases: ['info/museu', 'info/biblioteca', 'infobox museum'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox para museus, pinacotecas, bibliotecas nacionais e centros culturais.',
+    exampleSnippet: '{{Info/Museu|nome=Museu Nacional de Arte|Tipo=Museu de belas-artes|Fundação=1937|Localização=Rio de Janeiro|Acervo=70 000 peças}}',
+    params: [
+      { key: 'nome', label: 'Nome do museu/biblioteca', placeholder: 'Museu...', defaultValue: 'Museu Exemplo', required: true },
+      { key: 'Tipo', label: 'Tipo de acervo', placeholder: 'Arte / Ciência / História', defaultValue: 'História e Arte' },
+      { key: 'Fundação', label: 'Fundação', placeholder: '1937', defaultValue: '1950' },
+      { key: 'Localização', label: 'Cidade / País', placeholder: 'Rio de Janeiro', defaultValue: 'Brasil' },
+    ],
+  },
+  {
+    id: 'info-parque',
+    name: 'Info/Parque',
+    aliases: ['info/parque', 'info/reserva', 'infobox protected area'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox ambiental para parques nacionais, reservas ecológicas e patrimônios naturais.',
+    exampleSnippet: '{{Info/Parque|nome=Parque Nacional do Iguaçu|País=Brasil|Área=185 262 ha|Criação=1939|Categoria=Patrimônio Mundial}}',
+    params: [
+      { key: 'nome', label: 'Nome da unidade de conservação', placeholder: 'Parque Nacional...', defaultValue: 'Parque Exemplo', required: true },
+      { key: 'País', label: 'País / Estado', placeholder: 'Brasil', defaultValue: 'Brasil' },
+      { key: 'Área', label: 'Área protegida', placeholder: '100 000 ha', defaultValue: '50 000 ha' },
+      { key: 'Criação', label: 'Ano de criação', placeholder: '1939', defaultValue: '1980' },
+    ],
+  },
+  {
+    id: 'info-campeonato',
+    name: 'Info/Campeonato',
+    aliases: ['info/campeonato', 'info/torneio', 'info/liga', 'infobox football league'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox esportiva para campeonatos, copas, ligas e torneios internacionais.',
+    exampleSnippet: '{{Info/Campeonato|nome=Copa Aberta 2026|Esporte=Futebol|Participantes=32 equipes|Sede=América do Sul|Atual campeão=Atlético Modelo}}',
+    params: [
+      { key: 'nome', label: 'Nome da competição', placeholder: 'Campeonato...', defaultValue: 'Torneio Exemplo', required: true },
+      { key: 'Esporte', label: 'Modalidade', placeholder: 'Futebol / Basquete', defaultValue: 'Futebol' },
+      { key: 'Participantes', label: 'Nº de participantes', placeholder: '20 equipes', defaultValue: '16 equipes' },
+      { key: 'Sede', label: 'Local / Abrangência', placeholder: 'Nacional', defaultValue: 'Nacional' },
+    ],
+  },
+  {
+    id: 'info-alimento',
+    name: 'Info/Alimento',
+    aliases: ['info/alimento', 'info/prato', 'info/bebida', 'infobox food'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox gastronômica para pratos típicos, ingredientes, queijos, pães e bebidas.',
+    exampleSnippet: '{{Info/Alimento|nome=Pão de Queijo|Origem=Minas Gerais, Brasil|Tipo=Quitanda assada|Ingredientes=Polvilho, queijo, ovos, leite}}',
+    params: [
+      { key: 'nome', label: 'Nome do prato/alimento', placeholder: 'Prato típico', defaultValue: 'Alimento Exemplo', required: true },
+      { key: 'Origem', label: 'Origem / Culinária', placeholder: 'Brasil', defaultValue: 'Regional' },
+      { key: 'Tipo', label: 'Categoria', placeholder: 'Prato principal / Sobremesa', defaultValue: 'Prato típico' },
+      { key: 'Ingredientes', label: 'Ingredientes principais', placeholder: 'Farinha, queijo...', defaultValue: 'Tradicionais' },
+    ],
+  },
+  {
+    id: 'info-hq',
+    name: 'Info/HQ',
+    aliases: ['info/hq', 'info/manga', 'info/comics', 'infobox comic'],
+    category: 'infobox',
+    language: 'pt',
+    description: 'Infobox editorial para histórias em quadrinhos, mangás, tiras e graphic novels.',
+    exampleSnippet: '{{Info/HQ|título=Crônicas Ilustradas|Roteiro=M. Costa|Arte=A. Ribeiro|Editora=Editora Sul|Lançamento=2024|Volumes=4}}',
+    params: [
+      { key: 'título', label: 'Título da obra', placeholder: 'Nome da HQ/Mangá', defaultValue: 'HQ Exemplo', required: true },
+      { key: 'Roteiro', label: 'Roteirista(s)', placeholder: 'Autor', defaultValue: 'Autor' },
+      { key: 'Arte', label: 'Ilustrador(a)', placeholder: 'Desenhista', defaultValue: 'Ilustrador' },
+      { key: 'Editora', label: 'Editora / Publicação', placeholder: 'Editora', defaultValue: 'Editora' },
+    ],
+  },
 ];
 
 function normalizeTemplateKey(raw: string): string {
@@ -6487,6 +7532,686 @@ function resolveBuiltinTemplate(
     return `século ${toRoman(num)}`;
   }
 
+  // 9dg. {{Vandalismo}} / {{uw-vandalism}} / {{Teste}} / {{uw-test}} / {{Aviso spam}} / {{Remoção de conteúdo}}
+  if (
+    key === 'vandalismo' ||
+    key === 'uw vandalism' ||
+    key === 'aviso vandalismo' ||
+    key === 'teste' ||
+    key === 'uw test' ||
+    key === 'edicao de teste' ||
+    key === 'aviso spam' ||
+    key === 'uw spam' ||
+    key === 'links promocionais' ||
+    key === 'remocao de conteudo' ||
+    key === 'uw delete' ||
+    key === 'apagamento indevido'
+  ) {
+    const page = pickParam(call, ['pagina', 'página', 'page', '1']);
+    const pageSuffix = page ? ` na página [[${toWikiSlug(page)}|${page}]]` : '';
+    if (key === 'teste' || key === 'uw test' || key === 'edicao de teste') {
+      return serializePredefinicaoBlock({
+        variant: 'info',
+        kicker: 'Discussão · Teste de Edição',
+        title: 'Bem-vindo! Detectamos uma edição de teste',
+        body: `Sua modificação recente${pageSuffix} parece ter sido um teste de formatação. Para experimentar livremente sem alterar artigos, utilize uma [[predefinicao-boas-vindas|página de testes]].`,
+      });
+    }
+    if (key === 'aviso spam' || key === 'uw spam' || key === 'links promocionais') {
+      return serializePredefinicaoBlock({
+        variant: 'warning',
+        kicker: 'Discussão · Aviso de Spam',
+        title: 'Evite inserir links externos promocionais',
+        body: `As ligações adicionadas${pageSuffix} possuem caráter comercial ou promocional. Consulte as [Regras de Uso do WikiMaker](#/terms) antes de incluir referências externas.`,
+      });
+    }
+    if (key === 'remocao de conteudo' || key === 'uw delete' || key === 'apagamento indevido') {
+      return serializePredefinicaoBlock({
+        variant: 'warning',
+        kicker: 'Discussão · Remoção de Conteúdo',
+        title: 'Justifique a remoção de conteúdo referenciado',
+        body: `Parte do texto${pageSuffix} foi removida sem explicação no resumo de edição. Sempre explique remoções substanciais na página de discussão.`,
+      });
+    }
+    const level = pickParam(call, ['nivel', 'nível', 'level', '2'], '1');
+    return serializePredefinicaoBlock({
+      variant: 'alert',
+      kicker: `Discussão · Aviso de Vandalismo (Nível ${level})`,
+      title: 'Edição destrutiva ou não construtiva identificada',
+      body: `Sua edição recente${pageSuffix} desfez ou corrompeu conteúdo informativo e foi revertida. Edições destrutivas recorrentes podem levar ao bloqueio conforme as [Regras de Uso](#/terms).`,
+    });
+  }
+
+  // 9dh. {{Sem consenso}} / {{Discutido}} / {{Debate em curso}}
+  if (key === 'sem consenso' || key === 'discutido' || key === 'debate em curso') {
+    const reason = pickParam(
+      call,
+      ['motivo', 'reason', '1'],
+      'Alterações recentes nesta página ainda não alcançaram consenso; debata na página de discussão antes de editar novamente.'
+    );
+    return serializePredefinicaoBlock({
+      variant: 'warning',
+      kicker: 'Predefinição · Sem Consenso',
+      title: 'Conteúdo aguardando consenso editorial',
+      body: reason,
+    });
+  }
+
+  // 9di. {{Fusão de histórico}} / {{History merge}} / {{Histmerge}}
+  if (key === 'fusao de historico' || key === 'history merge' || key === 'histmerge') {
+    const target = pickParam(call, ['alvo', 'target', '1'], 'start');
+    const reason = pickParam(
+      call,
+      ['motivo', 'reason', '2'],
+      'Solicitada fusão técnica de históricos entre versões paralelas para preservar atribuição.'
+    );
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: 'Predefinição · Manutenção Técnica',
+      title: `Fusão de histórico solicitada com [[${toWikiSlug(target)}|${target}]]`,
+      body: reason,
+    });
+  }
+
+  // 9dj. {{Wikcionário}} / {{Wikisource}} / {{Wikinotícias}} / {{Não enciclopédico}}
+  if (
+    key === 'wikcionario' ||
+    key === 'transwiki' ||
+    key === 'dicionario' ||
+    key === 'wikisource' ||
+    key === 'texto integral' ||
+    key === 'documento fonte' ||
+    key === 'wikinoticias' ||
+    key === 'estilo jornalistico' ||
+    key === 'noticiario' ||
+    key === 'nao enciclopedico' ||
+    key === 'unencyclopedic' ||
+    key === 'fora do escopo'
+  ) {
+    if (key === 'wikisource' || key === 'texto integral' || key === 'documento fonte') {
+      const work = pickParam(call, ['obra', '1'], 'este documento');
+      return serializePredefinicaoBlock({
+        variant: 'info',
+        kicker: 'Predefinição · Wikisource',
+        title: 'Texto fonte ou documento integral',
+        body: `Em uma enciclopédia, "${work}" deve ser analisado e contextualizado historicamente em vez de apenas transcrito integralmente.`,
+      });
+    }
+    if (key === 'wikinoticias' || key === 'estilo jornalistico' || key === 'noticiario') {
+      const reason = pickParam(
+        call,
+        ['motivo', '1'],
+        'O texto adota estilo de cobertura jornalística imediata; reescreva com distanciamento enciclopédico.'
+      );
+      return serializePredefinicaoBlock({
+        variant: 'warning',
+        kicker: 'Predefinição · Wikinotícias',
+        title: 'Redigido em formato noticioso',
+        body: reason,
+      });
+    }
+    if (key === 'nao enciclopedico' || key === 'unencyclopedic' || key === 'fora do escopo') {
+      const reason = pickParam(
+        call,
+        ['motivo', '1'],
+        'O conteúdo atual aparenta estar fora do escopo enciclopédico (panfleto, anúncio ou relato pessoal).'
+      );
+      return serializePredefinicaoBlock({
+        variant: 'alert',
+        kicker: 'Predefinição · Escopo Enciclopédico',
+        title: 'Conteúdo potencialmente não enciclopédico',
+        body: reason,
+      });
+    }
+    const reason = pickParam(
+      call,
+      ['motivo', '1'],
+      'Verbete restrito a definição lexical; expanda com contexto enciclopédico ou consolide em glossário.'
+    );
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: 'Predefinição · Wikcionário',
+      title: 'Conteúdo com caráter de verbete de dicionário',
+      body: reason,
+    });
+  }
+
+  // 9dk. {{Variante linguística}} / {{pt-BR}} / {{pt-PT}} / {{Ortografia}}
+  if (key === 'variante linguistica' || key === 'pt br' || key === 'pt pt' || key === 'ortografia') {
+    const variant = pickParam(
+      call,
+      ['variante', '1'],
+      key === 'pt pt' ? 'Português europeu' : 'Português brasileiro'
+    );
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: 'Predefinição · Norma Ortográfica',
+      title: `Artigo redigido em ${variant}`,
+      body: `Para manter uniformidade estilística, preserve a variante linguística (${variant}) ao editar este artigo.`,
+    });
+  }
+
+  // 9dl. {{Linguagem técnica}} / {{Technical}} / {{Jargão}}
+  if (key === 'linguagem tecnica' || key === 'technical' || key === 'jargao') {
+    const area = pickParam(call, ['area', 'área', '1'], 'área especializada');
+    const reason = pickParam(
+      call,
+      ['motivo', '2'],
+      `Este artigo pode estar excessivamente técnico para leitores não iniciados em ${area}; simplifique a introdução.`
+    );
+    return serializePredefinicaoBlock({
+      variant: 'warning',
+      kicker: 'Predefinição · Acessibilidade Editorial',
+      title: 'Linguagem excessivamente técnica',
+      body: reason,
+    });
+  }
+
+  // 9dm. {{Secção longa}} / {{Overly detailed}} / {{Detalhamento excessivo}}
+  if (
+    key === 'secao longa' ||
+    key === 'seccao longa' ||
+    key === 'overly detailed' ||
+    key === 'detalhamento excessivo'
+  ) {
+    const sec = pickParam(call, ['secao', 'seção', 'section', '1'], 'Esta secção');
+    const reason = pickParam(
+      call,
+      ['motivo', '2'],
+      'Apresenta pormenores excessivos para um resumo enciclopédico; sintetize os pontos principais.'
+    );
+    return serializePredefinicaoBlock({
+      variant: 'warning',
+      kicker: 'Predefinição · Síntese Editorial',
+      title: `Detalhamento excessivo em "${sec}"`,
+      body: reason,
+    });
+  }
+
+  // 9dn. {{Atualizar após}} / {{Update after}} / {{Prazo}}
+  if (key === 'atualizar apos' || key === 'update after' || key === 'prazo') {
+    const year = pickParam(call, ['1', 'ano', 'data'], '2027');
+    const note = pickParam(
+      call,
+      ['2', 'motivo'],
+      `Esta secção contém previsão ou mandato sujeito a atualização a partir de ${year}.`
+    );
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: `Predefinição · Revisão Programada (${year})`,
+      title: `Atualizar após ${year}`,
+      body: note,
+    });
+  }
+
+  // 9do. {{Morte recente}} / {{Recent death}} / {{Falecimento recente}}
+  if (key === 'morte recente' || key === 'recent death' || key === 'falecimento recente') {
+    const name = pickParam(call, ['nome', '1'], options?.currentTitle || 'esta personalidade');
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: 'Predefinição · Falecimento Recente',
+      title: `Este artigo documenta o falecimento recente de ${name}`,
+      body: 'Novas informações biográficas podem surgir rapidamente; adicione apenas fatos confirmados por fontes fidedignas.',
+    });
+  }
+
+  // 9dp. {{Homônimos}} / {{Surname}} / {{Given name}} / {{Lista de nomes}}
+  if (key === 'homonimos' || key === 'surname' || key === 'given name' || key === 'lista de nomes') {
+    const term = pickParam(call, ['1', 'nome'], options?.currentTitle || 'este nome');
+    return serializePredefinicaoBlock({
+      variant: 'disambiguation',
+      kicker: 'Predefinição · Índice Onomástico',
+      title: `Lista de homônimos de "${term}"`,
+      body: 'Esta página agrupa personalidades, obras ou localidades que compartilham este nome próprio ou sobrenome.',
+    });
+  }
+
+  // 9dq. Esboços Temáticos ({{Esboço-bio}}, {{Esboço-geo}}, {{Esboço-ciência}}, {{Esboço-jogos}})
+  if (
+    key === 'esboco bio' ||
+    key === 'bio stub' ||
+    key === 'esboco biografia' ||
+    key === 'esboco geo' ||
+    key === 'geo stub' ||
+    key === 'esboco geografia' ||
+    key === 'esboco ciencia' ||
+    key === 'science stub' ||
+    key === 'esboco tecnologia' ||
+    key === 'esboco jogos' ||
+    key === 'vg stub' ||
+    key === 'esboco videogame'
+  ) {
+    const defaultArea = key.includes('bio')
+      ? 'Biografias'
+      : key.includes('geo')
+        ? 'Geografia e Localidades'
+        : key.includes('jogos') || key.includes('vg') || key.includes('videogame')
+          ? 'Jogos Eletrônicos'
+          : 'Ciência e Tecnologia';
+    const topic = pickParam(call, ['1', 'tema', 'area'], defaultArea);
+    return serializePredefinicaoBlock({
+      variant: 'stub',
+      kicker: `Predefinição · Esboço (${defaultArea})`,
+      title: `Este verbete é um esboço sobre ${topic}`,
+      body: 'Você pode colaborar expandindo este artigo com novas secções, dados verificáveis e referências.',
+    });
+  }
+
+  // 9dr. {{WikiProjeto}} / {{WikiProject}} / {{Projeto editorial}}
+  if (key === 'wikiprojeto' || key === 'wikiproject' || key === 'projeto editorial') {
+    const project = pickParam(call, ['projeto', '1'], 'WikiMaker Editorial');
+    const quality = pickParam(call, ['qualidade', 'quality', '2'], '3');
+    const importance = pickParam(call, ['importancia', 'importância', 'importance', '3'], 'Média');
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: `WikiProjeto · ${project}`,
+      title: `Artigo vinculado ao WikiProjeto ${project}`,
+      body: `Avaliação editorial registrada — Qualidade: Nível ${quality} · Importância: ${importance}.`,
+    });
+  }
+
+  // 9ds. {{Arquivo automático}} / {{Autoarchive}} / {{Configuração arquivo}}
+  if (key === 'arquivo automatico' || key === 'autoarchive' || key === 'configuracao arquivo') {
+    const days = pickParam(call, ['dias', 'days', '1'], '90');
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: 'Discussão · Arquivamento Automático',
+      title: `Tópicos inativos arquivados após ${days} dias`,
+      body: 'Discussões sem novas respostas durante o período configurado são movidas para o arquivo histórico para manter esta página organizada.',
+    });
+  }
+
+  // 9dt. {{Em votação}} / {{RfC}} / {{Consulta pública}}
+  if (key === 'em votacao' || key === 'rfc' || key === 'consulta publica') {
+    const topic = pickParam(call, ['tema', '1'], 'Proposta editorial aberta à comunidade');
+    const deadline = pickParam(call, ['prazo', '2'], 'Em aberto');
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: 'Consulta Pública · Em Votação',
+      title: topic,
+      body: 'Colaboradores são convidados a apresentar argumentos baseados nas políticas editoriais antes do encerramento.',
+      meta: `Prazo: ${deadline}`,
+    });
+  }
+
+  // 9du. {{Página de usuário}} / {{Userpage}} / {{Perfil colaborador}}
+  if (key === 'pagina de usuario' || key === 'userpage' || key === 'perfil colaborador') {
+    const user = pickParam(call, ['usuario', 'usuário', '1'], 'Colaborador');
+    return serializePredefinicaoBlock({
+      variant: 'info',
+      kicker: 'Espaço Nominal · Usuário',
+      title: `Esta é a página pessoal de ${user}`,
+      body: 'Esta página pertence ao espaço de usuário do WikiMaker para apresentação e anotações editoriais — não constitui um artigo enciclopédico.',
+    });
+  }
+
+  // 9dv. {{Página de testes}} / {{Sandbox}} / {{Rascunho}}
+  if (key === 'pagina de testes' || key === 'sandbox' || key === 'rascunho') {
+    const author = pickParam(call, ['autor', 'usuario', '1']);
+    return serializePredefinicaoBlock({
+      variant: 'wip',
+      kicker: 'Predefinição · Rascunho / Sandbox',
+      title: author ? `Página de testes de ${author}` : 'Página de testes e rascunho pessoal',
+      body: 'Espaço experimental destinado a testar formatação Markdown, tabelas, citações e predefinições antes da publicação definitiva.',
+    });
+  }
+
+  // 9dw. {{Hatnote}} / {{Nota topo}} / {{Distinguir}} / {{Distinguish2}} / {{Ver categoria}}
+  if (key === 'hatnote' || key === 'nota topo') {
+    const text = pickParam(call, ['1', 'texto'], 'Nota de orientação editorial.');
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Nota de Topo',
+      body: text,
+    });
+  }
+  if (key === 'distinguir' || key === 'distinguish2') {
+    const text = pickParam(call, ['1', 'texto'], 'Não confundir com [[start|Página Inicial]].');
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Nota de Topo · Distinção',
+      body: text,
+    });
+  }
+  if (key === 'ver categoria' || key === 'see category' || key === 'categoria') {
+    const cat = pickParam(call, ['1', 'categoria'], 'Geral');
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Categoria Relacionada',
+      body: `Veja mais artigos agrupados na categoria **${cat}**.`,
+    });
+  }
+
+  // 9dx. {{Tracklist}} / {{Lista de faixas}} / {{Faixas}}
+  if (key === 'tracklist' || key === 'lista de faixas' || key === 'faixas') {
+    const title = pickParam(call, ['titulo', 'título', 'title'], 'Lista de faixas');
+    const tracks = call.orderedEntries
+      .filter((e) => !['titulo', 'título', 'title'].includes(normalizeTemplateKey(e.key)) && e.value)
+      .map((e, idx) => `${idx + 1}. ${e.value}`);
+    const body = tracks.length > 0 ? tracks.join(' · ') : '1. Faixa Principal (3:30)';
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Áudio · Tracklist',
+      title,
+      body,
+    });
+  }
+
+  // 9dy. {{Cronologia}} / {{Timeline}} / {{Linha do tempo}}
+  if (key === 'cronologia' || key === 'timeline' || key === 'linha do tempo') {
+    const theme = pickParam(call, ['tema', 'titulo', 'título'], 'Cronologia');
+    const prev = pickParam(call, ['anterior', 'prev'], 'Anterior');
+    const curr = pickParam(call, ['atual', 'current', '1'], 'Atual');
+    const next = pickParam(call, ['proximo', 'próximo', 'next'], 'Próximo');
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: `Cronologia · ${theme}`,
+      body: `← ${prev}  ·  **${curr}**  ·  ${next} →`,
+    });
+  }
+
+  // 9dz. {{Sucessão}} / {{Succession box}} / {{Antecessor}}
+  if (key === 'sucessao' || key === 'succession box' || key === 'antecessor') {
+    const role = pickParam(call, ['cargo', 'titulo', 'título', '1'], 'Cargo');
+    const period = pickParam(call, ['periodo', 'período'], '');
+    const prev = pickParam(call, ['antecessor', 'before'], '—');
+    const next = pickParam(call, ['sucessor', 'after'], '—');
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Caixa de Sucessão',
+      title: period ? `${role} (${period})` : role,
+      body: `Precedido por: **${prev}**  |  Sucedido por: **${next}**`,
+    });
+  }
+
+  // 9ea. {{Commons}} / {{Link Wikcionário}} / {{Link Wikiquote}}
+  if (
+    key === 'commons' ||
+    key === 'wikimedia commons' ||
+    key === 'galeria' ||
+    key === 'link wikcionario' ||
+    key === 'wiktionary' ||
+    key === 'definicao' ||
+    key === 'link wikiquote' ||
+    key === 'citacoes relacionadas'
+  ) {
+    const term = pickParam(call, ['1', 'tema', 'termo'], options?.currentTitle || 'Tema');
+    if (key.includes('wikcionar') || key === 'wiktionary' || key === 'definicao') {
+      return serializePredefinicaoBlock({
+        variant: 'navigation',
+        kicker: 'Projeto Irmão · Wikcionário',
+        body: `Consulte a definição lexical e etimologia de **${term}** no dicionário colaborativo.`,
+      });
+    }
+    if (key.includes('wikiquote') || key === 'citacoes relacionadas') {
+      return serializePredefinicaoBlock({
+        variant: 'navigation',
+        kicker: 'Projeto Irmão · Wikiquote',
+        body: `Veja coletânea de citações e frases relacionadas a **${term}**.`,
+      });
+    }
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Acervo Multimídia · Commons',
+      body: `Explore imagens, áudios e diagramas livres na galeria sobre **${term}**.`,
+    });
+  }
+
+  // 9eb. Citações adicionais (<ref>) — Podcast, Entrevista, Discurso, Tweet, Arquivo, Software, Patente, Nota de rodapé
+  if (key === 'citar podcast' || key === 'cite podcast' || key === 'podcast') {
+    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Episódio de Podcast');
+    const show = pickParam(call, ['programa', 'podcast', 'series']);
+    const host = pickParam(call, ['apresentador', 'autor', 'host']);
+    const year = pickParam(call, ['ano', 'year', 'data']);
+    const parts = [`"${title}" (Podcast)`];
+    if (show) parts.push(`In: *${show}*`);
+    if (host) parts.push(`— ${host}`);
+    if (year) parts.push(`(${year})`);
+    return `<ref>${parts.join(' ')}</ref>`;
+  }
+  if (key === 'citar entrevista' || key === 'cite interview' || key === 'entrevista') {
+    const subject = pickParam(call, ['entrevistado', 'subject', '1'], 'Entrevistado');
+    const title = pickParam(call, ['titulo', 'título', 'title'], 'Entrevista');
+    const inter = pickParam(call, ['entrevistador', 'interviewer', 'veiculo']);
+    const year = pickParam(call, ['ano', 'year', 'data']);
+    const parts = [`${subject}. "${title}" (Entrevista)`];
+    if (inter) parts.push(`— ${inter}`);
+    if (year) parts.push(`(${year})`);
+    return `<ref>${parts.join(' ')}</ref>`;
+  }
+  if (key === 'citar discurso' || key === 'cite speech' || key === 'discurso') {
+    const speaker = pickParam(call, ['autor', 'orador', '1'], 'Orador');
+    const title = pickParam(call, ['titulo', 'título', 'title'], 'Discurso');
+    const event = pickParam(call, ['evento', 'event']);
+    const year = pickParam(call, ['ano', 'year', 'data']);
+    const parts = [`${speaker}. "${title}"`];
+    if (event) parts.push(`(${event})`);
+    if (year) parts.push(`— ${year}`);
+    return `<ref>${parts.join(' ')}</ref>`;
+  }
+  if (key === 'citar tweet' || key === 'citar post' || key === 'cite tweet' || key === 'rede social') {
+    const user = pickParam(call, ['usuario', 'usuário', 'user', '1'], '@conta');
+    const text = pickParam(call, ['texto', 'text', '2'], 'Publicação oficial');
+    const dateVal = pickParam(call, ['data', 'date']);
+    const parts = [`${user}: "${text}"`];
+    if (dateVal) parts.push(`(${dateVal})`);
+    return `<ref>${parts.join(' ')}</ref>`;
+  }
+  if (key === 'citar arquivo' || key === 'cite archive' || key === 'arquivo historico') {
+    const doc = pickParam(call, ['documento', 'titulo', 'título', '1'], 'Documento de arquivo');
+    const archive = pickParam(call, ['acervo', 'arquivo', 'repository']);
+    const fund = pickParam(call, ['fundo', 'colecao', 'coleção']);
+    const year = pickParam(call, ['ano', 'year']);
+    const parts = [`"${doc}"`];
+    if (fund) parts.push(`— ${fund}`);
+    if (archive) parts.push(`[${archive}]`);
+    if (year) parts.push(`(${year})`);
+    return `<ref>${parts.join(' ')}</ref>`;
+  }
+  if (key === 'citar software' || key === 'cite software' || key === 'manual software') {
+    const name = pickParam(call, ['nome', 'titulo', 'título', '1'], 'Software');
+    const ver = pickParam(call, ['versao', 'versão', 'version']);
+    const dev = pickParam(call, ['desenvolvedor', 'autor', 'developer']);
+    const year = pickParam(call, ['ano', 'year']);
+    const parts = [`*${name}*`];
+    if (ver) parts.push(`v${ver}`);
+    if (dev) parts.push(`— ${dev}`);
+    if (year) parts.push(`(${year})`);
+    return `<ref>${parts.join(' ')}</ref>`;
+  }
+  if (key === 'citar patente' || key === 'cite patent' || key === 'patente') {
+    const num = pickParam(call, ['numero', 'número', 'number', '1'], 'PAT-0001');
+    const title = pickParam(call, ['titulo', 'título', 'title']);
+    const holder = pickParam(call, ['titular', 'inventor', 'assignee']);
+    const year = pickParam(call, ['ano', 'year']);
+    const parts = [`Patente **${num}**`];
+    if (title) parts.push(`— "${title}"`);
+    if (holder) parts.push(`(${holder})`);
+    if (year) parts.push(`[${year}]`);
+    return `<ref>${parts.join(' ')}</ref>`;
+  }
+  if (key === 'nota de rodape' || key === 'refn' || key === 'observacao') {
+    const note = pickParam(call, ['1', 'texto'], 'Nota editorial.');
+    return `<ref>${note}</ref>`;
+  }
+
+  // 9ec. Utilitários de data, matemática, tipografia, tabelas e ícones
+  if (key === 'data de falecimento' || key === 'death date and age' || key === 'falecimento') {
+    const dy = Number.parseInt(pickParam(call, ['1'], '2015'), 10);
+    const dm = Number.parseInt(pickParam(call, ['2'], '1'), 10);
+    const dd = Number.parseInt(pickParam(call, ['3'], '1'), 10);
+    const by = Number.parseInt(pickParam(call, ['4'], '1940'), 10);
+    const bm = Number.parseInt(pickParam(call, ['5'], '1'), 10);
+    const bd = Number.parseInt(pickParam(call, ['6'], '1'), 10);
+    if (!Number.isFinite(dy) || !Number.isFinite(by)) return 'Data inválida';
+    let age = dy - by;
+    if (dm < bm || (dm === bm && dd < bd)) age -= 1;
+    const pad = (n: number) => String(Math.max(1, n)).padStart(2, '0');
+    return `${pad(dd)}/${pad(dm)}/${dy} (${Math.max(0, age)} anos)`;
+  }
+  if (key === 'inicio e fim' || key === 'start and end dates' || key === 'periodo') {
+    const start = pickParam(call, ['1', 'inicio', 'início'], '2020');
+    const end = pickParam(call, ['2', 'fim'], 'presente');
+    return `${start}–${end}`;
+  }
+  if (key === 'duracao' || key === 'duration' || key === 'tempo') {
+    const a = pickParam(call, ['1'], '0');
+    const b = pickParam(call, ['2']);
+    const c = pickParam(call, ['3']);
+    if (c) return `${a} h ${b || '0'} min ${c} s`;
+    if (b) return `${a} min ${b} s`;
+    return `${a} min`;
+  }
+  if (key === 'formatnum' || key === 'numero' || key === 'val') {
+    const raw = pickParam(call, ['1'], '0');
+    const unit = pickParam(call, ['2', 'unidade']);
+    const num = Number.parseFloat(raw.replace(/\s+/g, '').replace(',', '.'));
+    const formatted = Number.isFinite(num) ? num.toLocaleString('pt-BR') : raw;
+    return unit ? `${formatted} ${unit}` : formatted;
+  }
+  if (key === 'fracao' || key === 'frac' || key === 'sfrac') {
+    const a = pickParam(call, ['1'], '1');
+    const b = pickParam(call, ['2'], '2');
+    const c = pickParam(call, ['3']);
+    return c ? `${a} ${b}/${c}` : `${a}/${b}`;
+  }
+  if (key === 'raiz' || key === 'sqrt' || key === 'radic') {
+    const val = pickParam(call, ['1'], '2');
+    const idx = pickParam(call, ['2']);
+    if (idx === '3') return `∛${val}`;
+    if (idx) return `^${idx}^√${val}`;
+    return `√${val}`;
+  }
+  if (key === 'math' || key === 'formula' || key === 'equacao') {
+    const fallbackNamed =
+      call.orderedEntries[0]?.isNamed
+        ? `${call.orderedEntries[0].key}=${call.orderedEntries[0].value}`
+        : '';
+    const expr = pickParam(call, ['1'], fallbackNamed || 'E = mc²');
+    return `*${expr}*`;
+  }
+  if (key === 'sub' || key === 'subscrito') {
+    const val = pickParam(call, ['1'], '2');
+    const subMap: Record<string, string> = {
+      '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+      '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+      '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎',
+      a: 'ₐ', e: 'ₑ', o: 'ₒ', x: 'ₓ', i: 'ᵢ', n: 'ₙ',
+    };
+    const converted = [...val].map((ch) => subMap[ch] ?? ch).join('');
+    return converted !== val ? converted : `~${val}~`;
+  }
+  if (key === 'sup' || key === 'sobrescrito') {
+    const val = pickParam(call, ['1'], '2');
+    const supMap: Record<string, string> = {
+      '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+      '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+      '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
+      n: 'ⁿ', i: 'ⁱ',
+    };
+    const converted = [...val].map((ch) => supMap[ch] ?? ch).join('');
+    return converted !== val ? converted : `^${val}^`;
+  }
+  if (key === 'sigla' || key === 'abbr' || key === 'abreviacao') {
+    const abbr = pickParam(call, ['1'], 'ONU');
+    const meaning = pickParam(call, ['2']);
+    return meaning ? `**${abbr}** (${meaning})` : `**${abbr}**`;
+  }
+  if (key === 'nowrap' || key === 'sem quebra') {
+    return pickParam(call, ['1'], '');
+  }
+  if (key === 'clear' || key === 'espaco' || key === 'separador') {
+    return '\n\n---\n\n';
+  }
+  if (key === 'n/a' || key === 'na' || key === 'desconhecido' || key === 'tbd') {
+    const custom = pickParam(call, ['1']);
+    if (custom) return `— *${custom}*`;
+    return key === 'tbd' ? '⏳ *A definir*' : '— *N/A*';
+  }
+  if (key === 'estrelas' || key === 'rating' || key === 'nota estrelas') {
+    const scoreRaw = Number.parseFloat(pickParam(call, ['1'], '4').replace(',', '.'));
+    const maxRaw = Number.parseInt(pickParam(call, ['2'], '5'), 10);
+    const max = Number.isFinite(maxRaw) && maxRaw > 0 && maxRaw <= 10 ? maxRaw : 5;
+    const score = Number.isFinite(scoreRaw) ? Math.max(0, Math.min(max, Math.round(scoreRaw))) : 4;
+    return `${'★'.repeat(score)}${'☆'.repeat(max - score)} (${scoreRaw}/${max})`;
+  }
+  if (key === 'bandeira' || key === 'flag' || key === 'flagicon' || key === 'pais bandeira') {
+    const rawCountry = pickParam(call, ['1', 'pais', 'país'], 'Brasil');
+    const normCountry = normalizeTemplateKey(rawCountry);
+    const flagMap: Record<string, [string, string]> = {
+      brasil: ['🇧🇷', 'Brasil'],
+      br: ['🇧🇷', 'Brasil'],
+      portugal: ['🇵🇹', 'Portugal'],
+      pt: ['🇵🇹', 'Portugal'],
+      angola: ['🇦🇴', 'Angola'],
+      mocambique: ['🇲🇿', 'Moçambique'],
+      'cabo verde': ['🇨🇻', 'Cabo Verde'],
+      'estados unidos': ['🇺🇸', 'Estados Unidos'],
+      eua: ['🇺🇸', 'Estados Unidos'],
+      usa: ['🇺🇸', 'Estados Unidos'],
+      us: ['🇺🇸', 'Estados Unidos'],
+      'reino unido': ['🇬🇧', 'Reino Unido'],
+      uk: ['🇬🇧', 'Reino Unido'],
+      gb: ['🇬🇧', 'Reino Unido'],
+      japao: ['🇯🇵', 'Japão'],
+      jp: ['🇯🇵', 'Japão'],
+      franca: ['🇫🇷', 'França'],
+      fr: ['🇫🇷', 'França'],
+      alemanha: ['🇩🇪', 'Alemanha'],
+      de: ['🇩🇪', 'Alemanha'],
+      espanha: ['🇪🇸', 'Espanha'],
+      es: ['🇪🇸', 'Espanha'],
+      italia: ['🇮🇹', 'Itália'],
+      it: ['🇮🇹', 'Itália'],
+      argentina: ['🇦🇷', 'Argentina'],
+      ar: ['🇦🇷', 'Argentina'],
+      canada: ['🇨🇦', 'Canadá'],
+      ca: ['🇨🇦', 'Canadá'],
+      mexico: ['🇲🇽', 'México'],
+      china: ['🇨🇳', 'China'],
+      coreia: ['🇰🇷', 'Coreia do Sul'],
+      'coreia do sul': ['🇰🇷', 'Coreia do Sul'],
+      india: ['🇮🇳', 'Índia'],
+      suecia: ['🇸🇪', 'Suécia'],
+      suica: ['🇨🇭', 'Suíça'],
+      holanda: ['🇳🇱', 'Países Baixos'],
+      'paises baixos': ['🇳🇱', 'Países Baixos'],
+      uniao: ['🇪🇺', 'União Europeia'],
+      ue: ['🇪🇺', 'União Europeia'],
+    };
+    const hit = flagMap[normCountry];
+    return hit ? `${hit[0]} ${hit[1]}` : `🏳️ ${rawCountry}`;
+  }
+  if (key === 'site oficial' || key === 'official website' || key === 'links externos') {
+    const rawUrl = pickParam(call, ['1', 'url'], 'https://exemplo.org');
+    const label = pickParam(call, ['2', 'titulo', 'título', 'nome'], 'Site oficial');
+    const safeUrl = rawUrl.startsWith('http://') || rawUrl.startsWith('https://') ? rawUrl : `https://${rawUrl}`;
+    return `🌐 [${label}](${safeUrl})`;
+  }
+  if (key === 'controle de autoridade' || key === 'authority control' || key === 'viaf') {
+    const entries: string[] = [];
+    const viaf = pickParam(call, ['viaf']);
+    const orcid = pickParam(call, ['orcid']);
+    const lccn = pickParam(call, ['lccn']);
+    const gnd = pickParam(call, ['gnd']);
+    const isni = pickParam(call, ['isni']);
+    const lattes = pickParam(call, ['lattes']);
+    if (viaf) entries.push(`[VIAF: ${viaf}](https://viaf.org/viaf/${encodeURIComponent(viaf)})`);
+    if (orcid) entries.push(`[ORCID: ${orcid}](https://orcid.org/${encodeURIComponent(orcid)})`);
+    if (lccn) entries.push(`LCCN: \`${lccn}\``);
+    if (gnd) entries.push(`GND: \`${gnd}\``);
+    if (isni) entries.push(`ISNI: \`${isni}\``);
+    if (lattes) entries.push(`Lattes: \`${lattes}\``);
+    return serializePredefinicaoBlock({
+      variant: 'navigation',
+      kicker: 'Controle de Autoridade',
+      body:
+        entries.length > 0
+          ? entries.join(' · ')
+          : 'Registros internacionais de catalogação (VIAF, ORCID, LCCN, GND).',
+    });
+  }
+
   // 10. {{Ecossistema WazzimaGiygg}} / {{WazzimaGiygg}} / {{A Verdade}}
   if (
     key === 'ecossistema wazzimagiygg' ||
@@ -6552,6 +8277,8 @@ function resolveBuiltinTemplate(
         rawType === 'site' ||
         rawType === 'website' ||
         rawType === 'sistema' ||
+        rawType === 'so' ||
+        rawType === 'os' ||
         rawType === 'linguagem' ||
         rawType === 'programming language'
       ) {
@@ -6559,6 +8286,8 @@ function resolveBuiltinTemplate(
       }
       if (
         rawType === 'organizacao' ||
+        rawType === 'ong' ||
+        rawType === 'organization' ||
         rawType === 'empresa' ||
         rawType === 'company' ||
         rawType === 'instituicao' ||
@@ -6572,7 +8301,9 @@ function resolveBuiltinTemplate(
         rawType === 'jornal' ||
         rawType === 'revista' ||
         rawType === 'newspaper' ||
-        rawType === 'journal'
+        rawType === 'journal' ||
+        rawType === 'religiao' ||
+        rawType === 'religion'
       ) {
         return 'organization';
       }
@@ -6587,6 +8318,12 @@ function resolveBuiltinTemplate(
         rawType === 'artist' ||
         rawType === 'autor' ||
         rawType === 'escritor' ||
+        rawType === 'writer' ||
+        rawType === 'filosofo' ||
+        rawType === 'philosopher' ||
+        rawType === 'mitologia' ||
+        rawType === 'divindade' ||
+        rawType === 'deity' ||
         rawType === 'atleta' ||
         rawType === 'futebolista' ||
         rawType === 'sportsperson' ||
@@ -6608,9 +8345,31 @@ function resolveBuiltinTemplate(
         rawType === 'city' ||
         rawType === 'municipio' ||
         rawType === 'estado' ||
+        rawType === 'uf' ||
+        rawType === 'provincia' ||
+        rawType === 'state' ||
+        rawType === 'rio' ||
+        rawType === 'lago' ||
+        rawType === 'river' ||
+        rawType === 'montanha' ||
+        rawType === 'vulcao' ||
+        rawType === 'mountain' ||
+        rawType === 'rodovia' ||
+        rawType === 'estrada' ||
+        rawType === 'road' ||
+        rawType === 'museu' ||
+        rawType === 'biblioteca' ||
+        rawType === 'museum' ||
+        rawType === 'parque' ||
+        rawType === 'reserva' ||
+        rawType === 'protected area' ||
         rawType === 'evento' ||
         rawType === 'acontecimento' ||
         rawType === 'event' ||
+        rawType === 'campeonato' ||
+        rawType === 'torneio' ||
+        rawType === 'liga' ||
+        rawType === 'football league' ||
         rawType === 'edificio' ||
         rawType === 'construcao' ||
         rawType === 'building' ||
@@ -6628,6 +8387,10 @@ function resolveBuiltinTemplate(
         rawType === 'livro' ||
         rawType === 'obra' ||
         rawType === 'book' ||
+        rawType === 'hq' ||
+        rawType === 'manga' ||
+        rawType === 'comics' ||
+        rawType === 'comic' ||
         rawType === 'filme' ||
         rawType === 'serie' ||
         rawType === 'tv' ||
@@ -6640,6 +8403,23 @@ function resolveBuiltinTemplate(
         rawType === 'single' ||
         rawType === 'song' ||
         rawType === 'objeto' ||
+        rawType === 'veiculo' ||
+        rawType === 'automovel' ||
+        rawType === 'aviao' ||
+        rawType === 'automobile' ||
+        rawType === 'arma' ||
+        rawType === 'equipamento' ||
+        rawType === 'weapon' ||
+        rawType === 'hardware' ||
+        rawType === 'processador' ||
+        rawType === 'console' ||
+        rawType === 'cpu' ||
+        rawType === 'moeda' ||
+        rawType === 'currency' ||
+        rawType === 'alimento' ||
+        rawType === 'prato' ||
+        rawType === 'bebida' ||
+        rawType === 'food' ||
         rawType === 'taxonomia' ||
         rawType === 'especie' ||
         rawType === 'quimica' ||
