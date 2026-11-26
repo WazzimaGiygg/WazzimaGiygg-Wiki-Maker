@@ -5,6 +5,7 @@ import {
   Check,
   ExternalLink,
   Layers,
+  LayoutList,
   Loader2,
   Plus,
   Search,
@@ -28,6 +29,7 @@ import { ArticleViewer } from './ArticleViewer';
 
 interface TemplatePickerModalProps {
   isOpen: boolean;
+  initialViewMode?: 'picker' | 'all-list';
   existingSlugs: Set<string>;
   wikiPages?: WikiPage[];
   currentUser?: User | null;
@@ -92,8 +94,16 @@ function buildSnippetFromCatalog(
   return `{{${item.name}|${tokens.join('|')}}}`;
 }
 
+const CATEGORY_LABELS: Record<WikiTemplateCatalogItem['category'], string> = {
+  notices: 'Aviso / Política',
+  navigation: 'Navegação & Citação',
+  infobox: 'Infobox',
+  ecosystem: 'Ecossistema',
+};
+
 export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   isOpen,
+  initialViewMode = 'picker',
   existingSlugs,
   wikiPages = [],
   currentUser = null,
@@ -103,6 +113,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   externalLinkPrefix,
   encodeExternalLinkTarget = false,
 }) => {
+  const [viewMode, setViewMode] = React.useState<'picker' | 'all-list'>(initialViewMode);
   const [activeTab, setActiveTab] = React.useState<FilterTab>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedBuiltinId, setSelectedBuiltinId] = React.useState<string>(
@@ -110,6 +121,16 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   );
   const [selectedCustomSlug, setSelectedCustomSlug] = React.useState<string | null>(null);
   const [isCreatingNew, setIsCreatingNew] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setViewMode(initialViewMode);
+      if (initialViewMode === 'all-list') {
+        setIsCreatingNew(false);
+        setActiveTab('all');
+      }
+    }
+  }, [isOpen, initialViewMode]);
 
   const [paramValues, setParamValues] = React.useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
@@ -205,6 +226,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
 
   const handleSelectBuiltin = (item: WikiTemplateCatalogItem) => {
     setIsCreatingNew(false);
+    setViewMode('picker');
     setSelectedCustomSlug(null);
     setSelectedBuiltinId(item.id);
     const next: Record<string, string> = {};
@@ -216,6 +238,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
 
   const handleSelectCustom = (slug: string) => {
     setIsCreatingNew(false);
+    setViewMode('picker');
     setSelectedCustomSlug(slug);
     const target = communityTemplates.find((item) => item.slug === slug);
     const next: Record<string, string> = {};
@@ -228,6 +251,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   };
 
   const handleStartCreateMode = () => {
+    setViewMode('picker');
     setIsCreatingNew(true);
     setCreateError(null);
     setCreateSuccessMsg(null);
@@ -347,6 +371,26 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
+              onClick={() => {
+                setIsCreatingNew(false);
+                setViewMode((prev) => (prev === 'all-list' ? 'picker' : 'all-list'));
+              }}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
+                !isCreatingNew && viewMode === 'all-list'
+                  ? 'border-blue-700 bg-blue-700 text-white'
+                  : 'border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <LayoutList className="w-3.5 h-3.5" />
+              <span>
+                {!isCreatingNew && viewMode === 'all-list'
+                  ? 'Modo Configurador'
+                  : `Listar Todas (${WIKI_TEMPLATE_CATALOG.length + communityTemplates.length})`}
+              </span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleStartCreateMode}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                 isCreatingNew
@@ -410,7 +454,163 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
           </div>
         )}
 
-        {/* Body split: Catalog list + Configuration/Creation & Live Preview */}
+        {/* Body: Either Complete Directory View OR Split Picker/Creation */}
+        {!isCreatingNew && viewMode === 'all-list' ? (
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5 bg-white dark:bg-[#0f1623]">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                Catálogo completo exibindo{' '}
+                <strong className="font-semibold text-slate-900 dark:text-slate-100">
+                  {filteredBuiltin.length + filteredCustom.length}
+                </strong>{' '}
+                de{' '}
+                <strong className="font-semibold text-slate-900 dark:text-slate-100">
+                  {WIKI_TEMPLATE_CATALOG.length + communityTemplates.length}
+                </strong>{' '}
+                pré-definições disponíveis. Clique em <strong>Inserir</strong> para adicionar direto no artigo ou <strong>Configurar</strong> para preencher parâmetros.
+              </p>
+            </div>
+
+            {filteredBuiltin.length > 0 && (
+              <div className="space-y-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Pré-definições Padrão ({filteredBuiltin.length})
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredBuiltin.map((item) => {
+                    const defaultValues: Record<string, string> = {};
+                    for (const p of item.params) {
+                      defaultValues[p.key] = p.defaultValue ?? '';
+                    }
+                    const quickSnippet = item.exampleSnippet || buildSnippetFromCatalog(item, defaultValues);
+                    return (
+                      <div
+                        key={item.id}
+                        className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0b0f17]/70 p-3.5 flex flex-col justify-between gap-3"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-mono text-xs font-semibold text-blue-800 dark:text-blue-300">
+                              {`{{${item.name}}}`}
+                            </span>
+                            <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                              <span className="px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                {CATEGORY_LABELS[item.category]}
+                              </span>
+                              <span>{(item.language ?? 'pt').toUpperCase()}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            {item.description}
+                          </p>
+                          <code className="block text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-md px-2.5 py-1.5 break-all">
+                            {quickSnippet}
+                          </code>
+                          {item.aliases.length > 1 && (
+                            <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                              Aliases: {item.aliases.slice(0, 5).join(', ')}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200/70 dark:border-slate-800/80">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectBuiltin(item)}
+                            className="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                          >
+                            Configurar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onInsert(quickSnippet);
+                              onClose();
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-blue-700 text-white hover:bg-blue-800 transition-colors cursor-pointer"
+                          >
+                            <Braces className="w-3 h-3" />
+                            <span>Inserir</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {filteredCustom.length > 0 && (
+              <div className="space-y-3">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Da Comunidade ({filteredCustom.length})</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredCustom.map((item) => {
+                    const customDefaults: Record<string, string> = {};
+                    for (const p of item.params) {
+                      customDefaults[p.name] = p.defaultValue;
+                    }
+                    const quickInvocation = buildTemplateInvocation(item.title, customDefaults, true);
+                    return (
+                      <div
+                        key={item.slug}
+                        className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0b0f17]/70 p-3.5 flex flex-col justify-between gap-3"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono text-xs font-semibold text-blue-800 dark:text-blue-300 truncate">
+                              {item.title}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 shrink-0">
+                              :{item.slug}
+                            </span>
+                          </div>
+                          {item.description && (
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                              {item.description}
+                            </p>
+                          )}
+                          <code className="block text-[11px] font-mono text-slate-700 dark:text-slate-300 bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-md px-2.5 py-1.5 break-all">
+                            {quickInvocation}
+                          </code>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200/70 dark:border-slate-800/80">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectCustom(item.slug)}
+                            className="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                          >
+                            Configurar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onInsert(quickInvocation);
+                              onClose();
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-blue-700 text-white hover:bg-blue-800 transition-colors cursor-pointer"
+                          >
+                            <Braces className="w-3 h-3" />
+                            <span>Inserir</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {filteredBuiltin.length === 0 && filteredCustom.length === 0 && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 py-10 text-center">
+                Nenhuma pré-definição encontrada para "{searchQuery}".
+              </p>
+            )}
+          </div>
+        ) : (
         <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
           {/* Left column: Template List */}
           <div className="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 overflow-y-auto p-4 space-y-4 max-h-64 lg:max-h-none">
@@ -864,6 +1064,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
             )}
           </div>
         </div>
+        )}
 
         {/* Footer */}
         <div className="px-5 py-3.5 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70 dark:bg-[#0b0f17]/70">
@@ -876,7 +1077,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              Cancelar
+              {viewMode === 'all-list' && !isCreatingNew ? 'Fechar' : 'Cancelar'}
             </button>
             {isCreatingNew ? (
               <>
@@ -903,7 +1104,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   <span>Salvar e Inserir</span>
                 </button>
               </>
-            ) : (
+            ) : viewMode === 'picker' ? (
               <button
                 type="button"
                 onClick={handleInsertClick}
@@ -912,7 +1113,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                 <Braces className="w-3.5 h-3.5" />
                 <span>Inserir predefinição</span>
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

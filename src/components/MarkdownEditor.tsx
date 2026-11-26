@@ -16,6 +16,7 @@ import {
   Heading3,
   Image as ImageIcon,
   Italic,
+  LayoutList,
   Link2,
   List,
   ListChecks,
@@ -57,6 +58,7 @@ import {
 } from './FormattedMarkdownPane';
 import { InfoboxBuilderModal } from './InfoboxBuilderModal';
 import { TemplatePickerModal } from './TemplatePickerModal';
+import { listCommunityTemplates, WIKI_TEMPLATE_CATALOG } from '../services/templateService';
 
 interface MarkdownEditorProps {
   mode: 'create' | 'edit';
@@ -178,6 +180,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [localError, setLocalError] = React.useState<string | null>(null);
   const [infoboxModalOpen, setInfoboxModalOpen] = React.useState(false);
   const [templateModalOpen, setTemplateModalOpen] = React.useState(false);
+  const [templateModalInitialView, setTemplateModalInitialView] = React.useState<'picker' | 'all-list'>('picker');
+
+  const totalTemplatesCount = React.useMemo(
+    () => WIKI_TEMPLATE_CATALOG.length + listCommunityTemplates(wikiPages).length,
+    [wikiPages]
+  );
 
   // Unified Undo (Ctrl+Z) / Redo (Ctrl+R) content history
   const historyStackRef = React.useRef<{
@@ -1138,15 +1146,32 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             </button>
           )}
           {enableTemplatesToolbar && (
-            <button
-              type="button"
-              title="Inserir Pré-definição MediaWiki {{...}} (Ctrl+Shift+T)"
-              onClick={() => setTemplateModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              <Braces className="w-3.5 h-3.5" />
-              <span>Pré-definições</span>
-            </button>
+            <>
+              <button
+                type="button"
+                title="Inserir Pré-definição MediaWiki {{...}} (Ctrl+Shift+T)"
+                onClick={() => {
+                  setTemplateModalInitialView('picker');
+                  setTemplateModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <Braces className="w-3.5 h-3.5" />
+                <span>Pré-definições</span>
+              </button>
+              <button
+                type="button"
+                title="Listar todas as pré-definições disponíveis ({{...}})"
+                onClick={() => {
+                  setTemplateModalInitialView('all-list');
+                  setTemplateModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <LayoutList className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                <span>Listar todas ({totalTemplatesCount})</span>
+              </button>
+            </>
           )}
           {enableReferencesToolbar && (
             <button
@@ -1864,6 +1889,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       {enableTemplatesToolbar && (
         <TemplatePickerModal
           isOpen={templateModalOpen}
+          initialViewMode={templateModalInitialView}
           existingSlugs={existingSlugs}
           wikiPages={wikiPages}
           currentUser={currentUser}
