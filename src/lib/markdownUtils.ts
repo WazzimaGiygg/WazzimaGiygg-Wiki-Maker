@@ -12,6 +12,7 @@ export interface WikiReferenceItem {
   index: number;
   id: string;
   name?: string;
+  group?: string;
   content: string;
   backlinks: string[];
 }
@@ -19,6 +20,8 @@ export interface WikiReferenceItem {
 export interface ExtractedReferencesResult {
   processedMarkdown: string;
   references: WikiReferenceItem[];
+  hasInlineReflist: boolean;
+  inlineReflistGroups: string[];
 }
 
 /**
@@ -78,10 +81,16 @@ export function preprocessWikiLinks(markdown: string): string {
 }
 
 const REF_TAG_REGEX =
-  /<ref(?:\s+name\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s/>]+)))?\s*(?:\/>|>([\s\S]*?)<\/ref>)/gi;
+  /<ref((?:\s+[a-zA-Z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s/>]+))*)\s*(?:\/>|>([\s\S]*?)<\/ref>)/gi;
+
+const REFERENCES_BLOCK_REGEX =
+  /<references((?:\s+[a-zA-Z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s/>]+))*)\s*(?:\/>|>([\s\S]*?)<\/references>)/gi;
+
+const NESTED_REF_REGEX =
+  /<ref((?:\s+[a-zA-Z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s/>]+))*)\s*>\s*<ref((?:\s+[a-zA-Z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s/>]+))*)\s*>([\s\S]*?)<\/ref>\s*<\/ref>/gi;
 
 const INFOBOX_SKIP_REGEX =
-  /(^:::(?:infobox|predefinicao)(?:[ \t]+[a-zA-Z0-9_-]+)?[ \t]*\r?\n[\s\S]*?^:::[ \t]*$)/gm;
+  /(^:::(?:infobox|predefinicao|reflist)(?:[ \t]+[a-zA-Z0-9_-]+)?[ \t]*\r?\n[\s\S]*?^:::[ \t]*$)/gm;
 
 function normalizeRefBody(raw: string): string {
   return raw
@@ -90,32 +99,116 @@ function normalizeRefBody(raw: string): string {
     .trim();
 }
 
+function parseTagAttributes(rawAttrs: string): { name: string; group: string } {
+  let name = '';
+  let group = '';
+  const attrRegex = /([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s/>]+))/g;
+  let m: RegExpExecArray | null;
+  while ((m = attrRegex.exec(rawAttrs)) !== null) {
+    const key = m[1].toLowerCase();
+    const val = (m[2] ?? m[3] ?? m[4] ?? '').trim();
+    if (key === 'name' && val) {
+      name = val;
+    } else if (key === 'group' && val) {
+      group = val;
+    }
+  }
+  return { name, group };
+}
+
+function formatRefAttributes(attrs: { name?: string; group?: string }): string {
+  const parts: string[] = [];
+  if (attrs.name) parts.push(`name="${attrs.name.replace(/"/g, '')}"`);
+  if (attrs.group) parts.push(`group="${attrs.group.replace(/"/g, '')}"`);
+  return parts.length > 0 ? ` ${parts.join(' ')}` : '';
+}
+
+function serializeReflistDirective(group?: string): string {
+  const lines = [':::reflist'];
+  if (group) {
+    lines.push(`group: ${group}`);
+  }
+  lines.push(':::');
+  return lines.join('\n');
+}
+
+function detectInlineReflistGroups(markdown: string): string[] {
+  const groups = new Set<string>();
+  const regex = /^:::reflist(?:[ \t]+[a-zA-Z0-9_-]+)?[ \t]*\r?\n([\s\S]*?)^:::[ \t]*$/gm;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(markdown)) !== null) {
+    let group = '';
+    for (const rawLine of m[1].split(/\r?\n/)) {
+      const line = rawLine.trim();
+      const colonIdx = line.indexOf(':');
+      if (colonIdx > 0 && line.slice(0, colonIdx).trim().toLowerCase() === 'group') {
+        group = line.slice(colonIdx + 1).trim();
+      }
+    }
+    groups.add(group);
+  }
+  return Array.from(groups);
+}
+
 /**
- * Extracts `<ref>` and `<ref name="...">` bibliographic tags from Markdown outside
- * fenced/inline code blocks and `:::infobox` blocks, replacing each citation with
- * a numbered inline marker link (`https://wiki.ref/<index>/<backlinkId>`).
+ * Extracts `<ref>` / `<ref name="...">` / `<ref group="...">` citations and `<references />`
+ * blocks from Markdown outside fenced/inline code blocks and `:::infobox`/`:::predefinicao` blocks,
+ * replacing each citation with a numbered inline marker link (`https://wiki.ref/<label>/<backlinkId>`).
  */
 export function extractArticleReferences(markdown: string): ExtractedReferencesResult {
-  if (!markdown || !/<ref[\s>]/i.test(markdown)) {
-    return { processedMarkdown: markdown, references: [] };
+  const inlineGroupsFromDirectives = detectInlineReflistGroups(markdown);
+  const hasTags = /<(?:ref|references)[\s>/]/i.test(markdown);
+
+  if (!markdown || !hasTags) {
+    return {
+      processedMarkdown: markdown,
+      references: [],
+      hasInlineReflist: inlineGroupsFromDirectives.length > 0,
+      inlineReflistGroups: inlineGroupsFromDirectives,
+    };
   }
 
   const codeParts = markdown.split(/(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]+`)/g);
   const namedDefinitions = new Map<string, string>();
+  const inlineGroupsSet = new Set<string>(inlineGroupsFromDirectives);
 
-  // Pass 1: collect named reference definitions anywhere in prose (supports forward refs)
-  for (let i = 0; i < codeParts.length; i++) {
+  // Pass 0: unwrap nested <ref><ref>...</ref></ref> produced when {{Citar ...}} sits inside <ref>...</ref>
+  const normalizedCodeParts = codeParts.map((segment, i) => {
+    if (i % 2 === 1) return segment;
+    const subParts = segment.split(INFOBOX_SKIP_REGEX);
+    return subParts
+      .map((sub, j) => {
+        if (j % 2 === 1) return sub;
+        return sub.replace(
+          NESTED_REF_REGEX,
+          (_full, outerAttrs: string, innerAttrs: string, innerBody: string) => {
+            const outer = parseTagAttributes(outerAttrs);
+            const inner = parseTagAttributes(innerAttrs);
+            const merged = formatRefAttributes({
+              name: outer.name || inner.name || undefined,
+              group: outer.group || inner.group || undefined,
+            });
+            return `<ref${merged}>${innerBody}</ref>`;
+          }
+        );
+      })
+      .join('');
+  });
+
+  // Pass 1: collect named reference definitions anywhere in prose and inside <references>...</references>
+  for (let i = 0; i < normalizedCodeParts.length; i++) {
     if (i % 2 === 1) continue;
-    const subParts = codeParts[i].split(INFOBOX_SKIP_REGEX);
+    const subParts = normalizedCodeParts[i].split(INFOBOX_SKIP_REGEX);
     for (let j = 0; j < subParts.length; j++) {
       if (j % 2 === 1) continue;
       REF_TAG_REGEX.lastIndex = 0;
       let match: RegExpExecArray | null;
       while ((match = REF_TAG_REGEX.exec(subParts[j])) !== null) {
-        const refName = (match[1] ?? match[2] ?? match[3] ?? '').trim();
-        const body = normalizeRefBody(match[4] ?? '');
-        if (refName && body && !namedDefinitions.has(refName)) {
-          namedDefinitions.set(refName, body);
+        const { name, group } = parseTagAttributes(match[1] ?? '');
+        const body = normalizeRefBody(match[2] ?? '');
+        const defKey = `${group}::${name}`;
+        if (name && body && !namedDefinitions.has(defKey)) {
+          namedDefinitions.set(defKey, body);
         }
       }
     }
@@ -123,49 +216,66 @@ export function extractArticleReferences(markdown: string): ExtractedReferencesR
 
   const references: WikiReferenceItem[] = [];
   const namedItems = new Map<string, WikiReferenceItem>();
+  const groupCounters = new Map<string, number>();
 
-  // Pass 2: assign sequential 1-based numbers and rewrite citations in document order
-  const processedMarkdown = codeParts
+  // Pass 2: convert <references ... /> blocks to :::reflist and rewrite <ref> citations in document order
+  const processedMarkdown = normalizedCodeParts
     .map((segment, i) => {
       if (i % 2 === 1) return segment;
       const subParts = segment.split(INFOBOX_SKIP_REGEX);
       return subParts
         .map((sub, j) => {
           if (j % 2 === 1) return sub;
+
+          // Replace <references /> or <references>...</references> (list-defined refs already harvested in Pass 1)
+          const withoutReferencesTag = sub.replace(
+            REFERENCES_BLOCK_REGEX,
+            (_fullMatch, rawAttrs: string) => {
+              const { group } = parseTagAttributes(rawAttrs ?? '');
+              inlineGroupsSet.add(group);
+              return `\n\n${serializeReflistDirective(group || undefined)}\n\n`;
+            }
+          );
+
           REF_TAG_REGEX.lastIndex = 0;
-          return sub.replace(
+          return withoutReferencesTag.replace(
             REF_TAG_REGEX,
-            (fullMatch, g1?: string, g2?: string, g3?: string, g4?: string) => {
-              const refName = (g1 ?? g2 ?? g3 ?? '').trim();
-              const inlineBody = normalizeRefBody(g4 ?? '');
+            (fullMatch, rawAttrs: string, rawBody?: string) => {
+              const { name: refName, group: refGroup } = parseTagAttributes(rawAttrs ?? '');
+              const inlineBody = normalizeRefBody(rawBody ?? '');
+              const defKey = `${refGroup}::${refName}`;
               const resolvedBody =
                 inlineBody ||
-                (refName ? namedDefinitions.get(refName) ?? '' : '');
+                (refName ? namedDefinitions.get(defKey) ?? '' : '');
 
               if (!resolvedBody && !refName) {
                 return fullMatch;
               }
 
-              let item = refName ? namedItems.get(refName) : undefined;
+              let item = refName ? namedItems.get(defKey) : undefined;
               if (!item) {
-                const index = references.length + 1;
-                const id = `ref-${index}`;
+                const nextIndex = (groupCounters.get(refGroup) ?? 0) + 1;
+                groupCounters.set(refGroup, nextIndex);
+                const groupSlug = refGroup ? `${toWikiSlug(refGroup) || 'grupo'}-` : '';
+                const id = `ref-${groupSlug}${nextIndex}`;
                 item = {
-                  index,
+                  index: nextIndex,
                   id,
                   ...(refName ? { name: refName } : {}),
+                  ...(refGroup ? { group: refGroup } : {}),
                   content: resolvedBody || `Referência "${refName}"`,
                   backlinks: [],
                 };
                 references.push(item);
                 if (refName) {
-                  namedItems.set(refName, item);
+                  namedItems.set(defKey, item);
                 }
               }
 
               const backlinkId = `cite-${item.id}-${item.backlinks.length + 1}`;
               item.backlinks.push(backlinkId);
-              return `[${item.index}](https://wiki.ref/${item.index}/${backlinkId})`;
+              const markerLabel = item.group ? `${item.group} ${item.index}` : `${item.index}`;
+              return `[${markerLabel}](https://wiki.ref/${encodeURIComponent(markerLabel)}/${backlinkId})`;
             }
           );
         })
@@ -173,7 +283,14 @@ export function extractArticleReferences(markdown: string): ExtractedReferencesR
     })
     .join('');
 
-  return { processedMarkdown, references };
+  const inlineReflistGroups = Array.from(inlineGroupsSet);
+
+  return {
+    processedMarkdown,
+    references,
+    hasInlineReflist: inlineReflistGroups.length > 0,
+    inlineReflistGroups,
+  };
 }
 
 export type InfoboxType =
@@ -343,10 +460,17 @@ const VALID_TEMPLATE_VARIANTS = new Set<TemplateBlockVariant>([
   'ecosystem',
 ]);
 
+export interface ReflistBlock {
+  group?: string;
+  columns?: 1 | 2 | 3;
+  title?: string;
+}
+
 export type MarkdownSegment =
   | { kind: 'markdown'; content: string }
   | { kind: 'infobox'; infobox: InfoboxBlock }
-  | { kind: 'predefinicao'; template: PredefinicaoBlock };
+  | { kind: 'predefinicao'; template: PredefinicaoBlock }
+  | { kind: 'reflist'; reflist: ReflistBlock };
 
 function normalizeInfoboxType(raw?: string): InfoboxType {
   const candidate = (raw ?? 'general').trim().toLowerCase() as InfoboxType;
@@ -399,6 +523,34 @@ function parsePredefinicaoBody(rawVariant: string | undefined, bodyText: string)
     source,
     meta,
   };
+}
+
+function parseReflistBody(rawArg: string | undefined, bodyText: string): ReflistBlock {
+  let group = rawArg?.trim() || undefined;
+  let columns: 1 | 2 | 3 | undefined;
+  let title: string | undefined;
+
+  for (const rawLine of bodyText.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx <= 0) continue;
+    const key = line.slice(0, colonIdx).trim().toLowerCase();
+    const val = line.slice(colonIdx + 1).trim();
+
+    if (key === 'group' && val) {
+      group = val;
+    } else if (key === 'columns') {
+      const parsed = Number.parseInt(val, 10);
+      if (parsed === 1 || parsed === 2 || parsed === 3) {
+        columns = parsed;
+      }
+    } else if (key === 'title' && val) {
+      title = val;
+    }
+  }
+
+  return { group, columns, title };
 }
 
 function parseInfoboxBody(rawType: string | undefined, body: string): InfoboxBlock {
@@ -473,7 +625,7 @@ export function parseMarkdownWithInfoboxes(markdown: string): MarkdownSegment[] 
   };
 
   const directiveRegex =
-    /^:::(infobox|predefinicao)(?:[ \t]+([a-zA-Z0-9_-]+))?[ \t]*\r?\n([\s\S]*?)^:::[ \t]*$/gm;
+    /^:::(infobox|predefinicao|reflist)(?:[ \t]+([a-zA-Z0-9_-]+))?[ \t]*\r?\n([\s\S]*?)^:::[ \t]*$/gm;
 
   for (let i = 0; i < codeChunks.length; i++) {
     const chunk = codeChunks[i];
@@ -498,6 +650,11 @@ export function parseMarkdownWithInfoboxes(markdown: string): MarkdownSegment[] 
         segments.push({
           kind: 'predefinicao',
           template: parsePredefinicaoBody(match[2], match[3]),
+        });
+      } else if (match[1] === 'reflist') {
+        segments.push({
+          kind: 'reflist',
+          reflist: parseReflistBody(match[2], match[3]),
         });
       } else {
         segments.push({
@@ -602,7 +759,7 @@ export function extractToc(
     }
     if (inCodeFence) continue;
 
-    if (!inInfobox && /^:::(?:infobox|predefinicao)(?:\s+[a-zA-Z0-9_-]+)?$/.test(trimmed)) {
+    if (!inInfobox && /^:::(?:infobox|predefinicao|reflist)(?:\s+[a-zA-Z0-9_-]+)?$/.test(trimmed)) {
       inInfobox = true;
       continue;
     }

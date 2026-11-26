@@ -2,6 +2,7 @@ import React from 'react';
 import type { User } from 'firebase/auth';
 import {
   AlertTriangle,
+  Blocks,
   Bold,
   BookMarked,
   Braces,
@@ -20,6 +21,7 @@ import {
   Link2,
   List,
   ListChecks,
+  ListOrdered,
   Loader2,
   Lock,
   PanelRight,
@@ -56,7 +58,9 @@ import {
   type FormattedEditorHandle,
   type RichFormatCommand,
 } from './FormattedMarkdownPane';
+import { CitationBuilderModal } from './CitationBuilderModal';
 import { InfoboxBuilderModal } from './InfoboxBuilderModal';
+import { TemplateManagementPanel } from './TemplateManagementPanel';
 import { TemplatePickerModal } from './TemplatePickerModal';
 import { listCommunityTemplates, WIKI_TEMPLATE_CATALOG } from '../services/templateService';
 
@@ -181,6 +185,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [infoboxModalOpen, setInfoboxModalOpen] = React.useState(false);
   const [templateModalOpen, setTemplateModalOpen] = React.useState(false);
   const [templateModalInitialView, setTemplateModalInitialView] = React.useState<'picker' | 'all-list'>('picker');
+  const [templateManagerOpen, setTemplateManagerOpen] = React.useState(false);
+  const [citationModalOpen, setCitationModalOpen] = React.useState(false);
 
   const totalTemplatesCount = React.useMemo(
     () => WIKI_TEMPLATE_CATALOG.length + listCommunityTemplates(wikiPages).length,
@@ -590,14 +596,35 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     insertBlockAtCursor(blockText);
   };
 
-  const handleInsertReference = () => {
+  const handleInsertInlineCitation = (snippet: string) => {
     if (targetIsFormatted) {
-      formattedPaneRef.current?.insertRawWikiSnippet(
-        '<ref>Autor, Título (Ano). https://...</ref>'
-      );
+      formattedPaneRef.current?.insertRawWikiSnippet(snippet);
       return;
     }
-    insertSnippet('<ref>', '</ref>', 'Autor, Título (Ano). https://...');
+    const el = textareaRef.current;
+    const currentVal = contentRef.current;
+    if (!el) {
+      commitContentChange(`${currentVal}${snippet}`, true);
+      return;
+    }
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const next = currentVal.slice(0, start) + snippet + currentVal.slice(end);
+    commitContentChange(next, true);
+    const caret = start + snippet.length;
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(caret, caret);
+    });
+  };
+
+  const handleInsertReference = () => {
+    setCitationModalOpen(true);
+  };
+
+  const handleInsertReferenceList = () => {
+    const listTag = enableTemplatesPreview ? '{{Reflist}}' : '<references />';
+    handleInsertWikiStructure(`## ${referencesTitle}\n\n${listTag}`);
   };
 
   const handleBannerFileSelected = async (file: File | null) => {
@@ -690,7 +717,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   // Capture Ctrl+H (Find & Replace), Ctrl+Z (Undo), Ctrl+R (Redo) safely so browser defaults (history/reload) never fire while editing
   React.useEffect(() => {
     const handleCaptureShortcuts = (e: KeyboardEvent) => {
-      if (e.isComposing || infoboxModalOpen || templateModalOpen) return;
+      if (e.isComposing || infoboxModalOpen || templateModalOpen || citationModalOpen) return;
       const isMod = e.metaKey || e.ctrlKey;
       if (!isMod || e.altKey) return;
 
@@ -732,10 +759,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
     window.addEventListener('keydown', handleCaptureShortcuts, true);
     return () => window.removeEventListener('keydown', handleCaptureShortcuts, true);
-  }, [infoboxModalOpen, templateModalOpen, openFindReplace, handleUndo, handleRedo]);
+  }, [infoboxModalOpen, templateModalOpen, citationModalOpen, openFindReplace, handleUndo, handleRedo]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.nativeEvent.isComposing || infoboxModalOpen || templateModalOpen) return;
+    if (e.nativeEvent.isComposing || infoboxModalOpen || templateModalOpen || citationModalOpen) return;
 
     const isMod = e.metaKey || e.ctrlKey;
     const keyLower = e.key.toLowerCase();
@@ -1134,6 +1161,22 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       {/* Editor Header: View Mode Switcher & Quick Structure Tools */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-1.5">
+          {(enableTemplatesToolbar || enableInfoboxToolbar) && (
+            <button
+              type="button"
+              aria-expanded={templateManagerOpen}
+              title="Abrir painel de Gestão de Predefinições (Infoboxes, Alertas e Navegação)"
+              onClick={() => setTemplateManagerOpen((open) => !open)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                templateManagerOpen
+                  ? 'border-blue-700 bg-blue-700 text-white'
+                  : 'border-blue-200 dark:border-blue-900/70 text-blue-700 dark:text-blue-300 bg-blue-50/70 dark:bg-blue-950/35 hover:bg-blue-100/70 dark:hover:bg-blue-950/60'
+              }`}
+            >
+              <Blocks className="w-3.5 h-3.5" />
+              <span>Gestão de Predefinições</span>
+            </button>
+          )}
           {enableInfoboxToolbar && (
             <button
               type="button"
@@ -1174,18 +1217,29 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             </>
           )}
           {enableReferencesToolbar && (
-            <button
-              type="button"
-              title="Inserir citação bibliográfica <ref> (Ctrl+Shift+R)"
-              onMouseDown={(e) => {
-                if (targetIsFormatted) e.preventDefault();
-              }}
-              onClick={handleInsertReference}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
-            >
-              <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-              <span>&lt;ref&gt;</span>
-            </button>
+            <>
+              <button
+                type="button"
+                title="Inserir citação bibliográfica no padrão MediaWiki / Wikipédia (Ctrl+Shift+R)"
+                onClick={handleInsertReference}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                <span>Citar (&lt;ref&gt;)</span>
+              </button>
+              <button
+                type="button"
+                title="Inserir seção de Lista de Referências ligada às citações {{Reflist}}"
+                onMouseDown={(e) => {
+                  if (targetIsFormatted) e.preventDefault();
+                }}
+                onClick={handleInsertReferenceList}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              >
+                <ListOrdered className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                <span>Lista de Referências</span>
+              </button>
+            </>
           )}
         </div>
 
@@ -1252,6 +1306,28 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </button>
         </div>
       </div>
+
+      {templateManagerOpen && (enableTemplatesToolbar || enableInfoboxToolbar) && (
+        <TemplateManagementPanel
+          existingSlugs={existingSlugs}
+          wikiPages={wikiPages}
+          externalLinkPrefix={externalLinkPrefix}
+          encodeExternalLinkTarget={encodeExternalLinkTarget}
+          onInsert={handleInsertWikiStructure}
+          onClose={() => setTemplateManagerOpen(false)}
+          onOpenInfoboxBuilder={
+            enableInfoboxToolbar ? () => setInfoboxModalOpen(true) : undefined
+          }
+          onOpenFullCatalog={
+            enableTemplatesToolbar
+              ? () => {
+                  setTemplateModalInitialView('all-list');
+                  setTemplateModalOpen(true);
+                }
+              : undefined
+          }
+        />
+      )}
 
       {/* Editor Area: Visual Toolbar + Formatted / Code / Side-by-Side / Preview */}
       {paneMode !== 'preview' ? (
@@ -1898,6 +1974,21 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           onNavigateSlug={onNavigateSlug}
           externalLinkPrefix={externalLinkPrefix}
           encodeExternalLinkTarget={encodeExternalLinkTarget}
+        />
+      )}
+
+      {enableReferencesToolbar && (
+        <CitationBuilderModal
+          isOpen={citationModalOpen}
+          currentContent={content}
+          existingSlugs={existingSlugs}
+          wikiPages={wikiPages}
+          enableTemplates={enableTemplatesPreview}
+          externalLinkPrefix={externalLinkPrefix}
+          encodeExternalLinkTarget={encodeExternalLinkTarget}
+          onClose={() => setCitationModalOpen(false)}
+          onInsertInline={handleInsertInlineCitation}
+          onInsertBlock={handleInsertWikiStructure}
         />
       )}
     </div>

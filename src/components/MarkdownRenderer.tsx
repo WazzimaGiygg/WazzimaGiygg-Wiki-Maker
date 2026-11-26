@@ -18,6 +18,7 @@ import {
 } from '../lib/extensionsService';
 import { ReferencesFooter } from './ReferencesFooter';
 import { TableOfContents } from './TableOfContents';
+import { WikiCitationBadge } from './WikiCitationBadge';
 import { WikiInfobox } from './WikiInfobox';
 import { WikiTemplateBlock } from './WikiTemplateBlock';
 
@@ -84,12 +85,30 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     [content, wikiPages, currentSlug, enableTemplates]
   );
 
-  const { processedMarkdown, references } = React.useMemo(
+  const { processedMarkdown, references, inlineReflistGroups } = React.useMemo(
     () =>
       enableReferences
         ? extractArticleReferences(expandedContent)
-        : { processedMarkdown: expandedContent, references: [] },
+        : {
+            processedMarkdown: expandedContent,
+            references: [],
+            hasInlineReflist: false,
+            inlineReflistGroups: [],
+          },
     [expandedContent, enableReferences]
+  );
+
+  const inlineReflistGroupSet = React.useMemo(
+    () => new Set(inlineReflistGroups.map((g) => g.trim().toLowerCase())),
+    [inlineReflistGroups]
+  );
+
+  const footerReferences = React.useMemo(
+    () =>
+      references.filter(
+        (ref) => !inlineReflistGroupSet.has((ref.group ?? '').trim().toLowerCase())
+      ),
+    [references, inlineReflistGroupSet]
   );
   const segments = React.useMemo(
     () =>
@@ -192,6 +211,31 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           );
         }
 
+        if (segment.kind === 'reflist') {
+          const targetGroup = segment.reflist.group ?? '';
+          return (
+            <React.Fragment key={`reflist-${index}-${targetGroup || 'default'}`}>
+              {leadingToc}
+              {enableReferences && (
+                <ReferencesFooter
+                  inline
+                  references={references}
+                  group={targetGroup}
+                  columns={segment.reflist.columns ?? 1}
+                  title={
+                    segment.reflist.title ||
+                    (targetGroup ? `Notas (${targetGroup})` : referencesTitle)
+                  }
+                  existingSlugs={existingSlugs}
+                  onNavigateSlug={onNavigateSlug}
+                  externalLinkPrefix={externalLinkPrefix}
+                  encodeExternalLinkTarget={encodeExternalLinkTarget}
+                />
+              )}
+            </React.Fragment>
+          );
+        }
+
         const processed = preprocessWikiLinks(segment.content);
         return (
           <React.Fragment key={`md-${index}`}>
@@ -207,35 +251,30 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                     if (href && href.startsWith('https://wiki.ref/')) {
                       const refPath = href.replace('https://wiki.ref/', '');
                       const slashIndex = refPath.indexOf('/');
-                      const refIndexStr =
+                      const rawLabel =
                         slashIndex === -1 ? refPath : refPath.slice(0, slashIndex);
+                      let decodedLabel = rawLabel;
+                      try {
+                        decodedLabel = decodeURIComponent(rawLabel);
+                      } catch {
+                        // Keep rawLabel if malformed URI component
+                      }
                       const backlinkId =
                         slashIndex === -1 ? '' : refPath.slice(slashIndex + 1);
-                      const refItem = references.find(
-                        (r) => String(r.index) === refIndexStr
-                      );
-                      const refAnchorId = refItem ? refItem.id : `ref-${refIndexStr}`;
+                      const refItem =
+                        references.find((r) => backlinkId && r.backlinks.includes(backlinkId)) ??
+                        references.find((r) => String(r.index) === decodedLabel);
 
                       return (
-                        <sup className="inline-block ml-0.5 align-super leading-none">
-                          <a
-                            id={backlinkId || undefined}
-                            href={`#${refAnchorId}`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              scrollToWikiAnchor(refAnchorId, 'center');
-                            }}
-                            title={
-                              refItem
-                                ? `Referência [${refIndexStr}]: ${refItem.content}`
-                                : `Referência [${refIndexStr}]`
-                            }
-                            aria-label={`Ir para referência ${refIndexStr}`}
-                            className="scroll-mt-24 inline-block px-0.5 font-mono text-[11px] font-semibold tabular-nums text-blue-700 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 rounded cursor-pointer no-underline"
-                          >
-                            [{refIndexStr}]
-                          </a>
-                        </sup>
+                        <WikiCitationBadge
+                          label={decodedLabel}
+                          backlinkId={backlinkId || undefined}
+                          refItem={refItem}
+                          existingSlugs={existingSlugs}
+                          onNavigateSlug={onNavigateSlug}
+                          externalLinkPrefix={externalLinkPrefix}
+                          encodeExternalLinkTarget={encodeExternalLinkTarget}
+                        />
                       );
                     }
 
@@ -304,9 +343,9 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         );
       })}
       {tocInsertIndex === segments.length && tocNode}
-      {enableReferences && showReferencesFooter && (
+      {enableReferences && showReferencesFooter && footerReferences.length > 0 && (
         <ReferencesFooter
-          references={references}
+          references={footerReferences}
           title={referencesTitle}
           existingSlugs={existingSlugs}
           onNavigateSlug={onNavigateSlug}

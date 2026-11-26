@@ -1966,13 +1966,29 @@ function WikiWorkspace() {
     [activePage, expandedActiveContent]
   );
 
-  const articleReferences = React.useMemo(
+  const articleRefExtraction = React.useMemo(
     () =>
       activePage && refsExt.enabled
-        ? extractArticleReferences(expandedActiveContent).references
-        : [],
+        ? extractArticleReferences(expandedActiveContent)
+        : {
+            processedMarkdown: expandedActiveContent,
+            references: [],
+            hasInlineReflist: false,
+            inlineReflistGroups: [],
+          },
     [activePage, expandedActiveContent, refsExt.enabled]
   );
+
+  const articleReferences = articleRefExtraction.references;
+
+  const footerArticleReferences = React.useMemo(() => {
+    const inlineGroupSet = new Set(
+      articleRefExtraction.inlineReflistGroups.map((g) => g.trim().toLowerCase())
+    );
+    return articleReferences.filter(
+      (ref) => !inlineGroupSet.has((ref.group ?? '').trim().toLowerCase())
+    );
+  }, [articleReferences, articleRefExtraction.inlineReflistGroups]);
 
   const tocMinHeadings = Math.max(1, tocExt.settings.minHeadings ?? 2);
   const outlineToc = tocExt.enabled && toc.length >= tocMinHeadings ? toc : [];
@@ -3238,9 +3254,9 @@ function WikiWorkspace() {
                       />
                     </div>
 
-                    {refsExt.enabled && (
+                    {refsExt.enabled && footerArticleReferences.length > 0 && (
                       <ReferencesFooter
-                        references={articleReferences}
+                        references={footerArticleReferences}
                         title={referencesSectionTitle}
                         existingSlugs={existingSlugs}
                         onNavigateSlug={navigateToPage}

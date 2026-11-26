@@ -277,7 +277,13 @@ function collectInlineRuns(
         if (href.startsWith('https://wiki.ref/')) {
           const refPath = href.replace('https://wiki.ref/', '');
           const slashIdx = refPath.indexOf('/');
-          const refNum = slashIdx === -1 ? refPath : refPath.slice(0, slashIdx);
+          const rawRefNum = slashIdx === -1 ? refPath : refPath.slice(0, slashIdx);
+          let refNum = rawRefNum;
+          try {
+            refNum = decodeURIComponent(rawRefNum);
+          } catch {
+            // keep rawRefNum
+          }
           runs.push({
             ...inherited,
             text: `[${refNum}]`,
@@ -1646,18 +1652,40 @@ export async function exportArticleToPdf(
     await writer.renderInfobox(autoUserInfobox);
   }
 
+  const renderedRefGroups = new Set<string>();
+
   for (const segment of segments) {
     if (segment.kind === 'infobox') {
       await writer.renderInfobox(segment.infobox);
     } else if (segment.kind === 'predefinicao') {
       writer.renderPredefinicaoBlock(segment.template);
+    } else if (segment.kind === 'reflist') {
+      if (enableReferences) {
+        const targetGroup = (segment.reflist.group ?? '').trim().toLowerCase();
+        renderedRefGroups.add(targetGroup);
+        const matching = references.filter(
+          (r) => (r.group ?? '').trim().toLowerCase() === targetGroup
+        );
+        if (matching.length > 0) {
+          writer.renderReferencesSection(
+            matching,
+            segment.reflist.title ||
+              (targetGroup ? `${referencesTitle} (${targetGroup})` : referencesTitle)
+          );
+        }
+      }
     } else if (segment.content.trim()) {
       await writer.renderMarkdownBody(segment.content);
     }
   }
 
-  if (enableReferences && references.length > 0) {
-    writer.renderReferencesSection(references, referencesTitle);
+  if (enableReferences) {
+    const remainingRefs = references.filter(
+      (r) => !renderedRefGroups.has((r.group ?? '').trim().toLowerCase())
+    );
+    if (remainingRefs.length > 0) {
+      writer.renderReferencesSection(remainingRefs, referencesTitle);
+    }
   }
 
   writer.applyFooters(siteTitle, page.slug, resolvedTheme);

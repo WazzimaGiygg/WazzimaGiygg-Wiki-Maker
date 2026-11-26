@@ -731,13 +731,26 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   {
     id: 'reflist',
     name: 'Reflist',
-    aliases: ['reflist', 'referencias', 'lista de referencias', 'notas'],
+    aliases: ['reflist', 'referencias', 'lista de referencias', 'notas', 'notelist'],
     category: 'navigation',
     language: 'pt',
     description:
-      'Compatível com {{Reflist}} / {{Referências}} da Wikipédia; orienta o leitor para o painel automático de notas <ref> no rodapé.',
+      'Renderiza a lista numerada e interativa de referências <ref> (compatível com {{Reflist}}, {{Referências}} e <references />) no ponto exato do artigo.',
     exampleSnippet: '{{Reflist}}',
-    params: [],
+    params: [
+      {
+        key: 'colunas',
+        label: 'Colunas (1, 2 ou 3 — opcional)',
+        placeholder: '1',
+        defaultValue: '',
+      },
+      {
+        key: 'group',
+        label: 'Grupo de notas (opcional, ex.: nota)',
+        placeholder: '',
+        defaultValue: '',
+      },
+    ],
   },
   {
     id: 'citar-web',
@@ -5784,18 +5797,27 @@ function resolveBuiltinTemplate(
     return refName ? `<ref name="${refName}">${body}</ref>` : `<ref>${body}</ref>`;
   }
 
-  // 9m. {{Reflist}} / {{Referências}} / {{Lista de referências}} / {{Notas}}
+  // 9m. {{Reflist}} / {{Referências}} / {{Lista de referências}} / {{Notas}} / {{Notelist}}
   if (
     key === 'reflist' ||
     key === 'referencias' ||
     key === 'lista de referencias' ||
-    key === 'notas'
+    key === 'notas' ||
+    key === 'notelist' ||
+    key === 'lista de notas'
   ) {
-    return serializePredefinicaoBlock({
-      variant: 'navigation',
-      kicker: 'Predefinição · Referências',
-      body: 'As citações `<ref>` inseridas neste artigo são numeradas e exibidas automaticamente no painel de **Referências** no rodapé da página.',
-    });
+    const defaultGroup =
+      key === 'notas' || key === 'notelist' || key === 'lista de notas' ? 'nota' : '';
+    const group = pickParam(call, ['group', 'grupo'], defaultGroup).replace(/[\r\n]+/g, ' ').trim();
+    const colsRaw = pickParam(call, ['colunas', 'columns', 'cols', '1']);
+    const colsNum = Number.parseInt(colsRaw, 10);
+    const title = pickParam(call, ['titulo', 'título', 'title']).replace(/[\r\n]+/g, ' ').trim();
+    const lines = [':::reflist'];
+    if (group) lines.push(`group: ${group}`);
+    if (colsNum === 2 || colsNum === 3) lines.push(`columns: ${colsNum}`);
+    if (title) lines.push(`title: ${title}`);
+    lines.push(':::');
+    return `\n\n${lines.join('\n')}\n\n`;
   }
 
   // 9n. {{Sem referências}} / {{Mais notas}} / {{Unreferenced}} / {{Refimprove}} / {{More citations needed}}

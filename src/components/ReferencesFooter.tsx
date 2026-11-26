@@ -15,6 +15,10 @@ import {
 interface ReferencesFooterProps {
   references: WikiReferenceItem[];
   title?: string;
+  group?: string;
+  columns?: 1 | 2 | 3;
+  inline?: boolean;
+  hideHeading?: boolean;
   existingSlugs?: Set<string>;
   onNavigateSlug?: (slug: string) => void;
   className?: string;
@@ -35,55 +39,120 @@ function getBacklinkLabel(idx: number): string {
 export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
   references,
   title = 'Referências',
+  group,
+  columns = 1,
+  inline = false,
+  hideHeading = false,
   existingSlugs,
   onNavigateSlug,
   className = '',
   externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
   encodeExternalLinkTarget = false,
 }) => {
-  if (references.length === 0) {
-    return null;
+  const filteredReferences = React.useMemo(() => {
+    if (group === undefined) return references;
+    const normalizedGroup = group.trim().toLowerCase();
+    return references.filter(
+      (ref) => (ref.group ?? '').trim().toLowerCase() === normalizedGroup
+    );
+  }, [references, group]);
+
+  if (filteredReferences.length === 0) {
+    if (!inline) {
+      return null;
+    }
+    return (
+      <section
+        id={group ? `referencias-${group}` : 'referencias'}
+        aria-label={group ? `Referências (${group})` : 'Referências bibliográficas'}
+        className={`not-prose my-5 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0b0f17] text-xs text-slate-500 dark:text-slate-400 ${className}`.trim()}
+      >
+        <div className="flex items-center gap-2 font-medium text-slate-700 dark:text-slate-300">
+          <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
+          <span>{title}{group ? ` · ${group}` : ''}</span>
+        </div>
+        <p className="mt-1">
+          Nenhuma citação <code className="font-mono text-[11px]">&lt;ref&gt;</code> encontrada
+          {group ? ` para o grupo "${group}"` : ' neste artigo'}.
+        </p>
+      </section>
+    );
   }
+
+  const columnClass =
+    columns === 3
+      ? 'md:columns-2 lg:columns-3 md:gap-6'
+      : columns === 2
+      ? 'md:columns-2 md:gap-6'
+      : '';
+
+  const sectionWrapperClass = inline
+    ? `not-prose my-5 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0b0f17] space-y-3 scroll-mt-20 ${className}`.trim()
+    : `mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3.5 scroll-mt-20 ${className}`.trim();
 
   return (
     <section
-      id="referencias"
-      aria-label="Referências bibliográficas"
-      className={`mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-3.5 scroll-mt-20 ${className}`.trim()}
+      id={group ? `referencias-${group}` : 'referencias'}
+      aria-label={group ? `Referências (${group})` : 'Referências bibliográficas'}
+      className={sectionWrapperClass}
     >
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
-          <BookMarked className="w-4 h-4 text-blue-700 dark:text-blue-400 shrink-0" />
-          <span>{title}</span>
-          <span className="text-xs font-mono font-normal tabular-nums text-slate-500 dark:text-slate-400">
-            · {references.length}
-          </span>
-        </h2>
-      </div>
+      {!hideHeading && (
+        <div className="flex items-center justify-between gap-3">
+          <h2
+            className={`flex items-center gap-2 font-display font-semibold text-slate-900 dark:text-slate-100 ${
+              inline ? 'text-base' : 'text-lg'
+            }`}
+          >
+            <BookMarked className="w-4 h-4 text-blue-700 dark:text-blue-400 shrink-0" />
+            <span>{title}</span>
+            {group && (
+              <span className="text-xs font-mono font-normal text-slate-500 dark:text-slate-400">
+                · {group}
+              </span>
+            )}
+            <span className="text-xs font-mono font-normal tabular-nums text-slate-500 dark:text-slate-400">
+              · {filteredReferences.length}
+            </span>
+          </h2>
+        </div>
+      )}
 
-      <ol className="space-y-2 text-[13px] leading-relaxed text-slate-700 dark:text-slate-300 list-none pl-0">
-        {references.map((ref) => {
+      <ol
+        className={`space-y-2 text-[13px] leading-relaxed text-slate-700 dark:text-slate-300 list-none pl-0 ${columnClass}`.trim()}
+      >
+        {filteredReferences.map((ref) => {
           const processedContent = preprocessWikiLinks(ref.content);
+          const numberLabel = ref.group ? `[${ref.group} ${ref.index}]` : `[${ref.index}]`;
           return (
             <li
               key={ref.id}
               id={ref.id}
-              className="scroll-mt-24 flex items-baseline gap-2.5 px-2 py-1 -mx-2 rounded-md transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/50"
+              className="scroll-mt-24 break-inside-avoid flex items-baseline gap-2 px-2 py-1 -mx-2 rounded-md transition-colors hover:bg-slate-100/80 dark:hover:bg-slate-900/60"
             >
-              <span className="font-mono text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 shrink-0 select-none w-7 text-right">
-                [{ref.index}]
-              </span>
+              <a
+                href={`#${ref.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollToWikiAnchor(ref.id, 'center');
+                }}
+                title={ref.name ? `Referência "${ref.name}"` : `Referência ${numberLabel}`}
+                className="font-mono text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 shrink-0 select-none min-w-[1.75rem] text-right no-underline"
+              >
+                {numberLabel}
+              </a>
 
               <span className="inline-flex items-baseline gap-1 shrink-0 font-mono text-xs select-none">
-                {ref.backlinks.length === 1 ? (
+                {ref.backlinks.length <= 1 ? (
                   <a
-                    href={`#${ref.backlinks[0]}`}
+                    href={`#${ref.backlinks[0] ?? ''}`}
                     onClick={(e) => {
                       e.preventDefault();
-                      scrollToWikiAnchor(ref.backlinks[0], 'center');
+                      if (ref.backlinks[0]) {
+                        scrollToWikiAnchor(ref.backlinks[0], 'center');
+                      }
                     }}
                     title="Voltar à citação no texto"
-                    aria-label={`Voltar à citação ${ref.index} no texto`}
+                    aria-label={`Voltar à citação ${numberLabel} no texto`}
                     className="font-semibold text-blue-700 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 rounded px-0.5 cursor-pointer"
                   >
                     ↑
@@ -103,11 +172,11 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
                             e.preventDefault();
                             scrollToWikiAnchor(backlinkId, 'center');
                           }}
-                          title={`Voltar à ocorrência ${label} da citação ${ref.index}`}
-                          aria-label={`Voltar à ocorrência ${label} da citação ${ref.index}`}
+                          title={`Voltar à ocorrência ${label} da citação ${numberLabel}`}
+                          aria-label={`Voltar à ocorrência ${label} da citação ${numberLabel}`}
                           className="font-medium text-blue-700 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 rounded px-0.5 cursor-pointer"
                         >
-                          {label}
+                          <sup>{label}</sup>
                         </a>
                       );
                     })}
