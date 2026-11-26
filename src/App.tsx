@@ -326,9 +326,9 @@ function WikiWorkspace() {
       notifiedDirtySessionRef.current = true;
       pushToast({
         tone: 'warning',
-        title: 'Alterações não salvas',
+        title: 'Unsaved changes',
         description:
-          'Este artigo foi modificado. Se você sair do artigo sem salvar, perderá todas as alterações.',
+          'This article has been modified. If you leave without saving, all changes will be lost.',
         durationMs: 7000,
       });
     }
@@ -988,13 +988,13 @@ function WikiWorkspace() {
       pushToast({
         tone: isEditingNow ? 'warning' : 'info',
         title: isEditingNow
-          ? 'Artigo atualizado enquanto você edita'
-          : 'Artigo atualizado em tempo real',
-        description: `${activePage.lastEditorName} publicou uma nova revisão de "${activePage.title}".`,
+          ? 'Article updated while you edit'
+          : 'Article updated in real time',
+        description: `${activePage.lastEditorName} published a new revision of "${activePage.title}".`,
         meta: `v${activePage.version} · :${activePage.slug}`,
         ...(historyExt.enabled
           ? {
-              actionLabel: 'Ver histórico',
+              actionLabel: 'View history',
               onAction: () => {
                 setActiveTab('history');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1522,9 +1522,9 @@ function WikiWorkspace() {
               data.summary.trim() ||
               (lockChanged
                 ? data.isLocked
-                  ? `Página :${activePage.slug} bloqueada para edição pela administração.`
-                  : `Proteção de edição removida em :${activePage.slug}.`
-                : `Intervenção administrativa aplicada sobre a edição v${activePage.version} em :${activePage.slug}.`);
+                  ? `Page :${activePage.slug} locked for editing by administration.`
+                  : `Edit protection removed on :${activePage.slug}.`
+                : `Administrative intervention applied to revision v${activePage.version} on :${activePage.slug}.`);
 
             const notice = await notifyUserDiscussionPage({
               targetUid,
@@ -1545,9 +1545,9 @@ function WikiWorkspace() {
               const targetDiscussionSlug = notice.discussionPageSlug;
               pushToast({
                 tone: 'info',
-                title: 'Notificação inserida na página de discussão',
-                description: `O colaborador ${targetName} foi notificado em :${targetDiscussionSlug}.`,
-                actionLabel: 'Abrir discussão',
+                title: 'Notice posted to discussion page',
+                description: `Collaborator ${targetName} was notified at :${targetDiscussionSlug}.`,
+                actionLabel: 'Open discussion',
                 onAction: () => navigateToPage(targetDiscussionSlug),
               });
             }
@@ -1580,9 +1580,9 @@ function WikiWorkspace() {
             const targetDiscussionSlug = speedyNotice.discussionPageSlug;
             pushToast({
               tone: 'info',
-              title: 'Alerta de Eliminação rápida enviado',
-              description: `O autor ${activePage.authorName} foi avisado em :${targetDiscussionSlug}.`,
-              actionLabel: 'Abrir discussão',
+              title: 'Speedy Deletion alert sent',
+              description: `Author ${activePage.authorName} was notified at :${targetDiscussionSlug}.`,
+              actionLabel: 'Open discussion',
               onAction: () => navigateToPage(targetDiscussionSlug),
             });
           }
@@ -1615,7 +1615,7 @@ function WikiWorkspace() {
           targetDisplayName: activePage.lastEditorName,
           actor: user,
           kind: 'edit-reverted',
-          reason: `Edição v${activePage.version} substituída pela restauração administrativa para a versão v${rev.version}.`,
+          reason: `Edit v${activePage.version} replaced by administrative restore to version v${rev.version}.`,
           pageSlug: activePage.slug,
           pageTitle: activePage.title,
           version: activePage.version,
@@ -1624,9 +1624,9 @@ function WikiWorkspace() {
           const targetDiscussionSlug = notice.discussionPageSlug;
           pushToast({
             tone: 'warning',
-            title: 'Notificação inserida na página de discussão',
-            description: `${activePage.lastEditorName} foi notificado em :${targetDiscussionSlug} sobre a reversão da edição v${activePage.version}.`,
-            actionLabel: 'Abrir discussão',
+            title: 'Notice posted to discussion page',
+            description: `${activePage.lastEditorName} was notified at :${targetDiscussionSlug} about reverting revision v${activePage.version}.`,
+            actionLabel: 'Open discussion',
             onAction: () => navigateToPage(targetDiscussionSlug),
           });
         }
@@ -1656,7 +1656,7 @@ function WikiWorkspace() {
           targetDisplayName: pageToDelete.authorName,
           actor: user,
           kind: 'page-deleted',
-          reason: `A página :${pageToDelete.slug} foi excluída pela administração.`,
+          reason: `Page :${pageToDelete.slug} was deleted by administration.`,
           pageSlug: pageToDelete.slug,
           pageTitle: pageToDelete.title,
           version: pageToDelete.version,
@@ -1665,9 +1665,9 @@ function WikiWorkspace() {
           const targetDiscussionSlug = notice.discussionPageSlug;
           pushToast({
             tone: 'warning',
-            title: 'Notificação inserida na página de discussão',
-            description: `${pageToDelete.authorName} foi notificado em :${targetDiscussionSlug}.`,
-            actionLabel: 'Abrir discussão',
+            title: 'Notice posted to discussion page',
+            description: `${pageToDelete.authorName} was notified at :${targetDiscussionSlug}.`,
+            actionLabel: 'Open discussion',
             onAction: () => navigateToPage(targetDiscussionSlug),
           });
         }
@@ -1700,7 +1700,7 @@ function WikiWorkspace() {
         targetDisplayName: targetComment.authorName,
         actor: user,
         kind: 'comment-removed',
-        reason: `Comentário removido pela administração na discussão de :${activePage.slug}.`,
+        reason: `Comment removed by administration on the discussion for :${activePage.slug}.`,
         pageSlug: activePage.slug,
         pageTitle: activePage.title,
       });
@@ -1708,9 +1708,9 @@ function WikiWorkspace() {
         const targetDiscussionSlug = notice.discussionPageSlug;
         pushToast({
           tone: 'info',
-          title: 'Notificação inserida na página de discussão',
-          description: `${targetComment.authorName} foi notificado em :${targetDiscussionSlug}.`,
-          actionLabel: 'Abrir discussão',
+          title: 'Notice posted to discussion page',
+          description: `${targetComment.authorName} was notified at :${targetDiscussionSlug}.`,
+          actionLabel: 'Open discussion',
           onAction: () => navigateToPage(targetDiscussionSlug),
         });
       }
@@ -1925,21 +1925,21 @@ function WikiWorkspace() {
 
       pushToast({
         tone: 'success',
-        title: 'PDF exportado com sucesso',
+        title: 'PDF exported successfully',
         description: `${result.filename} (${result.pageCount} ${
-          result.pageCount === 1 ? 'página' : 'páginas'
-        }) — ${activeTheme.name} · ${effectiveIsDark ? 'Escuro' : 'Claro'}`,
+          result.pageCount === 1 ? 'page' : 'pages'
+        }) — ${activeTheme.name} · ${effectiveIsDark ? 'Dark' : 'Light'}`,
         meta: `:${activePage.slug}`,
         durationMs: 3600,
       });
     } catch (err) {
       pushToast({
         tone: 'warning',
-        title: 'Falha ao gerar PDF',
+        title: 'Failed to generate PDF',
         description:
           err instanceof Error
             ? err.message
-            : 'Não foi possível exportar o artigo para PDF.',
+            : 'Unable to export the article to PDF.',
         meta: `:${activePage.slug}`,
         durationMs: 4500,
       });
@@ -1994,7 +1994,7 @@ function WikiWorkspace() {
   const outlineToc = tocExt.enabled && toc.length >= tocMinHeadings ? toc : [];
   const outlineRefs =
     refsExt.enabled && refsExt.settings.showOutlineLink !== false ? articleReferences : [];
-  const referencesSectionTitle = refsExt.settings.footerTitle || 'Referências';
+  const referencesSectionTitle = refsExt.settings.footerTitle || 'References';
 
   const activeCategoryLabel = activePage
     ? WIKI_CATEGORIES.find((c) => c.id === activePage.category)?.label ?? activePage.category
@@ -2054,11 +2054,11 @@ function WikiWorkspace() {
         >
           <div className="flex items-center gap-2.5 text-sm font-semibold text-slate-900 dark:text-slate-100">
             <RefreshCw className="w-4 h-4 text-blue-700 dark:text-blue-400 animate-spin shrink-0" data-wiki-surface="link" />
-            <span>Carregando extensões de {siteTitle}...</span>
+            <span>Loading {siteTitle} extensions...</span>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            As configurações das extensões são obtidas diretamente do Firebase na abertura do
-            Wiki-site antes da liberação do espaço colaborativo.
+            Extension configurations are loaded directly from Firebase on Wiki-site startup before
+            the collaborative workspace unlocks.
           </p>
           <div className="space-y-2 pt-1">
             <div className="h-2.5 w-full rounded bg-slate-200 dark:bg-slate-800 animate-pulse" />
@@ -2088,16 +2088,15 @@ function WikiWorkspace() {
                 wiki / boot-extensions / unavailable
               </p>
               <h1 className="font-display text-xl font-semibold text-slate-900 dark:text-slate-100">
-                Não foi possível carregar as extensões do Wiki-site
+                Unable to load Wiki-site extensions
               </h1>
             </div>
           </div>
 
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            As extensões do Firebase são carregadas obrigatoriamente na abertura de{' '}
-            <strong>{siteTitle}</strong>. Como o carregamento falhou, o funcionamento do Wiki
-            permanece bloqueado para leitura e edição — exceto mediante login com uma conta de{' '}
-            <strong>Burocrata</strong>.
+            Firebase extensions are required when starting <strong>{siteTitle}</strong>. Because
+            loading failed, the Wiki remains locked for reading and editing — except when signed in
+            with a <strong>Bureaucrat</strong> account.
           </p>
 
           {extensionsBootError && (
@@ -2108,9 +2107,9 @@ function WikiWorkspace() {
 
           {user && (
             <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50/70 dark:bg-amber-950/30 text-xs text-amber-900 dark:text-amber-200">
-              Conectado atualmente como <strong>{user.displayName || user.email}</strong> (nível:{' '}
-              <span className="font-mono">{governanceRole}</span>). Este nível não possui
-              permissão de contingência de Burocrata.
+              Currently signed in as <strong>{user.displayName || user.email}</strong> (role:{' '}
+              <span className="font-mono">{governanceRole}</span>). This role does not have
+              Bureaucrat contingency access.
             </div>
           )}
 
@@ -2121,7 +2120,7 @@ function WikiWorkspace() {
               className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5 shrink-0" />
-              <span>Tentar carregar novamente</span>
+              <span>Try loading again</span>
             </button>
 
             <button
@@ -2131,7 +2130,7 @@ function WikiWorkspace() {
             >
               <Lock className="w-3.5 h-3.5 shrink-0" />
               <span>
-                {user ? 'Trocar para login de Burocrata' : 'Entrar como Burocrata (Google)'}
+                {user ? 'Switch to Bureaucrat sign-in' : 'Sign in as Bureaucrat (Google)'}
               </span>
             </button>
 
@@ -2141,7 +2140,7 @@ function WikiWorkspace() {
                 onClick={() => void handleSignOut()}
                 className="px-3 py-2 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
-                Sair
+                Sign out
               </button>
             )}
           </div>
@@ -2256,11 +2255,11 @@ function WikiWorkspace() {
                 type="button"
                 disabled={allPages.length === 0}
                 onClick={navigateToRandomPage}
-                title="Abrir um artigo aleatório da base de conhecimento"
+                title="Open a random article from the knowledge base"
                 className="inline-flex items-center gap-1.5 hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
               >
                 <Shuffle className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
-                <span>Artigo aleatório</span>
+                <span>Random Article</span>
               </button>
             )}
           </nav>
@@ -2364,11 +2363,11 @@ function WikiWorkspace() {
                 <ShieldAlert className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
                   <div className="font-semibold">
-                    Acesso de contingência de Burocrata — falha ao carregar extensões na abertura
+                    Bureaucrat contingency access — extensions failed to load on startup
                   </div>
                   <div className="text-amber-900/90 dark:text-amber-200/80">
-                    Visitantes e colaboradores permanecem bloqueados até que as extensões carreguem
-                    do Firebase ({extensionsBootError || 'erro desconhecido'}).
+                    Visitors and collaborators remain locked out until extensions load from Firebase
+                    ({extensionsBootError || 'unknown error'}).
                   </div>
                 </div>
               </div>
@@ -2379,14 +2378,14 @@ function WikiWorkspace() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-[#0b0f17] text-amber-950 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 whitespace-nowrap cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Recarregar</span>
+                  <span>Reload</span>
                 </button>
                 <button
                   type="button"
                   onClick={navigateToAdmin}
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-800 text-white hover:bg-amber-900 whitespace-nowrap cursor-pointer"
                 >
-                  Console de Burocratas
+                  Bureaucrat Console
                 </button>
               </div>
             </div>
@@ -2512,7 +2511,7 @@ function WikiWorkspace() {
                   initialSlug={createPresetSlug}
                   initialTitle={
                     createPresetSlug.startsWith('predefinicao-')
-                      ? `Predefinição:${slugToTitle(createPresetSlug.slice('predefinicao-'.length))}`
+                      ? `Template:${slugToTitle(createPresetSlug.slice('predefinicao-'.length))}`
                       : createPresetSlug.startsWith('template-')
                       ? `Template:${slugToTitle(createPresetSlug.slice('template-'.length))}`
                       : createPresetSlug
@@ -2522,9 +2521,9 @@ function WikiWorkspace() {
                   initialContent={
                     createPresetSlug.startsWith('predefinicao-') ||
                     createPresetSlug.startsWith('template-')
-                      ? `<noinclude>\nDocumentação desta predefinição. Uso: \`{{${
+                      ? `<noinclude>\nDocumentation for this template. Usage: \`{{${
                           createPresetSlug.replace(/^(predefinicao-|template-)/, '')
-                        }|texto=...}}\`\n</noinclude>{{Aviso|tipo=nota|título=Predefinição|texto={{{texto|Conteúdo da predefinição.}}}}}`
+                        }|text=...}}\`\n</noinclude>{{Notice|type=notice|title=Template|text={{{text|{{{texto|Template content.}}}}}}}}`
                       : ''
                   }
                   initialCategory={
@@ -2810,10 +2809,10 @@ function WikiWorkspace() {
                           type="button"
                           disabled={exportingPdf}
                           onClick={() => void handleExportPdf()}
-                          title={`Exportar artigo em PDF (${activeTheme.name} · ${
-                            effectiveIsDark ? 'Escuro' : 'Claro'
+                          title={`Export article as PDF (${activeTheme.name} · ${
+                            effectiveIsDark ? 'Dark' : 'Light'
                           })`}
-                          aria-label="Exportar conteúdo do artigo como PDF"
+                          aria-label="Export article content as PDF"
                           data-wiki-surface="inset"
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                         >
@@ -2822,7 +2821,7 @@ function WikiWorkspace() {
                           ) : (
                             <FileDown className="w-3.5 h-3.5 shrink-0" />
                           )}
-                          <span>{exportingPdf ? 'Gerando PDF...' : 'Exportar PDF'}</span>
+                          <span>{exportingPdf ? 'Generating PDF...' : 'Export PDF'}</span>
                         </button>
                       )}
 
@@ -3618,7 +3617,7 @@ function WikiWorkspace() {
                 </a>
               </div>
               <p className="pt-0.5 text-slate-600 dark:text-slate-300 leading-relaxed">
-                Este site pertence ao ecossistema{' '}
+                This site belongs to the{' '}
                 <a
                   href={applyExternalLinkPrefix(
                     LEGAL_GOVERNANCE.ecosystemUrl,
@@ -3631,8 +3630,8 @@ function WikiWorkspace() {
                   className="font-medium text-blue-700 dark:text-blue-400 hover:underline"
                 >
                   {LEGAL_GOVERNANCE.ecosystemDomain}
-                </a>
-                , um projeto <strong className="font-semibold text-slate-800 dark:text-slate-100">WazzimaGiygg</strong>. Confira a verdade sobre os absurdos da Wikipédia no link:{' '}
+                </a>{' '}
+                ecosystem, a <strong className="font-semibold text-slate-800 dark:text-slate-100">WazzimaGiygg</strong> project. Discover the truth about Wikipedia controversies at:{' '}
                 <a
                   href={applyExternalLinkPrefix(
                     LEGAL_GOVERNANCE.truthPortalUrl,
@@ -3741,11 +3740,11 @@ function WikiWorkspace() {
                   id="unsaved-leave-modal-title"
                   className="font-display text-base font-semibold text-slate-900 dark:text-slate-100"
                 >
-                  Sair sem salvar alterações?
+                  Leave without saving changes?
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                  Este artigo foi alterado. Se você sair do artigo sem salvar, perderá todas as
-                  alterações realizadas nesta sessão de edição.
+                  This article has been modified. If you leave without saving, all changes made
+                  during this editing session will be lost.
                 </p>
               </div>
             </div>
@@ -3756,14 +3755,14 @@ function WikiWorkspace() {
                 onClick={() => setPendingLeaveAction(null)}
                 className="px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                Continuar editando
+                Continue editing
               </button>
               <button
                 type="button"
                 onClick={confirmLeaveWithoutSaving}
                 className="px-3.5 py-2 text-xs font-medium rounded-lg bg-red-700 text-white hover:bg-red-800 transition-colors cursor-pointer"
               >
-                Sair e perder alterações
+                Leave and discard changes
               </button>
             </div>
           </div>
@@ -3813,13 +3812,13 @@ const BlockedEmbedScreen: React.FC = () => {
         <div className="flex items-center gap-2.5 text-slate-900 dark:text-slate-100">
           <Lock className="w-5 h-5 text-red-700 dark:text-red-400 shrink-0" />
           <h1 className="font-display text-lg font-semibold">
-            Exibição em iframe não permitida
+            Iframe embedding not permitted
           </h1>
         </div>
         <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-          Por diretriz de segurança e proteção contra clickjacking,{' '}
-          <strong>WazzimaGiygg Maker</strong> não pode ser incorporado em iframes de terceiros,
-          sendo permitido apenas acesso direto ou ambiente autorizado no Google AI Studio.
+          For security and clickjacking protection,{' '}
+          <strong>WazzimaGiygg Maker</strong> cannot be embedded in third-party iframes; only direct
+          access or an authorized Google AI Studio environment is allowed.
         </p>
         <div className="pt-1">
           <a
@@ -3828,7 +3827,7 @@ const BlockedEmbedScreen: React.FC = () => {
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap"
           >
-            Abrir site diretamente
+            Open site directly
           </a>
         </div>
       </div>

@@ -42,7 +42,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
       <button
         type="button"
         onClick={onNavigateHome}
-        title={`${siteTitle} — Enciclopédia Colaborativa Aberta`}
+        title={`${siteTitle} — Open Collaborative Encyclopedia`}
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-slate-900 via-slate-800 to-black border border-slate-700 hover:border-blue-500 rounded transition p-1 shadow-xs group cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
       >
         {!logoError ? (
@@ -72,7 +72,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         <button
           type="button"
           onClick={onNavigateHome}
-          title="Wikidiota (Tema Paródia) — Mantido pela Wikiomite Foundation durante o Reinado do Chronus"
+          title="Wikidiota (Parody Theme) — Maintained by the Wikiomite Foundation during the Chronus Reign"
           className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-[#450a0a] via-[#7f1d1d] to-[#1c1917] border border-red-400/70 hover:border-red-300 rounded transition p-1 shadow-xs group cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
         >
           <div className="w-5 h-5 rounded flex items-center justify-center bg-red-500/20 text-red-200 border border-red-400/40 text-[7px] font-mono font-bold shrink-0">
@@ -94,7 +94,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         href={formatExternalUrl('https://support.wazzimagiygg.com/')}
         target="_blank"
         rel="noopener noreferrer"
-        title="Central de Suporte, Tickets e Atendimento dos Serviços WazzimaGiygg"
+        title="Support Center, Tickets, and Helpdesk for WazzimaGiygg Services"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-[#1e1b4b] via-[#0f172a] to-[#020617] border border-indigo-500/70 hover:border-indigo-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
       >
         <div className="w-5 h-5 rounded flex items-center justify-center bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 shrink-0">
@@ -104,7 +104,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
         <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
           <span className="text-[5.2px] font-mono tracking-tighter text-indigo-400 font-bold uppercase">
-            SUPORTE
+            SUPPORT
           </span>
           <span className="text-[7.5px] font-sans font-bold text-indigo-100 group-hover:text-white tracking-tight">
             Tickets 24h
@@ -112,11 +112,11 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
       </a>
 
-      {/* 3. Conforme LGPD & MCI */}
+      {/* 3. LGPD & MCI Compliant */}
       <button
         type="button"
         onClick={onNavigateLegal}
-        title="Conformidade integral com a LGPD (Lei nº 13.709/2018) e Marco Civil da Internet (Lei nº 12.965/2014)"
+        title="Full compliance with LGPD (Law No. 13.709/2018) and Marco Civil da Internet (Law No. 12.965/2014)"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-[#062c1e] via-[#051f15] to-[#02100b] border border-emerald-500/70 hover:border-emerald-400 rounded transition p-1 shadow-xs group cursor-pointer text-left shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
       >
         <div className="w-5 h-5 rounded flex items-center justify-center bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shrink-0">
@@ -126,7 +126,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
         <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
           <span className="text-[5.2px] font-mono tracking-tighter text-emerald-400 font-bold uppercase">
-            CONFORME
+            COMPLIANT
           </span>
           <span className="text-[7.5px] font-sans font-bold text-emerald-100 group-hover:text-white tracking-tight">
             LGPD &amp; MCI
@@ -139,7 +139,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         href={formatExternalUrl('https://firebase.google.com/products/firestore')}
         target="_blank"
         rel="noopener noreferrer"
-        title="Banco de Dados e Infraestrutura Cloud fornecidos por Google Firebase Firestore"
+        title="Database and Cloud Infrastructure powered by Google Firebase Firestore"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-[#1a140b] via-[#241a0d] to-[#0f0c08] border border-amber-500/50 hover:border-amber-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
       >
         <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="none" aria-hidden="true">
@@ -168,12 +168,12 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
       </a>
 
-      {/* 5. Domínio GoDaddy */}
+      {/* 5. GoDaddy Domain */}
       <a
         href={formatExternalUrl('https://www.godaddy.com')}
         target="_blank"
         rel="noopener noreferrer"
-        title="Domínio oficial registrado via GoDaddy"
+        title="Official domain registered via GoDaddy"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-[#003734] via-[#002725] to-[#011413] border border-emerald-500/60 hover:border-emerald-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
       >
         <div className="w-5 h-5 rounded flex items-center justify-center bg-emerald-400/10 text-emerald-400 border border-emerald-500/30 shrink-0">
@@ -183,7 +183,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         </div>
         <div className="flex flex-col text-right leading-none pr-0.5 whitespace-nowrap">
           <span className="text-[5.5px] font-mono tracking-tighter text-emerald-400 font-bold uppercase">
-            DOMÍNIO
+            DOMAIN
           </span>
           <span className="text-[7.5px] font-sans font-bold text-emerald-100 group-hover:text-white tracking-tight">
             GoDaddy
@@ -218,7 +218,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         href={formatExternalUrl('https://wazzimagiygg.com/averdade/')}
         target="_blank"
         rel="noopener noreferrer"
-        title="Ecossistema wazzimagiygg.com — Confira a verdade sobre os absurdos da Wikipédia"
+        title="wazzimagiygg.com Ecosystem — Discover the truth about Wikipedia controversies"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-slate-900 via-indigo-950 to-black border border-sky-500/60 hover:border-sky-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
       >
         <div className="w-5 h-5 rounded flex items-center justify-center bg-sky-500/20 text-sky-300 border border-sky-400/40 text-[7px] font-mono font-bold shrink-0">
@@ -239,7 +239,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         href={formatExternalUrl('https://github.com/WazzimaGiygg/WikiWazzimaGiygg')}
         target="_blank"
         rel="noopener noreferrer"
-        title="Código-fonte aberto e repositório oficial no GitHub: WazzimaGiygg/WikiWazzimaGiygg"
+        title="Open source code and official GitHub repository: WazzimaGiygg/WikiWazzimaGiygg"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-[#24292e] to-[#181a1f] dark:from-[#1b1f24] dark:to-[#0d1117] border border-slate-700 hover:border-slate-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
       >
         <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0 text-white fill-current" aria-hidden="true">
@@ -264,7 +264,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         href={formatExternalUrl('https://creativecommons.org/licenses/by-sa/4.0/')}
         target="_blank"
         rel="noopener noreferrer"
-        title="Conteúdo licenciado sob Creative Commons Atribuição-CompartilhaIgual (CC BY-SA 4.0)"
+        title="Content licensed under Creative Commons Attribution-ShareAlike (CC BY-SA 4.0)"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-[#f8f9fa] dark:bg-[#1a202c] border border-slate-300 dark:border-slate-700 hover:border-slate-500 dark:hover:border-slate-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
       >
         <div className="flex items-center gap-0.5 shrink-0">
@@ -303,7 +303,7 @@ export const FooterBadges: React.FC<FooterBadgesProps> = ({
         href={formatExternalUrl('https://www.gnu.org/licenses/old-licenses/gpl-2.0.html')}
         target="_blank"
         rel="noopener noreferrer"
-        title="Software livre sob GNU General Public License v2 ou posterior"
+        title="Free software under GNU General Public License v2 or later"
         className="inline-flex items-center justify-between w-[88px] h-[31px] bg-gradient-to-br from-slate-800 to-slate-950 border border-slate-600 hover:border-blue-400 rounded transition p-1 shadow-xs group shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
       >
         <div className="w-5 h-5 rounded flex items-center justify-center bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[8px] font-mono font-bold shrink-0">

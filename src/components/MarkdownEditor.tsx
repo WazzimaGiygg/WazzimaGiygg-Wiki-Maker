@@ -147,7 +147,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   showTocPreview = true,
   tocDefaultExpanded = true,
   tocMinHeadings = 2,
-  referencesTitle = 'Referências',
+  referencesTitle = 'References',
   externalLinkPrefix,
   encodeExternalLinkTarget = false,
   isAdminEditingOtherPage = false,
@@ -246,7 +246,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   React.useEffect(() => {
     if (!profanityCheck.hasProfanity) {
       profanityCursorRef.current = 0;
-      setLocalError((prev) => (prev?.startsWith('Filtro de linguagem:') ? null : prev));
+      setLocalError((prev) => (prev?.startsWith('Language filter:') ? null : prev));
     }
   }, [profanityCheck.hasProfanity]);
 
@@ -461,7 +461,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const nextContent =
       content.slice(0, match.start) + replaceQuery + content.slice(match.end);
     commitContentChange(nextContent, true);
-    setReplaceStatus('1 substituição aplicada');
+    setReplaceStatus('1 replacement applied');
   }, [findMatches, activeMatchIndex, content, replaceQuery, commitContentChange]);
 
   const handleReplaceAll = React.useCallback(() => {
@@ -477,7 +477,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     commitContentChange(rebuilt, true);
     setActiveMatchIndex(0);
     setReplaceStatus(
-      count === 1 ? '1 substituição aplicada' : `${count} substituições aplicadas`
+      count === 1 ? '1 replacement applied' : `${count} replacements applied`
     );
   }, [findMatches, content, replaceQuery, commitContentChange]);
 
@@ -690,7 +690,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       const affectedFieldsText = profanityFieldLabels.join(', ');
       const maskedPreview = profanityCheck.uniqueMaskedTerms.slice(0, 5).join(', ');
       setLocalError(
-        `Filtro de linguagem: foram encontrados termos não permitidos em ${affectedFieldsText} (${maskedPreview}). Remova ou substitua essas palavras antes de salvar.`
+        `Language filter: disallowed terms were found in ${affectedFieldsText} (${maskedPreview}). Remove or replace these words before saving.`
       );
       return;
     }
@@ -882,17 +882,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <ShieldAlert className="w-4 h-4 text-rose-700 dark:text-rose-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="font-semibold">
-                Aviso de moderação automática: termos não permitidos detectados antes de salvar
+                Automated moderation notice: disallowed terms detected before saving
               </p>
               <p className="text-rose-800 dark:text-rose-300">
-                Campos afetados: <strong>{profanityFieldLabels.join(', ')}</strong> · Termos
-                identificados:{' '}
+                Affected fields: <strong>{profanityFieldLabels.join(', ')}</strong> · Flagged
+                terms:{' '}
                 <span className="font-mono">
                   {profanityCheck.uniqueMaskedTerms.slice(0, 6).join(', ')}
                   {profanityCheck.uniqueMaskedTerms.length > 6 ? '…' : ''}
                 </span>{' '}
                 ({profanityCheck.matches.length}{' '}
-                {profanityCheck.matches.length === 1 ? 'ocorrência' : 'ocorrências'}).
+                {profanityCheck.matches.length === 1 ? 'match' : 'matches'}).
               </p>
             </div>
           </div>
@@ -901,7 +901,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onClick={locateNextProfanityMatch}
             className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-rose-300 dark:border-rose-700 bg-white dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
-            Localizar no editor
+            Locate in editor
           </button>
         </div>
       )}
@@ -914,8 +914,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         >
           <AlertTriangle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0" />
           <span>
-            <strong>Alterações não salvas:</strong> se você sair deste artigo sem salvar, perderá
-            todas as modificações feitas.
+            <strong>Unsaved changes:</strong> if you leave this article without saving, all
+            changes will be lost.
           </span>
         </div>
       )}
@@ -1165,7 +1165,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <button
               type="button"
               aria-expanded={templateManagerOpen}
-              title="Abrir painel de Gestão de Predefinições (Infoboxes, Alertas e Navegação)"
+              title="Open Template Manager panel (Infoboxes, Alerts, and Navigation)"
               onClick={() => setTemplateManagerOpen((open) => !open)}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                 templateManagerOpen
@@ -1174,13 +1174,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               }`}
             >
               <Blocks className="w-3.5 h-3.5" />
-              <span>Gestão de Predefinições</span>
+              <span>Template Manager</span>
             </button>
           )}
           {enableInfoboxToolbar && (
             <button
               type="button"
-              title="Inserir Infobox (Ctrl+Shift+I)"
+              title="Insert Infobox (Ctrl+Shift+I)"
               onClick={() => setInfoboxModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
@@ -1192,7 +1192,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <>
               <button
                 type="button"
-                title="Inserir Pré-definição MediaWiki {{...}} (Ctrl+Shift+T)"
+                title="Insert MediaWiki Template {{...}} (Ctrl+Shift+T)"
                 onClick={() => {
                   setTemplateModalInitialView('picker');
                   setTemplateModalOpen(true);
@@ -1200,11 +1200,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <Braces className="w-3.5 h-3.5" />
-                <span>Pré-definições</span>
+                <span>Templates</span>
               </button>
               <button
                 type="button"
-                title="Listar todas as pré-definições disponíveis ({{...}})"
+                title="List all available templates ({{...}})"
                 onClick={() => {
                   setTemplateModalInitialView('all-list');
                   setTemplateModalOpen(true);
@@ -1212,7 +1212,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <LayoutList className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                <span>Listar todas ({totalTemplatesCount})</span>
+                <span>List all ({totalTemplatesCount})</span>
               </button>
             </>
           )}
@@ -1220,16 +1220,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <>
               <button
                 type="button"
-                title="Inserir citação bibliográfica no padrão MediaWiki / Wikipédia (Ctrl+Shift+R)"
+                title="Insert bibliographic citation in MediaWiki / Wikipedia format (Ctrl+Shift+R)"
                 onClick={handleInsertReference}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <BookMarked className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                <span>Citar (&lt;ref&gt;)</span>
+                <span>Cite (&lt;ref&gt;)</span>
               </button>
               <button
                 type="button"
-                title="Inserir seção de Lista de Referências ligada às citações {{Reflist}}"
+                title="Insert Reference List section linked to citations {{Reflist}}"
                 onMouseDown={(e) => {
                   if (targetIsFormatted) e.preventDefault();
                 }}
@@ -1237,7 +1237,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <ListOrdered className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                <span>Lista de Referências</span>
+                <span>Reference List</span>
               </button>
             </>
           )}
@@ -1245,7 +1245,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
         <div
           role="tablist"
-          aria-label="Modo de edição"
+          aria-label="Editor mode"
           className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg"
         >
           <button
@@ -1260,7 +1260,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Formatado</span>
+            <span>Formatted</span>
           </button>
           <button
             type="button"
@@ -1274,7 +1274,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             }`}
           >
             <Code2 className="w-3.5 h-3.5" />
-            <span>Código</span>
+            <span>Code</span>
           </button>
           <button
             type="button"
@@ -1288,7 +1288,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             }`}
           >
             <SplitSquareHorizontal className="w-3.5 h-3.5" />
-            <span>Lado a lado</span>
+            <span>Split View</span>
           </button>
           <button
             type="button"
@@ -1302,7 +1302,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>Visualizar</span>
+            <span>Preview</span>
           </button>
         </div>
       </div>
@@ -1335,7 +1335,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           {enableVisualToolbar && (
             <div
               role="toolbar"
-              aria-label="Barra de ferramentas de edição"
+              aria-label="Editing toolbar"
               className={`flex flex-wrap items-center justify-between gap-2 px-2.5 py-2 border border-slate-300 dark:border-slate-700 bg-slate-50/90 dark:bg-[#0f1623] ${
                 paneMode === 'split' ? 'rounded-xl mb-3' : 'rounded-t-xl border-b-0'
               }`}
@@ -1343,7 +1343,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               <div className="flex flex-wrap items-center gap-1">
                 <button
                   type="button"
-                  title="Desfazer (Ctrl+Z)"
+                  title="Undo (Ctrl+Z)"
                   disabled={!historyMeta.canUndo}
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
@@ -1355,7 +1355,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Refazer (Ctrl+R)"
+                  title="Redo (Ctrl+R)"
                   disabled={!historyMeta.canRedo}
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
@@ -1367,7 +1367,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Localizar e substituir no editor (Ctrl+H)"
+                  title="Find and replace in editor (Ctrl+H)"
                   aria-pressed={findReplaceOpen}
                   onClick={() => {
                     if (findReplaceOpen) {
@@ -1383,7 +1383,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   }`}
                 >
                   <Replace className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">Substituir</span>
+                  <span className="hidden md:inline">Replace</span>
                 </button>
 
                 <span
@@ -1393,13 +1393,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
                 <button
                   type="button"
-                  title="Negrito (**texto**) — Ctrl+B"
+                  title="Bold (**text**) — Ctrl+B"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('bold', () =>
-                      insertSnippet('**', '**', 'texto em negrito')
+                      insertSnippet('**', '**', 'bold text')
                     )
                   }
                   className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
@@ -1409,17 +1409,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   }`}
                 >
                   <Bold className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Negrito</span>
+                  <span className="hidden sm:inline">Bold</span>
                 </button>
                 <button
                   type="button"
-                  title="Itálico (*texto*) — Ctrl+I"
+                  title="Italic (*text*) — Ctrl+I"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('italic', () =>
-                      insertSnippet('*', '*', 'texto em itálico')
+                      insertSnippet('*', '*', 'italic text')
                     )
                   }
                   className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
@@ -1429,7 +1429,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   }`}
                 >
                   <Italic className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Itálico</span>
+                  <span className="hidden sm:inline">Italic</span>
                 </button>
 
                 <span
@@ -1439,13 +1439,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
                 <button
                   type="button"
-                  title="Título de seção (## Título)"
+                  title="Section heading (## Heading)"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('heading2', () =>
-                      insertSnippet('## ', '', 'Título da Seção')
+                      insertSnippet('## ', '', 'Section Heading')
                     )
                   }
                   className={`p-1.5 rounded-md transition-colors cursor-pointer ${
@@ -1458,13 +1458,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Subtítulo (### Subtítulo)"
+                  title="Subheading (### Subheading)"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('heading3', () =>
-                      insertSnippet('### ', '', 'Subtítulo')
+                      insertSnippet('### ', '', 'Subheading')
                     )
                   }
                   className={`p-1.5 rounded-md transition-colors cursor-pointer ${
@@ -1483,13 +1483,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
                 <button
                   type="button"
-                  title="Link interno do wiki ([[slug|Texto]]) — Ctrl+Shift+L"
+                  title="Internal wiki link ([[slug|Label]]) — Ctrl+Shift+L"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('wikilink', () =>
-                      insertSnippet('[[', ']]', 'slug-da-pagina|Texto do Link')
+                      insertSnippet('[[', ']]', 'page-slug|Link Label')
                     )
                   }
                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -1499,13 +1499,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Link externo ([Texto](https://...))"
+                  title="External link ([Label](https://...))"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('externallink', () =>
-                      insertSnippet('[', '](https://exemplo.com)', 'Texto do Link')
+                      insertSnippet('[', '](https://example.com)', 'Link Label')
                     )
                   }
                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -1521,13 +1521,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
                 <button
                   type="button"
-                  title="Lista com marcadores (- Item)"
+                  title="Bulleted list (- Item)"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('bulletList', () =>
-                      insertSnippet('\n- ', '', 'Item da lista')
+                      insertSnippet('\n- ', '', 'List item')
                     )
                   }
                   className={`p-1.5 rounded-md transition-colors cursor-pointer ${
@@ -1540,13 +1540,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Checklist (- [ ] Tarefa)"
+                  title="Checklist (- [ ] Task)"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('checklist', () =>
-                      insertSnippet('\n- [ ] ', '', 'Tarefa pendente')
+                      insertSnippet('\n- [ ] ', '', 'Pending task')
                     )
                   }
                   className="p-1.5 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -1555,13 +1555,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Bloco de citação (> Texto)"
+                  title="Blockquote (> Text)"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('blockquote', () =>
-                      insertSnippet('\n> ', '', 'Texto citado ou nota editorial.')
+                      insertSnippet('\n> ', '', 'Quoted text or editorial note.')
                     )
                   }
                   className={`p-1.5 rounded-md transition-colors cursor-pointer ${
@@ -1574,13 +1574,13 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Bloco de código"
+                  title="Code block"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('codeBlock', () =>
-                      insertSnippet('\n```ts\n', '\n```\n', 'const exemplo = "wiki";')
+                      insertSnippet('\n```ts\n', '\n```\n', 'const example = "wiki";')
                     )
                   }
                   className={`p-1.5 rounded-md transition-colors cursor-pointer ${
@@ -1593,29 +1593,29 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 </button>
                 <button
                   type="button"
-                  title="Inserir tabela wikitexto/Markdown"
+                  title="Insert wikitext/Markdown table"
                   onMouseDown={(e) => {
                     if (targetIsFormatted) e.preventDefault();
                   }}
                   onClick={() =>
                     handleToolbarFormat('table', () =>
                       insertSnippet(
-                        '\n| Coluna 1 | Coluna 2 |\n| --- | --- |\n| ',
-                        ' | Valor 2 |\n| Linha 2A | Linha 2B |\n',
-                        'Valor 1'
+                        '\n| Column 1 | Column 2 |\n| --- | --- |\n| ',
+                        ' | Value 2 |\n| Row 2A | Row 2B |\n',
+                        'Value 1'
                       )
                     )
                   }
                   className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <Table className="w-3.5 h-3.5" />
-                  <span>Tabela</span>
+                  <span>Table</span>
                 </button>
               </div>
 
               {paneMode === 'split' && (
                 <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 px-1.5">
-                  Alvo: {focusedPane === 'formatted' ? 'Formatado' : 'Código'}
+                  Target: {focusedPane === 'formatted' ? 'Formatted' : 'Code'}
                 </span>
               )}
             </div>
@@ -1624,7 +1624,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           {findReplaceOpen && (
             <div
               role="region"
-              aria-label="Localizar e substituir no editor"
+              aria-label="Find and replace in editor"
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   e.preventDefault();
@@ -1650,15 +1650,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                         navigateMatch(e.shiftKey ? -1 : 1);
                       }
                     }}
-                    placeholder="Localizar texto..."
-                    aria-label="Texto para localizar"
+                    placeholder="Find text..."
+                    aria-label="Text to find"
                     className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                   />
                   <button
                     type="button"
                     aria-pressed={findCaseSensitive}
                     onClick={() => setFindCaseSensitive((v) => !v)}
-                    title="Diferenciar maiúsculas e minúsculas"
+                    title="Match case"
                     className={`px-2 py-1.5 text-xs font-mono rounded-lg border transition-colors cursor-pointer shrink-0 ${
                       findCaseSensitive
                         ? 'border-blue-700 bg-blue-700 text-white'
@@ -1684,8 +1684,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                         handleReplaceCurrent();
                       }
                     }}
-                    placeholder="Substituir por..."
-                    aria-label="Substituir por"
+                    placeholder="Replace with..."
+                    aria-label="Replace with"
                     className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                   />
                 </div>
@@ -1703,8 +1703,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     type="button"
                     disabled={findMatches.length === 0}
                     onClick={() => navigateMatch(-1)}
-                    title="Ocorrência anterior (Shift+Enter)"
-                    aria-label="Ocorrência anterior"
+                    title="Previous match (Shift+Enter)"
+                    aria-label="Previous match"
                     className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -1713,8 +1713,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     type="button"
                     disabled={findMatches.length === 0}
                     onClick={() => navigateMatch(1)}
-                    title="Próxima ocorrência (Enter)"
-                    aria-label="Próxima ocorrência"
+                    title="Next match (Enter)"
+                    aria-label="Next match"
                     className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 cursor-pointer"
                   >
                     <ChevronDown className="w-3.5 h-3.5" />
@@ -1726,7 +1726,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     onClick={handleReplaceCurrent}
                     className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:border-blue-700 hover:text-blue-700 dark:hover:text-blue-400 disabled:opacity-40 transition-colors cursor-pointer"
                   >
-                    Substituir
+                    Replace
                   </button>
                   <button
                     type="button"
@@ -1734,14 +1734,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                     onClick={handleReplaceAll}
                     className="px-2.5 py-1.5 text-xs font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-40 transition-colors cursor-pointer"
                   >
-                    Substituir tudo
+                    Replace all
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setFindReplaceOpen(false)}
-                    aria-label="Fechar localizar e substituir"
-                    title="Fechar (Esc)"
+                    aria-label="Close find and replace"
+                    title="Close (Esc)"
                     className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/70 dark:hover:bg-slate-800 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -1767,10 +1767,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <div className="flex items-center justify-between px-3 py-1.5 rounded-t-xl border border-b-0 border-slate-300 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-900/70 text-xs font-medium text-slate-600 dark:text-slate-300">
                     <span className="inline-flex items-center gap-1.5">
                       <Code2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                      Código (Markdown)
+                      Code (Markdown)
                     </span>
                     <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
-                      wikitexto bruto
+                      raw wikitext
                     </span>
                   </div>
                 )}
@@ -1797,10 +1797,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   <div className="flex items-center justify-between px-3 py-1.5 rounded-t-xl border border-b-0 border-slate-300 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-900/70 text-xs font-medium text-slate-600 dark:text-slate-300">
                     <span className="inline-flex items-center gap-1.5">
                       <FileText className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                      Edição Formatada
+                      Formatted Editor
                     </span>
                     <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
-                      visual interativo
+                      interactive visual
                     </span>
                   </div>
                 )}
@@ -1819,7 +1819,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
           <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5 text-xs font-mono tabular-nums text-slate-500 dark:text-slate-400">
             <span>
-              Ctrl+Z desfazer · Ctrl+R refazer · Ctrl+H substituir · Ctrl+Enter salvar
+              Ctrl+Z undo · Ctrl+R redo · Ctrl+H replace · Ctrl+Enter save
             </span>
             <span>
               {content.length.toLocaleString('en-US')} /{' '}
@@ -1830,7 +1830,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       ) : (
         <div className="min-h-[420px] p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0d131f] overflow-y-auto space-y-4">
           <div className="text-xs font-medium text-slate-500 dark:text-slate-400 pb-3 border-b border-slate-200 dark:border-slate-800">
-            Visualização completa do artigo
+            Full article preview
           </div>
           {enableHeaderBanner && sanitizeHeaderImageUrl(headerImageUrl) && !bannerPreviewFailed && (
             <figure className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
@@ -1871,10 +1871,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               className="mt-0.5 rounded border-slate-300 dark:border-slate-700"
             />
             <span>
-              <strong>Notificar {targetEditorDisplayName || 'o editor'} na página de discussão</strong>{' '}
-              — insere automaticamente uma notificação administrativa dentro da página de discussão
-              sobre esta intervenção/sanção na edição
-              {isLocked !== initialIsLocked ? ' (obrigatório ao bloquear/desbloquear edição)' : ''}.
+              <strong>Notify {targetEditorDisplayName || 'the editor'} on their discussion page</strong>{' '}
+              — automatically posts an administrative notice on their talk page regarding this
+              moderation action
+              {isLocked !== initialIsLocked ? ' (required when locking/unlocking editing)' : ''}.
             </span>
           </label>
           {(sendAdminNotice || isLocked !== initialIsLocked) && (
@@ -1883,7 +1883,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               value={adminNoticeReason}
               maxLength={300}
               onChange={(e) => setAdminNoticeReason(e.target.value)}
-              placeholder="Motivo da aplicação administrativa / sanção (usa o resumo se vazio)..."
+              placeholder="Reason for administrative action / sanction (uses change summary if blank)..."
               className="w-full px-3 py-1.5 text-xs rounded-lg border border-amber-300/80 dark:border-amber-800 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
             />
           )}
@@ -1899,8 +1899,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           <span className="inline-flex items-center gap-1.5">
             <ShieldAlert className="w-3.5 h-3.5 text-rose-700 dark:text-rose-400 shrink-0" />
             <span>
-              Revise os termos não permitidos em{' '}
-              <strong>{profanityFieldLabels.join(', ')}</strong> antes de salvar.
+              Review disallowed terms in{' '}
+              <strong>{profanityFieldLabels.join(', ')}</strong> before saving.
             </span>
           </span>
           <button
@@ -1908,7 +1908,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             onClick={locateNextProfanityMatch}
             className="font-medium underline hover:no-underline cursor-pointer"
           >
-            Ir para ocorrência
+            Jump to match
           </button>
         </div>
       )}

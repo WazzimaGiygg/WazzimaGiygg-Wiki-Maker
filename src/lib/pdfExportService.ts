@@ -1619,7 +1619,7 @@ export async function exportArticleToPdf(
     theme: providedTheme,
     existingSlugs,
     enableReferences = true,
-    referencesTitle = 'Referências',
+    referencesTitle = 'References',
     enableInfoboxes = true,
     autoUserInfobox = null,
   } = opts;

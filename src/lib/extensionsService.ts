@@ -36,11 +36,11 @@ export const DEFAULT_SITE_TITLE = 'WazzimaGiygg Maker';
 export const DEFAULT_EXTERNAL_LINK_PREFIX = 'https://wazzimagiygg.com/rv/?uid=';
 
 export const EXTENSION_CATEGORY_LABELS: Record<WikiExtensionCategory, string> = {
-  appearance: 'Aparência & Temas',
-  reading: 'Leitura',
-  navigation: 'Navegação',
-  authoring: 'Autoria Markdown',
-  collaboration: 'Colaboração',
+  appearance: 'Appearance & Themes',
+  reading: 'Reading',
+  navigation: 'Navigation',
+  authoring: 'Markdown Authoring',
+  collaboration: 'Collaboration',
 };
 
 export interface ExtensionSettingSelectOption {
@@ -71,8 +71,8 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   'site-title': [
     {
       key: 'siteTitle',
-      label: 'Título do Wiki-site',
-      hint: 'Substitui o nome "WazzimaGiygg Maker" na barra superior, título das guias e rodapé.',
+      label: 'Wiki-site Title',
+      hint: 'Replaces "WazzimaGiygg Maker" in the top bar, browser tab titles, and footer.',
       type: 'text',
       maxLength: VALIDATION_LIMITS.EXTENSION_SITE_TITLE_MAX_LENGTH,
     },
@@ -80,8 +80,8 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   'site-theme': [
     {
       key: 'themeId',
-      label: 'Tema visual do Wiki-site',
-      hint: 'Define a identidade de cores, superfícies e tipografia aplicada ao site e aos PDFs exportados. Novos temas inseridos em atualizações futuras aparecem aqui automaticamente.',
+      label: 'Wiki-site Visual Theme',
+      hint: 'Sets the color palette, surfaces, and typography applied across the site and exported PDFs. New themes added in updates appear here automatically.',
       type: 'select',
       options: WIKI_THEMES.map((theme) => ({
         value: theme.id,
@@ -95,24 +95,24 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
     },
     {
       key: 'colorScheme',
-      label: 'Política de modo Claro / Escuro',
-      hint: 'Permite que cada leitor alterne livremente ou fixa um esquema global determinado pela burocracia.',
+      label: 'Light / Dark Mode Policy',
+      hint: 'Lets each reader toggle freely or enforces a site-wide color scheme set by bureaucracy.',
       type: 'select',
       options: [
         {
           value: 'user',
-          label: 'Escolha do leitor (padrão)',
-          hint: 'Visitantes podem alternar livremente entre Light mode e Dark mode na barra lateral.',
+          label: 'Reader choice (default)',
+          hint: 'Visitors can freely switch between Light mode and Dark mode in the sidebar.',
         },
         {
           value: 'light',
-          label: 'Forçar modo Claro',
-          hint: 'Mantém todo o Wiki-site no modo claro dentro do tema selecionado.',
+          label: 'Force Light mode',
+          hint: 'Keeps the entire Wiki-site in light mode within the selected theme.',
         },
         {
           value: 'dark',
-          label: 'Forçar modo Escuro',
-          hint: 'Mantém todo o Wiki-site no modo escuro dentro do tema selecionado.',
+          label: 'Force Dark mode',
+          hint: 'Keeps the entire Wiki-site in dark mode within the selected theme.',
         },
       ],
     },
@@ -120,14 +120,14 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   toc: [
     {
       key: 'defaultExpanded',
-      label: 'Iniciar sumário expandido',
-      hint: 'Define se a caixa de sumário começa aberta ao carregar um artigo.',
+      label: 'Start Table of Contents expanded',
+      hint: 'Controls whether the TOC box starts expanded when loading an article.',
       type: 'boolean',
     },
     {
       key: 'minHeadings',
-      label: 'Mínimo de seções (H2–H3)',
-      hint: 'Quantidade mínima de títulos H2 e H3 no artigo para exibir o sumário.',
+      label: 'Minimum sections (H2–H3)',
+      hint: 'Minimum number of H2 and H3 headings required before showing the Table of Contents.',
       type: 'number',
       min: VALIDATION_LIMITS.EXTENSION_MIN_HEADINGS_MIN,
       max: VALIDATION_LIMITS.EXTENSION_MIN_HEADINGS_MAX,
@@ -136,35 +136,35 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   references: [
     {
       key: 'footerTitle',
-      label: 'Título da seção de referências',
-      hint: 'Cabeçalho exibido no rodapé bibliográfico automático.',
+      label: 'References section heading',
+      hint: 'Heading displayed in the automatic bibliographic references footer.',
       type: 'text',
       maxLength: VALIDATION_LIMITS.EXTENSION_FOOTER_TITLE_MAX_LENGTH,
     },
     {
       key: 'showOutlineLink',
-      label: 'Atalho no índice lateral',
-      hint: 'Adiciona a entrada Referências ao bloco "On this page".',
+      label: 'Sidebar outline shortcut',
+      hint: 'Adds the References entry to the "On this page" outline.',
       type: 'boolean',
     },
     {
       key: 'allowEditorToolbar',
-      label: 'Botão <ref> no editor',
-      hint: 'Exibe o atalho de citação bibliográfica na barra do editor Markdown.',
+      label: '<ref> button in editor',
+      hint: 'Shows the bibliographic citation shortcut in the Markdown editor toolbar.',
       type: 'boolean',
     },
   ],
   infoboxes: [
     {
       key: 'allowEditorToolbar',
-      label: 'Construtor de Infobox no editor',
-      hint: 'Exibe o botão e modal de criação de blocos :::infobox no editor.',
+      label: 'Infobox builder in editor',
+      hint: 'Shows the :::infobox builder button and modal in the editor.',
       type: 'boolean',
     },
     {
       key: 'allowAutoProfileCard',
-      label: 'Cartão automático de perfil',
-      hint: 'Gera um Infobox lateral automático em páginas pessoais sem Infobox manual.',
+      label: 'Automatic profile card',
+      hint: 'Generates an automatic sidebar Infobox on personal pages without a manual Infobox.',
       type: 'boolean',
     },
   ],
@@ -172,79 +172,79 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   'print-view': [
     {
       key: 'showInHeader',
-      label: 'Botão Print no cabeçalho',
-      hint: 'Mostra o alternador de visualização limpa para impressão nos artigos.',
+      label: 'Print button in header',
+      hint: 'Shows the clean print-view toggle in article headers.',
       type: 'boolean',
     },
     {
       key: 'autoExitOnNavigate',
-      label: 'Sair do modo impressão ao navegar',
-      hint: 'Desativa automaticamente o modo impressão ao abrir outra página.',
+      label: 'Exit print mode on navigate',
+      hint: 'Automatically disables print view when opening another page.',
       type: 'boolean',
     },
   ],
   'random-article': [
     {
       key: 'showInNavbar',
-      label: 'Exibir na barra superior',
-      hint: 'Mostra o botão "Artigo aleatório" no cabeçalho principal de navegação.',
+      label: 'Show in top bar',
+      hint: 'Displays the "Random article" button in the main navigation header.',
       type: 'boolean',
     },
     {
       key: 'showInSidebar',
-      label: 'Exibir na barra lateral',
-      hint: 'Mostra o botão "Artigo aleatório" abaixo da busca na barra lateral.',
+      label: 'Show in sidebar',
+      hint: 'Displays the "Random article" button below the search box in the sidebar.',
       type: 'boolean',
     },
     {
       key: 'excludeDiscussions',
-      label: 'Ignorar páginas de discussão',
-      hint: 'Evita sortear páginas -discussion durante a escolha aleatória.',
+      label: 'Exclude discussion pages',
+      hint: 'Skips -discussion talk pages when picking a random article.',
       type: 'boolean',
     },
   ],
   'copy-link': [
     {
       key: 'showInHeader',
-      label: 'Botão Copy Link no cabeçalho',
-      hint: 'Exibe o botão de cópia rápida da URL direta no topo de cada artigo.',
+      label: 'Copy Link button in header',
+      hint: 'Displays the quick direct-URL copy button at the top of each article.',
       type: 'boolean',
     },
     {
       key: 'showToastFeedback',
-      label: 'Confirmação via toast',
-      hint: 'Dispara uma notificação toast confirmando a cópia do endereço.',
+      label: 'Toast confirmation',
+      hint: 'Shows a toast notification confirming the link was copied.',
       type: 'boolean',
     },
   ],
   'realtime-toasts': [
     {
       key: 'notifyWhileEditing',
-      label: 'Alertar durante edição ativa',
-      hint: 'Exibe toast de aviso quando outro colaborador salva enquanto você edita.',
+      label: 'Alert while actively editing',
+      hint: 'Displays a warning toast when another collaborator saves while you are editing.',
       type: 'boolean',
     },
   ],
   'page-discussion': [
     {
       key: 'allowAnonymousRead',
-      label: 'Leitura pública de discussões',
-      hint: 'Permite que visitantes não autenticados visualizem a aba Discussion.',
+      label: 'Public discussion reading',
+      hint: 'Allows unauthenticated visitors to view the Discussion tab.',
       type: 'boolean',
     },
   ],
   'external-link-prefix': [
     {
       key: 'externalLinkPrefix',
-      label: 'Parâmetro / prefixo antes dos links externos',
-      hint: 'Inserido imediatamente antes de links externos (http:// ou https://). Padrão: https://wazzimagiygg.com/rv/?uid=',
+      label: 'Parameter / prefix before external links',
+      hint: 'Prepended immediately before external links (http:// or https://). Default: https://wazzimagiygg.com/rv/?uid=',
       type: 'text',
       maxLength: VALIDATION_LIMITS.EXTENSION_EXTERNAL_LINK_PREFIX_MAX_LENGTH,
     },
     {
       key: 'encodeTargetUrl',
-      label: 'Codificar URL de destino (encodeURIComponent)',
-      hint: 'Quando ativado, escapa caracteres da URL original ao anexá-la ao parâmetro; desativado por padrão para inserção direta antes do link.',
+      label: 'Encode target URL (encodeURIComponent)',
+      hint: 'When enabled, URL-encodes the target address before appending it to the prefix; disabled by default for direct prepending.',
       type: 'boolean',
     },
   ],
@@ -275,9 +275,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'site-title',
     scope: 'site',
-    name: 'Título do Wiki-site (Site Branding)',
+    name: 'Wiki-site Title (Site Branding)',
     description:
-      'Permite renomear o título principal do Wiki-site (padrão: "WazzimaGiygg Maker") exibido no cabeçalho, navegador e metadados.',
+      'Allows renaming the main Wiki-site title (default: "WazzimaGiygg Maker") displayed in the header, browser tab, and metadata.',
     category: 'navigation',
     enabled: true,
     sortOrder: 0,
@@ -293,9 +293,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'site-theme',
     scope: 'site',
-    name: 'Aparência & Tema Visual',
+    name: 'Appearance & Visual Theme',
     description:
-      'Altera a aparência global do Wiki-site entre os temas disponíveis no catálogo interno, sincronizando leitura, barra de progresso e exportação PDF.',
+      'Changes the global Wiki-site appearance across the built-in theme catalog, synchronizing reading view, progress bar, and PDF export.',
     category: 'appearance',
     enabled: true,
     sortOrder: 1,
@@ -312,9 +312,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'toc',
     scope: 'site',
-    name: 'Sumário Automático (TOC)',
+    name: 'Automatic Table of Contents (TOC)',
     description:
-      'Extrai automaticamente títulos H2 e H3 do artigo para montar o sumário navegável e o índice lateral.',
+      'Automatically extracts H2 and H3 headings from the article to build the navigable Table of Contents and sidebar outline.',
     category: 'reading',
     enabled: true,
     sortOrder: 2,
@@ -331,14 +331,14 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'references',
     scope: 'site',
-    name: 'Referências Bibliográficas (<ref>)',
+    name: 'Bibliographic References (<ref>)',
     description:
-      'Converte tags <ref> em citações numeradas [1] com links bidirecionais e rodapé automático de referências.',
+      'Converts <ref> tags into numbered citations [1] with bidirectional jump links and an automatic references footer.',
     category: 'authoring',
     enabled: true,
     sortOrder: 3,
     settings: {
-      footerTitle: 'Referências',
+      footerTitle: 'References',
       showOutlineLink: true,
       allowEditorToolbar: true,
     },
@@ -351,9 +351,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'infoboxes',
     scope: 'site',
-    name: 'Cartões Infobox (:::infobox)',
+    name: 'Infobox Cards (:::infobox)',
     description:
-      'Suporta cartões estruturados estilo enciclopédia via :::infobox e cartões automáticos de perfil.',
+      'Supports encyclopedia-style structured cards via :::infobox blocks and automatic user profile cards.',
     category: 'authoring',
     enabled: true,
     sortOrder: 4,
@@ -370,9 +370,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'reading-progress',
     scope: 'site',
-    name: 'Barra de Progresso de Leitura',
+    name: 'Reading Progress Bar',
     description:
-      'Exibe um indicador contínuo abaixo da barra de navegação medindo a leitura do artigo atual.',
+      'Displays a continuous indicator below the navigation bar tracking scroll progress through the current article.',
     category: 'reading',
     enabled: true,
     sortOrder: 5,
@@ -386,9 +386,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'print-view',
     scope: 'site',
-    name: 'Modo de Impressão & PDF',
+    name: 'Print View & PDF Mode',
     description:
-      'Adiciona o alternador Print que gera uma folha CSS limpa sem menus laterais, ferramentas ou toasts.',
+      'Adds the Print toggle that renders a clean CSS sheet without sidebars, editing chrome, or toast popups.',
     category: 'reading',
     enabled: true,
     sortOrder: 6,
@@ -405,9 +405,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'random-article',
     scope: 'site',
-    name: 'Artigo Aleatório',
+    name: 'Random Article',
     description:
-      'Disponibiliza o botão "Artigo aleatório" para descoberta rápida de páginas da base de conhecimento.',
+      'Provides the "Random article" button for quick discovery across pages in the knowledge base.',
     category: 'navigation',
     enabled: true,
     sortOrder: 7,
@@ -425,9 +425,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'copy-link',
     scope: 'site',
-    name: 'Copiar Link da Página',
+    name: 'Copy Page Link',
     description:
-      'Habilita o botão Copy Link no cabeçalho dos artigos com cópia direta da URL e feedback via toast.',
+      'Enables the Copy Link button in article headers for one-click direct URL copying with toast confirmation.',
     category: 'navigation',
     enabled: true,
     sortOrder: 8,
@@ -444,9 +444,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'realtime-toasts',
     scope: 'site',
-    name: 'Notificações em Tempo Real',
+    name: 'Real-Time Notifications',
     description:
-      'Notifica leitores via toast quando outro colaborador publica alterações no artigo aberto no Firestore.',
+      'Notifies readers via toast when another collaborator publishes changes to the currently open Firestore article.',
     category: 'collaboration',
     enabled: true,
     sortOrder: 9,
@@ -462,9 +462,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'page-discussion',
     scope: 'site',
-    name: 'Discussão & Comentários',
+    name: 'Discussion & Comments',
     description:
-      'Ativa a aba Discussion e os tópicos colaborativos de comentários em cada artigo da wiki.',
+      'Enables the Discussion tab and collaborative comment threads on every wiki article.',
     category: 'collaboration',
     enabled: true,
     sortOrder: 10,
@@ -480,9 +480,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'external-link-prefix',
     scope: 'site',
-    name: 'Prefixo de Links Externos (Outlink Parameter)',
+    name: 'External Link Prefix (Outlink Parameter)',
     description:
-      'Insere um parâmetro ou prefixo de redirecionamento configurável antes de todos os links externos (padrão: "https://wazzimagiygg.com/rv/?uid=").',
+      'Prepends a configurable redirect or tracking parameter before all external links (default: "https://wazzimagiygg.com/rv/?uid=").',
     category: 'navigation',
     enabled: true,
     sortOrder: 11,
@@ -499,9 +499,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'article-ratings',
     scope: 'site',
-    name: 'Avaliação por Estrelas (1–5)',
+    name: 'Star Ratings (1–5)',
     description:
-      'Exibe o painel de avaliação de 1 a 5 estrelas no rodapé de leitura dos artigos e registra votos na subcoleção ratings.',
+      'Displays the 1-to-5 star rating panel at the bottom of articles and stores votes in the ratings subcollection.',
     category: 'collaboration',
     enabled: true,
     sortOrder: 12,
@@ -515,9 +515,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'page-history',
     scope: 'site',
-    name: 'Histórico & Restauração de Revisões',
+    name: 'Revision History & Restore',
     description:
-      'Habilita a aba History com linha do tempo das edições salvas, comparação de versões e restauração de revisões.',
+      'Enables the History tab with a timeline of saved revisions, version comparison, and rollback restoration.',
     category: 'collaboration',
     enabled: true,
     sortOrder: 13,
@@ -531,9 +531,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'page-source',
     scope: 'site',
-    name: 'Código-Fonte Markdown (Source)',
+    name: 'Markdown Source View',
     description:
-      'Ativa a aba Source nos artigos para inspecionar o wikitexto Markdown bruto, copiar ou baixar o arquivo .md.',
+      'Enables the Source tab on articles to inspect raw Markdown wikitext, copy it, or download the .md file.',
     category: 'authoring',
     enabled: true,
     sortOrder: 14,
@@ -547,9 +547,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'pdf-export',
     scope: 'site',
-    name: 'Exportação de Artigo em PDF',
+    name: 'Article PDF Export',
     description:
-      'Disponibiliza o botão Exportar PDF no cabeçalho dos artigos para gerar documento paginado no tema ativo.',
+      'Provides the Export PDF button in article headers to generate a paginated document styled with the active theme.',
     category: 'reading',
     enabled: true,
     sortOrder: 15,
@@ -563,9 +563,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'zip-archive',
     scope: 'site',
-    name: 'Exportação em Lote (Arquivo ZIP)',
+    name: 'Bulk Export (ZIP Archive)',
     description:
-      'Ativa o botão Export Public ZIP no catálogo de páginas e no console administrativo para baixar arquivos Markdown.',
+      'Enables the Export Public ZIP button in the page directory and admin console to download Markdown archives.',
     category: 'reading',
     enabled: true,
     sortOrder: 16,
@@ -579,9 +579,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'wiki-templates',
     scope: 'site',
-    name: 'Predefinições MediaWiki ({{...}})',
+    name: 'MediaWiki Templates ({{...}})',
     description:
-      'Processa transclusões e blocos {{Predefinição}} na leitura e habilita o seletor Pré-definições (Ctrl+Shift+T) no editor.',
+      'Expands {{Template}} transclusions and blocks on read and enables the Templates picker (Ctrl+Shift+T) in the editor.',
     category: 'authoring',
     enabled: true,
     sortOrder: 17,
@@ -595,9 +595,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'editor-toolbar',
     scope: 'site',
-    name: 'Barra Visual de Formatação no Editor',
+    name: 'Visual Formatting Toolbar',
     description:
-      'Exibe os botões de formatação rápida (negrito, itálico, títulos, links, listas, citações e tabelas) no editor Markdown.',
+      'Displays quick-formatting controls (bold, italic, headings, links, lists, quotes, and tables) in the Markdown editor.',
     category: 'authoring',
     enabled: true,
     sortOrder: 18,
@@ -611,9 +611,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'ecosystem-portal',
     scope: 'site',
-    name: 'Portal Ecossistema WazzimaGiygg',
+    name: 'WazzimaGiygg Ecosystem Portal',
     description:
-      'Exibe os links e a visualização dedicada do ecossistema de serviços WazzimaGiygg e do dossiê público.',
+      'Displays navigation links and the dedicated view for the WazzimaGiygg service ecosystem and public dossier.',
     category: 'navigation',
     enabled: true,
     sortOrder: 19,
@@ -627,9 +627,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'quick-create',
     scope: 'site',
-    name: 'Criação Rápida por Slug na Lateral',
+    name: 'Sidebar Quick Create by Slug',
     description:
-      'Exibe o formulário Quick create by slug na barra lateral para abrir ou criar artigos pelo identificador.',
+      'Displays the Quick create by slug form in the sidebar to open or create articles directly by identifier.',
     category: 'navigation',
     enabled: true,
     sortOrder: 20,
@@ -643,9 +643,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'sidebar-filter',
     scope: 'site',
-    name: 'Filtro de Busca na Barra Lateral',
+    name: 'Sidebar Search Filter',
     description:
-      'Habilita o campo de pesquisa instantânea Filter pages na barra lateral para filtrar páginas por título, slug ou tags.',
+      'Enables the instant Filter pages search input in the sidebar to filter articles by title, slug, or tags.',
     category: 'navigation',
     enabled: true,
     sortOrder: 21,
@@ -659,9 +659,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'user-profiles',
     scope: 'site',
-    name: 'Páginas Pessoais & Histórico do Autor',
+    name: 'Personal Pages & Edit History',
     description:
-      'Ativa os atalhos My Page e Discussion na barra lateral, registro de edições do colaborador e links de perfil nos rodapés.',
+      'Enables My Page and Discussion shortcuts in the sidebar, collaborator edit logs, and profile links in footers.',
     category: 'collaboration',
     enabled: true,
     sortOrder: 22,
@@ -675,9 +675,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'pwa-install',
     scope: 'site',
-    name: 'Instalação PWA & App Offline',
+    name: 'PWA Install & Offline App',
     description:
-      'Mostra o botão de instalação de Progressive Web App (PWA) na barra lateral para uso como aplicativo instalado.',
+      'Shows the Progressive Web App (PWA) install button in the sidebar to use the wiki as an installed app.',
     category: 'appearance',
     enabled: true,
     sortOrder: 23,
@@ -691,9 +691,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'keyboard-shortcuts',
     scope: 'site',
-    name: 'Atalhos de Teclado Globais (?)',
+    name: 'Global Keyboard Shortcuts (?)',
     description:
-      'Ativa os atalhos globais (Ctrl+E, Ctrl+K, Alt+N, ?), o botão Shortcuts e o modal de referência rápida.',
+      'Enables global shortcuts (Ctrl+E, Ctrl+K, Alt+N, ?), the Shortcuts button, and the quick reference modal.',
     category: 'navigation',
     enabled: true,
     sortOrder: 24,
@@ -707,9 +707,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'back-to-top',
     scope: 'site',
-    name: 'Botão Flutuante Back to Top',
+    name: 'Floating Back to Top Button',
     description:
-      'Exibe o botão flutuante para retornar rapidamente ao topo ao rolar páginas longas na Wiki.',
+      'Displays a floating button to jump back to the top when scrolling long pages in the wiki.',
     category: 'reading',
     enabled: true,
     sortOrder: 25,
@@ -723,9 +723,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'footer-badges',
     scope: 'site',
-    name: 'Selos Retro 88x31 no Rodapé',
+    name: 'Retro 88x31 Footer Badges',
     description:
-      'Renderiza a barra de selos 88x31 no rodapé global com atalhos de suporte, licenciamento, Firebase e conformidade.',
+      'Renders the 88x31 retro badge strip in the global footer with support, licensing, Firebase, and compliance links.',
     category: 'appearance',
     enabled: true,
     sortOrder: 26,
@@ -739,9 +739,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'page-outline',
     scope: 'site',
-    name: 'Índice Lateral Fixo (On this page)',
+    name: 'Sticky Page Outline (On this page)',
     description:
-      'Mostra a coluna lateral fixa "On this page" acompanhando a leitura do artigo com links rápidos às seções.',
+      'Displays the fixed "On this page" sidebar column following article scrolling with quick section links.',
     category: 'reading',
     enabled: true,
     sortOrder: 27,
@@ -755,9 +755,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'page-metadata',
     scope: 'site',
-    name: 'Metadados de Autoria & Tags',
+    name: 'Authorship & Tag Metadata',
     description:
-      'Exibe a linha de versão, visibilidade, autor, os últimos 3 editores, data relativa e #tags no cabeçalho de leitura.',
+      'Shows the version, visibility, author, last 3 editors, relative timestamp, and #tags strip in the article header.',
     category: 'reading',
     enabled: true,
     sortOrder: 28,
@@ -771,9 +771,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'page-index-views',
     scope: 'site',
-    name: 'Catálogo Pages & Recent Changes',
+    name: 'Pages & Recent Changes Directory',
     description:
-      'Mantém visíveis na barra superior os diretórios completos de páginas (Pages) e alterações recentes (Recent).',
+      'Keeps the full Pages directory and Recent Changes feed visible in the top navigation bar.',
     category: 'navigation',
     enabled: true,
     sortOrder: 29,
@@ -787,9 +787,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'privacy-banner',
     scope: 'site',
-    name: 'Banner de Privacidade (LGPD & MCI)',
+    name: 'Privacy Banner (LGPD & MCI)',
     description:
-      'Exibe o aviso flutuante de privacidade e armazenamento essencial em conformidade com a LGPD e o Marco Civil.',
+      'Displays the floating privacy and essential storage notice in compliance with Brazil LGPD and Marco Civil.',
     category: 'collaboration',
     enabled: true,
     sortOrder: 30,
@@ -803,9 +803,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'page-header-banner',
     scope: 'site',
-    name: 'Banner de Cabeçalho Personalizado',
+    name: 'Custom Header Banner',
     description:
-      'Permite enviar ou vincular uma imagem de capa personalizada nos metadados da página e exibi-la como banner no modo de leitura.',
+      'Allows uploading or linking a custom cover image in page metadata and rendering it as a banner in reading mode.',
     category: 'appearance',
     enabled: true,
     sortOrder: 31,
@@ -819,9 +819,9 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
   {
     id: 'watchlist',
     scope: 'site',
-    name: 'Lista de Observação (Watchlist)',
+    name: 'Watchlist (Watched Pages)',
     description:
-      'Permite marcar artigos como observados no perfil do usuário e exibir a visualização Watchlist com páginas favoritadas na barra lateral.',
+      'Allows bookmarking watched articles in the user profile and browsing the Watchlist view from the sidebar.',
     category: 'navigation',
     enabled: true,
     sortOrder: 32,
@@ -899,7 +899,7 @@ export function sanitizeExtensionSettings(
           ? src.footerTitle.trim().slice(0, VALIDATION_LIMITS.EXTENSION_FOOTER_TITLE_MAX_LENGTH)
           : '';
       return {
-        footerTitle: trimmedTitle || base.footerTitle || 'Referências',
+        footerTitle: trimmedTitle || base.footerTitle || 'References',
         showOutlineLink:
           typeof src.showOutlineLink === 'boolean'
             ? src.showOutlineLink
@@ -1202,7 +1202,7 @@ export function bootAndSubscribeSiteExtensions(handlers: {
         const rawMessage = error instanceof Error ? error.message : String(error);
         const message =
           rawMessage ||
-          (formatted instanceof Error ? formatted.message : 'Falha ao carregar extensões.');
+          (formatted instanceof Error ? formatted.message : 'Failed to load extensions.');
         handlers.onError(message);
       }
     }

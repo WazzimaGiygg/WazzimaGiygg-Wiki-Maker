@@ -314,7 +314,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
               aria-pressed={onlyLastFiveEdits}
               onClick={() => setOnlyLastFiveEdits((prev) => !prev)}
               data-wiki-surface={onlyLastFiveEdits ? 'accent' : 'inset'}
-              title="Exibir apenas as 5 páginas editadas mais recentemente"
+              title="Show only the 5 most recently edited pages"
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                 onlyLastFiveEdits
                   ? 'border-blue-700 bg-blue-700 text-white hover:bg-blue-800'
@@ -322,7 +322,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
               }`}
             >
               <History className="w-3.5 h-3.5 shrink-0" />
-              <span>Últimas 5 edições</span>
+              <span>Last 5 edits</span>
             </button>
 
             <button
@@ -339,7 +339,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5 shrink-0" />
-              <span>Busca avançada</span>
+              <span>Advanced search</span>
               {activeAdvancedCount > 0 && (
                 <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-blue-700 text-white font-mono text-[10px] tabular-nums">
                   {activeAdvancedCount}
@@ -363,14 +363,14 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
         {/* Advanced Search Panel */}
         {advancedSearchOpen && (
           <section
-            aria-label="Busca avançada de páginas"
+            aria-label="Advanced page search"
             data-wiki-surface="inset"
             className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0b0f17] space-y-3"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
                 <SlidersHorizontal className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-                <span>Busca avançada por data, editor ou ID da página</span>
+                <span>Advanced search by date, editor, or page ID</span>
               </div>
               {activeAdvancedCount > 0 && (
                 <button
@@ -379,7 +379,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                   className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <X className="w-3 h-3" />
-                  <span>Limpar busca avançada</span>
+                  <span>Clear advanced search</span>
                 </button>
               )}
             </div>
@@ -393,10 +393,10 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
                   >
                     <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Data da edição</span>
+                    <span>Edit date</span>
                   </label>
                   <select
-                    aria-label="Modo do filtro de data"
+                    aria-label="Date filter mode"
                     value={dateMode}
                     onChange={(e) => {
                       const nextMode = e.target.value as DateFilterMode;
@@ -407,10 +407,10 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                     }}
                     className="px-2 py-0.5 text-[11px] rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-700 dark:text-slate-200 focus:outline-none focus:border-blue-700"
                   >
-                    <option value="exact">Dia exato</option>
-                    <option value="from">A partir de</option>
-                    <option value="to">Até</option>
-                    <option value="range">Período</option>
+                    <option value="exact">Exact day</option>
+                    <option value="from">From</option>
+                    <option value="to">Up to</option>
+                    <option value="range">Range</option>
                   </select>
                 </div>
 
@@ -420,7 +420,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    aria-label={dateMode === 'range' ? 'Data inicial da edição' : 'Data da edição'}
+                    aria-label={dateMode === 'range' ? 'Start edit date' : 'Edit date'}
                     className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                   />
                   {dateMode === 'range' && (
@@ -429,7 +429,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                       type="date"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
-                      aria-label="Data final da edição"
+                      aria-label="End edit date"
                       className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                     />
                   )}
@@ -452,14 +452,14 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                     list={editorDatalistId}
                     value={editorFilter}
                     onChange={(e) => setEditorFilter(e.target.value)}
-                    placeholder="Nome ou UID do editor..."
+                    placeholder="Editor name or UID..."
                     className="w-full px-3 py-1.5 pr-7 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                   />
                   {editorFilter && (
                     <button
                       type="button"
                       onClick={() => setEditorFilter('')}
-                      aria-label="Limpar filtro de editor"
+                      aria-label="Clear editor filter"
                       className="p-0.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -480,7 +480,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300"
                 >
                   <span className="font-mono text-slate-400">:</span>
-                  <span>ID da página (:slug)</span>
+                  <span>Page ID (:slug)</span>
                 </label>
                 <div className="relative flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] overflow-hidden focus-within:border-blue-700">
                   <span className="pl-2.5 pr-1 text-xs font-mono text-slate-400 select-none">
@@ -491,14 +491,14 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                     type="text"
                     value={pageIdFilter}
                     onChange={(e) => setPageIdFilter(e.target.value)}
-                    placeholder="start, guia-markdown..."
+                    placeholder="start, markdown-guide..."
                     className="w-full py-1.5 pr-7 text-xs font-mono bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
                   />
                   {pageIdFilter && (
                     <button
                       type="button"
                       onClick={() => setPageIdFilter('')}
-                      aria-label="Limpar filtro de ID da página"
+                      aria-label="Clear page ID filter"
                       className="p-0.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -517,22 +517,22 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
               <span className="tabular-nums">
                 {onlyLastFiveEdits ? (
                   <>
-                    Exibindo{' '}
+                    Showing{' '}
                     <strong className="font-semibold text-slate-900 dark:text-slate-100">
                       {displayedPages.length}
                     </strong>{' '}
-                    {displayedPages.length === 1 ? 'edição mais recente' : 'edições mais recentes'}
+                    {displayedPages.length === 1 ? 'most recent edit' : 'most recent edits'}
                     {sortedAndFiltered.length > displayedPages.length && (
-                      <> (de {sortedAndFiltered.length} páginas correspondentes)</>
+                      <> (of {sortedAndFiltered.length} matching pages)</>
                     )}
                   </>
                 ) : (
                   <>
-                    Exibindo{' '}
+                    Showing{' '}
                     <strong className="font-semibold text-slate-900 dark:text-slate-100">
                       {displayedPages.length}
                     </strong>{' '}
-                    de {pages.length} {pages.length === 1 ? 'página' : 'páginas'}
+                    of {pages.length} {pages.length === 1 ? 'page' : 'pages'}
                   </>
                 )}
               </span>
@@ -545,7 +545,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                   onClick={() => setOnlyLastFiveEdits(false)}
                   className="text-blue-700 dark:text-blue-400 hover:underline font-medium cursor-pointer"
                 >
-                  Mostrar todas ({sortedAndFiltered.length})
+                  Show all ({sortedAndFiltered.length})
                 </button>
               )}
               {hasAnyFilter && (
@@ -554,7 +554,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                   onClick={clearAllFilters}
                   className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:underline cursor-pointer"
                 >
-                  Limpar todos os filtros
+                  Clear all filters
                 </button>
               )}
             </div>

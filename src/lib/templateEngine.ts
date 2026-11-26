@@ -35,30 +35,30 @@ export interface WikiTemplateCatalogItem {
 export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   {
     id: 'aviso',
-    name: 'Aviso',
+    name: 'Ambox / Editorial Notice',
     aliases: ['aviso', 'ambox', 'notice', 'alerta', 'nota'],
     category: 'notices',
     description:
-      'Caixa de aviso editorial no estilo MediaWiki (Ambox) para alertas, revisões, notas ou confirmações.',
+      'MediaWiki-style editorial notice box (Ambox) for alerts, reviews, notes, or verifications.',
     exampleSnippet:
-      '{{Aviso|tipo=cuidado|título=Conteúdo em revisão|texto=As informações desta seção passam por verificação colaborativa.}}',
+      '{{Notice|type=warning|title=Under Review|text=The information in this section is undergoing collaborative verification.}}',
     params: [
       {
-        key: 'tipo',
-        label: 'Tipo (nota, cuidado, critico, sucesso)',
-        placeholder: 'nota',
-        defaultValue: 'cuidado',
+        key: 'type',
+        label: 'Type (note, warning, alert, success)',
+        placeholder: 'note',
+        defaultValue: 'warning',
       },
       {
-        key: 'título',
-        label: 'Título do aviso',
-        placeholder: 'Conteúdo em revisão',
+        key: 'title',
+        label: 'Notice title',
+        placeholder: 'Under Review',
         defaultValue: 'Editorial Notice',
       },
       {
-        key: 'texto',
-        label: 'Mensagem',
-        placeholder: 'Descreva o motivo do aviso...',
+        key: 'text',
+        label: 'Message',
+        placeholder: 'Describe the reason for the notice...',
         defaultValue: 'This section is currently under collaborative review.',
         required: true,
       },
@@ -66,24 +66,24 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'boas-vindas',
-    name: 'Boas-vindas',
+    name: 'Welcome',
     aliases: ['boas-vindas', 'boas vindas', 'welcome'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Caixa de boas-vindas para novos colaboradores e páginas de discussão com link direto para as Regras de Uso do WikiMaker.',
+      'Welcome banner for new contributors and discussion pages with a direct link to the WikiMaker Usage Rules.',
     exampleSnippet:
-      '{{Boas-vindas|colaborador=Novo Colaborador|tema=WazzimaGiygg Maker}}',
+      '{{Welcome|contributor=New Collaborator|topic=WazzimaGiygg Maker}}',
     params: [
       {
-        key: 'colaborador',
-        label: 'Nome do colaborador',
-        placeholder: 'Colaborador',
-        defaultValue: 'Colaborador',
+        key: 'contributor',
+        label: 'Contributor name',
+        placeholder: 'Collaborator',
+        defaultValue: 'Collaborator',
       },
       {
-        key: 'tema',
-        label: 'Projeto ou tema',
+        key: 'topic',
+        label: 'Project or topic',
         placeholder: 'WazzimaGiygg Maker',
         defaultValue: 'WazzimaGiygg Maker',
       },
@@ -91,50 +91,50 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'esboco',
-    name: 'Esboço',
+    name: 'Article Stub',
     aliases: ['esboco', 'stub'],
     category: 'notices',
     description:
-      'Marca o artigo como um esboço no padrão MediaWiki, convidando colaboradores a expandir o conteúdo.',
-    exampleSnippet: '{{Esboço|Governança Digital}}',
+      'Marks an article as a stub in MediaWiki style, inviting collaborators to expand the content.',
+    exampleSnippet: '{{Stub|Digital Governance}}',
     params: [
       {
         key: '1',
-        label: 'Área ou tema (opcional)',
-        placeholder: 'Tecnologia',
+        label: 'Subject or topic area (optional)',
+        placeholder: 'Technology',
         defaultValue: 'Wiki Documentation',
       },
     ],
   },
   {
     id: 'em-construcao',
-    name: 'Em construção',
+    name: 'Work in Progress',
     aliases: ['em construcao', 'wip', 'construcao', 'manutencao'],
     category: 'notices',
     description:
-      'Informa que a página está em edição ativa e pode sofrer alterações estruturais em breve.',
-    exampleSnippet: '{{Em construção|Previsão de conclusão: esta semana.}}',
+      'Informs readers that the page is under active editing and may undergo structural changes soon.',
+    exampleSnippet: '{{Under construction|Expected completion: this week.}}',
     params: [
       {
         key: '1',
-        label: 'Nota complementar (opcional)',
-        placeholder: 'Previsão ou contexto da edição...',
+        label: 'Additional note (optional)',
+        placeholder: 'Estimated completion or editing context...',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'carece-de-fontes',
-    name: 'Carece de fontes',
+    name: 'Sources Needed',
     aliases: ['carece de fontes', 'sem fontes', 'citation needed', 'fonte', 'cn'],
     category: 'notices',
     description:
-      'Quando usado sozinho em uma linha (ou com data), exibe banner de manutenção; no meio do texto, insere ^[carece de fontes]^.',
-    exampleSnippet: '{{Carece de fontes|data=November 2026}}',
+      'When used alone on a line (or with a date), renders a maintenance banner; inline inside text, inserts ^[citation needed]^.',
+    exampleSnippet: '{{Citation needed|date=November 2026}}',
     params: [
       {
-        key: 'data',
-        label: 'Data (opcional)',
+        key: 'date',
+        label: 'Date (optional)',
         placeholder: 'November 2026',
         defaultValue: 'November 2026',
       },
@@ -142,86 +142,86 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'desambiguacao',
-    name: 'Desambiguação',
+    name: 'Disambiguation Hatnote',
     aliases: ['desambiguacao', 'desambig', 'disambig', 'disambiguation'],
     category: 'notices',
     description:
-      'Aviso padrão de página de desambiguação listando significados distintos para o mesmo termo.',
-    exampleSnippet: '{{Desambiguação|WazzimaGiygg}}',
+      'Standard disambiguation page notice listing distinct meanings for the same term.',
+    exampleSnippet: '{{Disambiguation|WazzimaGiygg}}',
     params: [
       {
         key: '1',
-        label: 'Termo ambíguo',
-        placeholder: 'Termo ou sigla',
+        label: 'Ambiguous term',
+        placeholder: 'Term or acronym',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'eliminacao-rapida',
-    name: 'Eliminação rápida',
+    name: 'Speedy Delete',
     aliases: ['eliminacao rapida', 'er', 'speedy delete', 'speedy deletion', 'db', 'delete'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca o artigo para eliminação rápida e envia automaticamente um alerta para a página de discussão do autor ao salvar.',
+      'Nominates an article for speedy deletion and automatically sends an alert to the author’s discussion page on save.',
     exampleSnippet:
-      '{{Eliminação rápida|motivo=Página de teste ou sem conteúdo enciclopédico mínimo|regra=ER1}}',
+      '{{Speedy delete|reason=Test page or lacking minimal encyclopedic content|rule=G1}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Motivo da eliminação rápida',
-        placeholder: 'Descreva o critério ou justificativa...',
-        defaultValue: 'Conteúdo impróprio, teste ou fora do escopo editorial da wiki.',
+        key: 'reason',
+        label: 'Reason for speedy deletion',
+        placeholder: 'Describe the criterion or justification...',
+        defaultValue: 'Inappropriate content, test page, or outside wiki editorial scope.',
         required: true,
       },
       {
-        key: 'regra',
-        label: 'Regra / Critério (opcional)',
-        placeholder: 'ER1',
-        defaultValue: 'ER1',
+        key: 'rule',
+        label: 'Rule / Criterion (optional)',
+        placeholder: 'G1',
+        defaultValue: 'G1',
       },
       {
-        key: 'proponente',
-        label: 'Proponente (opcional)',
-        placeholder: 'Seu nome de colaborador',
+        key: 'by',
+        label: 'Nominator (optional)',
+        placeholder: 'Your collaborator name',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'bloqueio',
-    name: 'Bloqueio',
+    name: 'Account Block',
     aliases: ['bloqueio', 'bloqueado', 'block', 'blocked', 'user blocked'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso de bloqueio administrativo inserido automaticamente na página pessoal do colaborador bloqueado.',
+      'Administrative account block notice automatically inserted on the blocked collaborator’s personal page.',
     exampleSnippet:
-      '{{Bloqueio|motivo=Violação reiterada das políticas editoriais|administrador=Administração|duracao=Indeterminado}}',
+      '{{Block|reason=Repeated violation of editorial policies|admin=Administration|duration=Indefinite}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Motivo do bloqueio',
-        placeholder: 'Descreva o motivo administrativo...',
-        defaultValue: 'Violação das regras editoriais ou de conduta.',
+        key: 'reason',
+        label: 'Block reason',
+        placeholder: 'Describe the administrative reason...',
+        defaultValue: 'Violation of editorial or conduct rules.',
         required: true,
       },
       {
-        key: 'administrador',
-        label: 'Administrador responsável',
-        placeholder: 'Administração',
-        defaultValue: 'Administração',
+        key: 'admin',
+        label: 'Responsible administrator',
+        placeholder: 'Administration',
+        defaultValue: 'Administration',
       },
       {
-        key: 'duracao',
-        label: 'Duração',
-        placeholder: 'Indeterminado',
-        defaultValue: 'Indeterminado',
+        key: 'duration',
+        label: 'Duration',
+        placeholder: 'Indefinite',
+        defaultValue: 'Indefinite',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
+        key: 'date',
+        label: 'Date (optional)',
         placeholder: '2026-11-25',
         defaultValue: '',
       },
@@ -229,7 +229,7 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'sem-referencias',
-    name: 'Sem referências',
+    name: 'Unreferenced',
     aliases: [
       'sem referencias',
       'mais notas',
@@ -238,283 +238,283 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
       'more citations needed',
     ],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso clássico da Wikipédia indicando que o artigo ou secção não cita fontes confiáveis e independentes.',
-    exampleSnippet: '{{Sem referências|data=Novembro de 2026}}',
+      'Classic Wikipedia banner indicating that the article or section does not cite reliable independent sources.',
+    exampleSnippet: '{{Unreferenced|date=November 2026}}',
     params: [
       {
-        key: 'secao',
-        label: 'Secção ou escopo (opcional)',
-        placeholder: 'Este artigo',
+        key: 'section',
+        label: 'Section or scope (optional)',
+        placeholder: 'This article',
         defaultValue: '',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'reciclagem',
-    name: 'Reciclagem',
+    name: 'Copyedit & Cleanup',
     aliases: ['reciclagem', 'wikificacao', 'wikificar', 'contextualizar', 'revisao', 'copyedit'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Predefinição da Wikipédia para artigos que precisam de reciclagem, wikificação, contextualização ou revisão estilística.',
+      'Wikipedia template for articles requiring cleanup, wikification, context, or stylistic copy editing.',
     exampleSnippet:
-      '{{Reciclagem|motivo=Organizar secções, adicionar ligações internas e formatar referências.|data=Novembro de 2026}}',
+      '{{Copyedit|reason=Organize sections, add internal links, and format references.|date=November 2026}}',
     params: [
       {
-        key: 'motivo',
-        label: 'O que precisa ser reciclado',
-        placeholder: 'Descreva melhorias de estilo ou estrutura...',
-        defaultValue: 'Organizar secções, adicionar ligações internas e padronizar o estilo enciclopédico.',
+        key: 'reason',
+        label: 'What needs cleanup',
+        placeholder: 'Describe style or structural improvements...',
+        defaultValue: 'Organize sections, add internal links, and standardize encyclopedic style.',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'parcial',
-    name: 'Parcial',
+    name: 'POV / Partiality',
     aliases: ['parcial', 'imparcialidade', 'controverso', 'ponto de vista'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sinaliza que a neutralidade ou o ponto de vista imparcial do artigo está em disputa na página de discussão.',
+      'Signals that the neutrality or impartial point of view of the article is disputed on the talk page.',
     exampleSnippet:
-      '{{Parcial|secao=Recepção crítica|motivo=Necessita equilibrar fontes primárias e pareceres divergentes.}}',
+      '{{POV|section=Critical reception|reason=Needs balance between primary sources and divergent viewpoints.}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Motivo da contestação',
-        placeholder: 'Explique a questão de imparcialidade...',
-        defaultValue: 'A imparcialidade deste trecho está sob debate na página de discussão.',
+        key: 'reason',
+        label: 'Reason for dispute',
+        placeholder: 'Explain the neutrality concern...',
+        defaultValue: 'The neutrality of this passage is currently under discussion on the talk page.',
       },
       {
-        key: 'secao',
-        label: 'Secção (opcional)',
-        placeholder: 'Histórico',
+        key: 'section',
+        label: 'Section (optional)',
+        placeholder: 'History',
         defaultValue: '',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'desatualizado',
-    name: 'Desatualizado',
+    name: 'Update Needed',
     aliases: ['desatualizado', 'desatualizada', 'atualizar'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Informa que dados, versões, estatísticas ou eventos descritos no verbete precisam de atualização.',
+      'Informs readers that figures, versions, statistics, or events described in the entry need updating.',
     exampleSnippet:
-      '{{Desatualizado|motivo=Dados estatísticos anteriores à atualização de 2026.|data=Novembro de 2026}}',
+      '{{Update|reason=Statistical data prior to the 2026 update.|date=November 2026}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Detalhes do que desatualizou',
-        placeholder: 'Ex.: versões ou dados antigos...',
-        defaultValue: 'Algumas informações deste artigo podem estar desatualizadas.',
+        key: 'reason',
+        label: 'Details of outdated content',
+        placeholder: 'E.g.: older versions or figures...',
+        defaultValue: 'Some information in this article may be outdated.',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'fusao',
-    name: 'Fusão',
+    name: 'Merge',
     aliases: ['fusao', 'fundir', 'merge', 'merge to', 'merge from'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Propõe a fusão de dois verbetes com escopo sobreposto, criando um link direto para o artigo de destino.',
-    exampleSnippet: '{{Fusão|ecossistema-wazzimagiygg|motivo=Escopos complementares que podem formar um único guia.}}',
+      'Proposes merging two entries with overlapping scope, creating a direct link to the target article.',
+    exampleSnippet: '{{Merge|ecossistema-wazzimagiygg|reason=Complementary scopes that can form a single guide.}}',
     params: [
       {
         key: '1',
-        label: 'Slug do artigo alvo da fusão',
+        label: 'Target article slug',
         placeholder: 'ecossistema-wazzimagiygg',
         defaultValue: 'ecossistema-wazzimagiygg',
         required: true,
       },
       {
-        key: 'motivo',
-        label: 'Justificativa (opcional)',
-        placeholder: 'Por que os artigos devem ser fundidos...',
-        defaultValue: 'Os temas possuem forte sobreposição editorial.',
+        key: 'reason',
+        label: 'Justification (optional)',
+        placeholder: 'Why the articles should be merged...',
+        defaultValue: 'The topics share significant editorial overlap.',
       },
     ],
   },
   {
     id: 'traducao',
-    name: 'Tradução',
+    name: 'Translated Page',
     aliases: ['traducao', 'em traducao', 'traduzido', 'translated page', 'expand language'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca artigo em processo de tradução ou traduzido de outra língua (equivalente a {{Em tradução}} / {{Translated page}}).',
-    exampleSnippet: '{{Tradução|idioma=Inglês|artigo=Wikipedia Documentation|progresso=Em andamento}}',
+      'Marks an article being translated or adapted from another language (equivalent to {{Translated page}} / {{Expand language}}).',
+    exampleSnippet: '{{Translated page|language=Portuguese|article=Wikipedia Documentation|status=In progress}}',
     params: [
       {
-        key: 'idioma',
-        label: 'Idioma de origem',
-        placeholder: 'Inglês',
-        defaultValue: 'Inglês',
+        key: 'language',
+        label: 'Source language',
+        placeholder: 'Portuguese',
+        defaultValue: 'Portuguese',
       },
       {
-        key: 'artigo',
-        label: 'Artigo original (opcional)',
-        placeholder: 'Título original',
+        key: 'article',
+        label: 'Original article (optional)',
+        placeholder: 'Original title',
         defaultValue: '',
       },
       {
-        key: 'progresso',
-        label: 'Status da tradução',
-        placeholder: 'Em andamento',
-        defaultValue: 'Em andamento',
+        key: 'status',
+        label: 'Translation status',
+        placeholder: 'In progress',
+        defaultValue: 'In progress',
       },
     ],
   },
   {
     id: 'evento-atual',
-    name: 'Evento atual',
+    name: 'Current Event',
     aliases: ['evento atual', 'atualidade', 'evento recente', 'current', 'recentismo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Alerta para leitores sobre acontecimentos em curso ou notícias recentes cujos detalhes mudam rapidamente.',
-    exampleSnippet: '{{Evento atual|Investigação regulatória em andamento sobre plataformas abertas.}}',
+      'Alerts readers about ongoing developments or recent news whose details change rapidly.',
+    exampleSnippet: '{{Current|Ongoing regulatory investigation into open platforms.}}',
     params: [
       {
         key: '1',
-        label: 'Descrição do evento (opcional)',
-        placeholder: 'Contexto do acontecimento recente...',
-        defaultValue: 'As informações podem ser atualizadas à medida que novos fatos forem confirmados.',
+        label: 'Event description (optional)',
+        placeholder: 'Context of the recent event...',
+        defaultValue: 'Information may be updated as new facts are confirmed.',
       },
     ],
   },
   {
     id: 'artigo-futuro',
-    name: 'Artigo futuro',
+    name: 'Future Event',
     aliases: ['artigo futuro', 'evento futuro', 'futuro', 'future'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca verbetes sobre projetos, obras ou eventos planejados cuja especificação pode mudar antes do lançamento.',
-    exampleSnippet: '{{Artigo futuro|Previsão de lançamento para o próximo trimestre.}}',
+      'Flags entries about planned projects, works, or events whose specifications may change before release.',
+    exampleSnippet: '{{Future|Scheduled release for next quarter.}}',
     params: [
       {
         key: '1',
-        label: 'Observação sobre o cronograma (opcional)',
-        placeholder: 'Previsão ou detalhes preliminares...',
-        defaultValue: 'Detalhes anunciados estão sujeitos a alterações até o lançamento oficial.',
+        label: 'Schedule note (optional)',
+        placeholder: 'Forecast or preliminary details...',
+        defaultValue: 'Announced details are subject to change until official release.',
       },
     ],
   },
   {
     id: 'eliminar',
-    name: 'Eliminar',
+    name: 'Articles for Deletion (AfD)',
     aliases: ['eliminar', 'eliminacao por consenso', 'pe', 'afd', 'ec'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso de Eliminação por Consenso (AfD / PE) quando a permanência do artigo está em discussão comunitária.',
+      'Articles for Deletion (AfD) notice when keeping the article is under community discussion.',
     exampleSnippet:
-      '{{Eliminar|motivo=Avaliar notoriedade enciclopédica e fontes independentes disponíveis.|data=Novembro de 2026}}',
+      '{{AfD|reason=Evaluate encyclopedic notability and available independent sources.|date=November 2026}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Motivo da proposta',
-        placeholder: 'Explique os critérios em debate...',
-        defaultValue: 'Verificação de notoriedade e aderência às políticas editoriais.',
+        key: 'reason',
+        label: 'Nomination reason',
+        placeholder: 'Explain the criteria under debate...',
+        defaultValue: 'Reviewing notability and adherence to editorial policies.',
         required: true,
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'protegida',
-    name: 'Protegida',
+    name: 'Protected Page',
     aliases: ['protegida', 'semiprotegida', 'protecao', 'pp protected', 'protected'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Selo informativo indicando que a página está protegida ou semiprotegida contra edições não autorizadas.',
+      'Informational badge indicating that the page is protected or semi-protected against unauthorized edits.',
     exampleSnippet:
-      '{{Protegida|nivel=Proteção administrativa|motivo=Preservação de conteúdo institucional estável.}}',
+      '{{Protected|level=Administrative protection|reason=Preserving stable institutional content.}}',
     params: [
       {
-        key: 'nivel',
-        label: 'Nível de proteção',
-        placeholder: 'Semiprotegida',
-        defaultValue: 'Semiprotegida',
+        key: 'level',
+        label: 'Protection level',
+        placeholder: 'Semi-protected',
+        defaultValue: 'Semi-protected',
       },
       {
-        key: 'motivo',
-        label: 'Motivo da proteção',
-        placeholder: 'Prevenção de vandalismo ou documento estável...',
-        defaultValue: 'Edição restrita temporariamente para preservar a integridade do texto.',
+        key: 'reason',
+        label: 'Protection reason',
+        placeholder: 'Vandalism prevention or stable record...',
+        defaultValue: 'Editing temporarily restricted to preserve text integrity.',
       },
     ],
   },
   {
     id: 'multiplos-problemas',
-    name: 'Múltiplos problemas',
+    name: 'Multiple Issues',
     aliases: ['multiplos problemas', 'problemas', 'multiple issues'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Agrupa várias pendências editoriais do artigo em um único aviso compacto no topo da página.',
+      'Groups multiple editorial issues of an article into a single compact notice at the top of the page.',
     exampleSnippet:
-      '{{Múltiplos problemas|1=Carece de fontes fiáveis e independentes|2=Necessita reciclagem e links internos|data=Novembro de 2026}}',
+      '{{Multiple issues|1=Needs reliable independent sources|2=Requires style cleanup and internal links|date=November 2026}}',
     params: [
       {
         key: '1',
-        label: 'Primeiro problema',
-        placeholder: 'Carece de fontes fiáveis',
-        defaultValue: 'Carece de fontes fiáveis e independentes',
+        label: 'First issue',
+        placeholder: 'Needs reliable sources',
+        defaultValue: 'Needs reliable independent sources',
         required: true,
       },
       {
         key: '2',
-        label: 'Segundo problema (opcional)',
-        placeholder: 'Necessita reciclagem de estilo',
-        defaultValue: 'Necessita reciclagem e links internos',
+        label: 'Second issue (optional)',
+        placeholder: 'Requires style cleanup',
+        defaultValue: 'Requires style cleanup and internal links',
       },
       {
         key: '3',
-        label: 'Terceiro problema (opcional)',
-        placeholder: 'Pode estar desatualizado',
+        label: 'Third issue (optional)',
+        placeholder: 'May be outdated',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'artigo-destacado',
-    name: 'Artigo destacado',
+    name: 'Featured Article',
     aliases: [
       'artigo destacado',
       'artigo bom',
@@ -523,62 +523,62 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
       'good article',
     ],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Selo editorial da Wikipédia que reconhece artigos completos, bem referenciados e verificados.',
-    exampleSnippet: '{{Artigo destacado|nivel=Artigo Destacado|data=Novembro de 2026}}',
+      'Wikipedia editorial badge recognizing comprehensive, well-referenced, and verified articles.',
+    exampleSnippet: '{{Featured article|level=Featured Article|date=November 2026}}',
     params: [
       {
-        key: 'nivel',
-        label: 'Classificação (Artigo Destacado ou Artigo Bom)',
-        placeholder: 'Artigo Destacado',
-        defaultValue: 'Artigo Destacado',
+        key: 'level',
+        label: 'Classification (Featured Article or Good Article)',
+        placeholder: 'Featured Article',
+        defaultValue: 'Featured Article',
       },
       {
-        key: 'data',
-        label: 'Data de reconhecimento (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Recognition date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'carece-de-esclarecimento',
-    name: 'Carece de esclarecimento',
+    name: 'Clarify',
     aliases: ['carece de esclarecimento', 'esclarecer', 'clarify', 'quem', 'who', 'quando', 'when', 'onde'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca afirmações vagas no meio do texto com ^[carece de esclarecimento]^ (ou ^[quem?]^ / ^[quando?]^), ou exibe banner se usado com motivo.',
-    exampleSnippet: '{{Carece de esclarecimento|motivo=Especificar versão exata ou ano do relatório citado.}}',
+      'Marks vague statements inline with ^[clarification needed]^ (or ^[who?]^ / ^[when?]^), or displays a banner when given a reason.',
+    exampleSnippet: '{{Clarify|reason=Specify exact version or year of the cited report.}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Trecho a esclarecer (opcional; vazio = marcador inline)',
-        placeholder: 'Deixe vazio para marcação inline no texto',
+        key: 'reason',
+        label: 'Passage to clarify (optional; empty = inline tag)',
+        placeholder: 'Leave empty for inline tag',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'principal',
-    name: 'Principal',
+    name: 'Main Article',
     aliases: ['principal', 'artigo principal', 'main'],
     category: 'navigation',
     description:
-      'Indica o artigo principal de uma seção no formato clássico da Wikipédia / MediaWiki.',
-    exampleSnippet: '{{Principal|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products}}',
+      'Points to the main article of a section in classic Wikipedia / MediaWiki format.',
+    exampleSnippet: '{{Main|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products}}',
     params: [
       {
         key: '1',
-        label: 'Slug do artigo principal',
+        label: 'Main article slug',
         placeholder: 'ecossistema-wazzimagiygg',
         defaultValue: 'ecossistema-wazzimagiygg',
         required: true,
       },
       {
         key: '2',
-        label: 'Título exibido (opcional)',
+        label: 'Display title (optional)',
         placeholder: 'WazzimaGiygg Ecosystem Products',
         defaultValue: 'WazzimaGiygg Ecosystem Products',
       },
@@ -586,23 +586,23 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'ver-tambem',
-    name: 'Ver também',
+    name: 'Related Pages (See also)',
     aliases: ['ver tambem', 'see also', 'veja tambem'],
     category: 'navigation',
     description:
-      'Insere faixa de remissão cruzada ("Ver também") conectando até 3 páginas relacionadas.',
-    exampleSnippet: '{{Ver também|dossie-wikipedia-abusos|investigacao-lgpd-marco-civil-wmf-wikipedia}}',
+      'Inserts a cross-reference strip ("See also") connecting up to 3 related pages.',
+    exampleSnippet: '{{See also|dossie-wikipedia-abusos|investigacao-lgpd-marco-civil-wmf-wikipedia}}',
     params: [
       {
         key: '1',
-        label: 'Primeiro slug',
+        label: 'First slug',
         placeholder: 'dossie-wikipedia-abusos',
         defaultValue: 'dossie-wikipedia-abusos',
         required: true,
       },
       {
         key: '2',
-        label: 'Segundo slug (opcional)',
+        label: 'Second slug (optional)',
         placeholder: 'investigacao-lgpd-marco-civil-wmf-wikipedia',
         defaultValue: 'investigacao-lgpd-marco-civil-wmf-wikipedia',
       },
@@ -610,121 +610,121 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'citacao',
-    name: 'Citação',
+    name: 'Block Quote',
     aliases: ['citacao', 'quote', 'cquote'],
     category: 'navigation',
     description:
-      'Bloco de citação destacada com atribuição de autor e obra/fonte no padrão MediaWiki.',
+      'Highlighted quotation block with author and source attribution in MediaWiki style.',
     exampleSnippet:
-      '{{Citação|texto=Open knowledge thrives on transparent accountability and independent publishing.|autor=WazzimaGiygg Editorial|fonte=Project Charter}}',
+      '{{Quote|text=Open knowledge thrives on transparent accountability and independent publishing.|author=WazzimaGiygg Editorial|source=Project Charter}}',
     params: [
       {
-        key: 'texto',
-        label: 'Texto citado',
-        placeholder: 'Digite a citação...',
+        key: 'text',
+        label: 'Quoted text',
+        placeholder: 'Enter the quotation...',
         defaultValue: 'Open knowledge thrives on transparent accountability.',
         required: true,
       },
       {
-        key: 'autor',
-        label: 'Autor',
-        placeholder: 'Nome do autor',
+        key: 'author',
+        label: 'Author',
+        placeholder: 'Author name',
         defaultValue: 'WazzimaGiygg Editorial',
       },
       {
-        key: 'fonte',
-        label: 'Fonte / Obra (opcional)',
-        placeholder: 'Documento ou artigo',
+        key: 'source',
+        label: 'Source / Work (optional)',
+        placeholder: 'Document or article',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'sobre',
-    name: 'Sobre',
+    name: 'About',
     aliases: ['sobre', 'about', 'outros significados', 'for'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Nota de topo clássica da Wikipédia ("Sobre X, veja Y") para direcionar leitores a outros significados ou páginas relacionadas.',
-    exampleSnippet: '{{Sobre|a documentação de sintaxe|markdown-guide|Guia de Markdown}}',
+      'Classic Wikipedia hatnote ("For X, see Y") directing readers to other meanings or related pages.',
+    exampleSnippet: '{{About|the full syntax documentation|markdown-guide|Markdown Guide}}',
     params: [
       {
         key: '1',
-        label: 'Contexto do outro significado',
-        placeholder: 'outros usos ou contexto',
-        defaultValue: 'a documentação completa de edição',
+        label: 'Context for the other meaning',
+        placeholder: 'other uses or context',
+        defaultValue: 'the full editing documentation',
         required: true,
       },
       {
         key: '2',
-        label: 'Slug do artigo de destino',
+        label: 'Target article slug',
         placeholder: 'markdown-guide',
         defaultValue: 'markdown-guide',
         required: true,
       },
       {
         key: '3',
-        label: 'Título exibido (opcional)',
-        placeholder: 'Guia de Markdown',
-        defaultValue: 'Guia de Markdown',
+        label: 'Display title (optional)',
+        placeholder: 'Markdown Guide',
+        defaultValue: 'Markdown Guide',
       },
     ],
   },
   {
     id: 'nao-confundir',
-    name: 'Não confundir',
+    name: 'Not to be Confused',
     aliases: ['nao confundir', 'nao confundir com'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Nota de desambiguação rápida ("Não confundir com...") para diferenciar tópicos com nomes parecidos.',
-    exampleSnippet: '{{Não confundir|ecossistema-wazzimagiygg|Ecossistema WazzimaGiygg}}',
+      'Quick disambiguation hatnote ("Not to be confused with...") to distinguish similarly named topics.',
+    exampleSnippet: '{{Distinguish|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem}}',
     params: [
       {
         key: '1',
-        label: 'Slug da página distinta',
+        label: 'Distinct page slug',
         placeholder: 'ecossistema-wazzimagiygg',
         defaultValue: 'ecossistema-wazzimagiygg',
         required: true,
       },
       {
         key: '2',
-        label: 'Nome exibido (opcional)',
-        placeholder: 'Ecossistema WazzimaGiygg',
-        defaultValue: 'Ecossistema WazzimaGiygg',
+        label: 'Display name (optional)',
+        placeholder: 'WazzimaGiygg Ecosystem',
+        defaultValue: 'WazzimaGiygg Ecosystem',
       },
     ],
   },
   {
     id: 'redirecionamento',
-    name: 'Redirecionamento',
+    name: 'Redirect Notice',
     aliases: ['redirecionamento', 'redireciona', 'redireciona aqui'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Nota de topo em português indicando termos redirecionados para o artigo atual e apontando outros usos.',
-    exampleSnippet: '{{Redirecionamento|A Verdade|dossie-wikipedia-abusos|Dossiê Wikipédia Abusos}}',
+      'Hatnote indicating terms that redirect to the current article and pointing to other uses.',
+    exampleSnippet: '{{Redirect|A Verdade|dossie-wikipedia-abusos|Wikipedia Abuses Dossier}}',
     params: [
       {
         key: '1',
-        label: 'Termo redirecionado',
-        placeholder: 'Termo ou sigla',
+        label: 'Redirected term',
+        placeholder: 'Term or acronym',
         defaultValue: 'A Verdade',
         required: true,
       },
       {
         key: '2',
-        label: 'Slug de outros usos',
+        label: 'Other-uses slug',
         placeholder: 'dossie-wikipedia-abusos',
         defaultValue: 'dossie-wikipedia-abusos',
         required: true,
       },
       {
         key: '3',
-        label: 'Título exibido (opcional)',
-        placeholder: 'Dossiê Wikipédia Abusos',
-        defaultValue: 'Dossiê Wikipédia Abusos',
+        label: 'Display title (optional)',
+        placeholder: 'Wikipedia Abuses Dossier',
+        defaultValue: 'Wikipedia Abuses Dossier',
       },
     ],
   },
@@ -733,20 +733,20 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Reflist',
     aliases: ['reflist', 'referencias', 'lista de referencias', 'notas', 'notelist'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Renderiza a lista numerada e interativa de referências <ref> (compatível com {{Reflist}}, {{Referências}} e <references />) no ponto exato do artigo.',
+      'Renders the numbered, interactive <ref> reference list (compatible with {{Reflist}}, {{Referências}}, and <references />) at the exact spot in the article.',
     exampleSnippet: '{{Reflist}}',
     params: [
       {
-        key: 'colunas',
-        label: 'Colunas (1, 2 ou 3 — opcional)',
+        key: 'columns',
+        label: 'Columns (1, 2, or 3 — optional)',
         placeholder: '1',
         defaultValue: '',
       },
       {
         key: 'group',
-        label: 'Grupo de notas (opcional, ex.: nota)',
+        label: 'Note group (optional, e.g.: note)',
         placeholder: '',
         defaultValue: '',
       },
@@ -754,20 +754,20 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'citar-web',
-    name: 'Citar web',
+    name: 'Web Citation',
     aliases: ['citar web', 'citar site'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Predefinição da Wikipédia lusófona para citações de páginas web; gera automaticamente uma nota <ref> numerada no rodapé.',
+      'Wikipedia template for citing web pages; automatically generates a numbered <ref> footnote.',
     exampleSnippet:
-      '{{Citar web|título=Dossiê A Verdade|url=https://wazzimagiygg.com/averdade/|autor=Pesquisa WazzimaGiygg|publicado=wazzimagiygg.com|data=Novembro de 2026}}',
+      '{{Cite web|title=A Verdade Dossier|url=https://wazzimagiygg.com/averdade/|author=WazzimaGiygg Research|publisher=wazzimagiygg.com|date=November 2026}}',
     params: [
       {
-        key: 'título',
-        label: 'Título da página ou matéria',
-        placeholder: 'Título da fonte',
-        defaultValue: 'Dossiê A Verdade',
+        key: 'title',
+        label: 'Page or article title',
+        placeholder: 'Source title',
+        defaultValue: 'A Verdade Dossier',
         required: true,
       },
       {
@@ -777,64 +777,64 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
         defaultValue: 'https://wazzimagiygg.com/averdade/',
       },
       {
-        key: 'autor',
-        label: 'Autor (opcional)',
-        placeholder: 'Nome do autor',
-        defaultValue: 'Pesquisa WazzimaGiygg',
+        key: 'author',
+        label: 'Author (optional)',
+        placeholder: 'Author name',
+        defaultValue: 'WazzimaGiygg Research',
       },
       {
-        key: 'publicado',
-        label: 'Site / Publicação (opcional)',
+        key: 'publisher',
+        label: 'Website / Publisher (optional)',
         placeholder: 'wazzimagiygg.com',
         defaultValue: 'wazzimagiygg.com',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'citar-livro',
-    name: 'Citar livro',
+    name: 'Cite book',
     aliases: ['citar livro', 'cite book'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Citação bibliográfica padrão Wikipédia para livros e manuais técnicos; convertida em nota de rodapé <ref>.',
+      'Standard Wikipedia bibliographic citation for books and technical manuals; expands into a <ref> footnote.',
     exampleSnippet:
-      '{{Citar livro|título=Arquitetura de Wikis Colaborativas|autor=Silva, M.|editora=Imprensa Aberta|ano=2025|isbn=978-0-00-000000-0}}',
+      '{{Cite book|title=Collaborative Wiki Architecture|author=Silva, M.|publisher=Open Press|year=2025|isbn=978-0-00-000000-0}}',
     params: [
       {
-        key: 'título',
-        label: 'Título da obra',
-        placeholder: 'Nome do livro',
-        defaultValue: 'Arquitetura de Wikis Colaborativas',
+        key: 'title',
+        label: 'Book title',
+        placeholder: 'Book title',
+        defaultValue: 'Collaborative Wiki Architecture',
         required: true,
       },
       {
-        key: 'autor',
-        label: 'Autor',
-        placeholder: 'Sobrenome, Nome',
+        key: 'author',
+        label: 'Author',
+        placeholder: 'Last, First',
         defaultValue: 'WazzimaGiygg Editorial',
       },
       {
-        key: 'editora',
-        label: 'Editora (opcional)',
-        placeholder: 'Nome da editora',
-        defaultValue: 'Imprensa Aberta',
+        key: 'publisher',
+        label: 'Publisher (optional)',
+        placeholder: 'Publisher name',
+        defaultValue: 'Open Press',
       },
       {
-        key: 'ano',
-        label: 'Ano (opcional)',
+        key: 'year',
+        label: 'Year (optional)',
         placeholder: '2026',
         defaultValue: '2026',
       },
       {
         key: 'isbn',
-        label: 'ISBN (opcional)',
+        label: 'ISBN (optional)',
         placeholder: '978-...',
         defaultValue: '',
       },
@@ -842,43 +842,43 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'citar-noticia',
-    name: 'Citar notícia',
+    name: 'Cite news',
     aliases: ['citar noticia', 'citar jornal', 'cite news', 'cite journal'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Citação jornalística ou de periódico no padrão Wikipédia; gera referência numerada automática no rodapé.',
+      'Journalistic or periodical citation in Wikipedia format; automatically generates a numbered footnote.',
     exampleSnippet:
-      '{{Citar notícia|título=Relatório de Transparência Editorial|jornal=Jornal WazzimaGiygg|data=2026-11-25|url=https://jornal.wazzimagiygg.com/}}',
+      '{{Cite news|title=Editorial Transparency Report|newspaper=Jornal WazzimaGiygg|date=2026-11-25|url=https://jornal.wazzimagiygg.com/}}',
     params: [
       {
-        key: 'título',
-        label: 'Título da reportagem ou artigo',
-        placeholder: 'Manchete da notícia',
-        defaultValue: 'Relatório de Transparência Editorial',
+        key: 'title',
+        label: 'Report or article title',
+        placeholder: 'News headline',
+        defaultValue: 'Editorial Transparency Report',
         required: true,
       },
       {
-        key: 'jornal',
-        label: 'Jornal / Revista',
+        key: 'newspaper',
+        label: 'Newspaper / Magazine',
         placeholder: 'Jornal WazzimaGiygg',
         defaultValue: 'Jornal WazzimaGiygg',
       },
       {
-        key: 'autor',
-        label: 'Autor (opcional)',
-        placeholder: 'Repórter ou redação',
+        key: 'author',
+        label: 'Author (optional)',
+        placeholder: 'Reporter or desk',
         defaultValue: '',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
       {
         key: 'url',
-        label: 'URL (opcional)',
+        label: 'URL (optional)',
         placeholder: 'https://...',
         defaultValue: 'https://jornal.wazzimagiygg.com/',
       },
@@ -886,31 +886,31 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info',
-    name: 'Info',
+    name: 'Infobox (Generic)',
     aliases: ['info', 'infobox', 'ficha'],
     category: 'infobox',
     description:
-      'Sintaxe de chave/valor igual às predefinições {{Info/...}} da MediaWiki; renderiza um cartão Infobox completo.',
+      'Key/value syntax matching MediaWiki {{Infobox}} templates; renders a full summary Infobox card.',
     exampleSnippet:
-      '{{Info|tipo=project|título=WikiWazzimaGiygg|subtítulo=Enciclopédia Independente|Status=Active|Portal=[wazzimagiygg.com](https://wazzimagiygg.com/)}}',
+      '{{Infobox|type=project|title=WikiWazzimaGiygg|subtitle=Independent Encyclopedia|Status=Active|Portal=[wazzimagiygg.com](https://wazzimagiygg.com/)}}',
     params: [
       {
-        key: 'tipo',
-        label: 'Tipo (general, project, organization, character, location, item, user)',
+        key: 'type',
+        label: 'Type (general, project, organization, character, location, item, user)',
         placeholder: 'project',
         defaultValue: 'project',
       },
       {
-        key: 'título',
-        label: 'Título',
-        placeholder: 'Nome do verbete',
+        key: 'title',
+        label: 'Title',
+        placeholder: 'Entry name',
         defaultValue: 'Wiki Project',
         required: true,
       },
       {
-        key: 'subtítulo',
-        label: 'Subtítulo',
-        placeholder: 'Classificação breve',
+        key: 'subtitle',
+        label: 'Subtitle',
+        placeholder: 'Short classification',
         defaultValue: 'Reference entry',
       },
       {
@@ -929,87 +929,87 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info-biografia',
-    name: 'Info/Biografia',
+    name: 'Infobox person',
     aliases: ['info/biografia', 'info/pessoa', 'infobox person'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Ficha biográfica clássica da Wikipédia ({{Info/Biografia}} / {{Infobox person}}) com nascimento, ocupação e nacionalidade.',
+      'Classic Wikipedia biographical card ({{Infobox person}}) with birth, occupation, and nationality.',
     exampleSnippet:
-      '{{Info/Biografia|título=Nome da Personalidade|subtítulo=Pesquisador e Autor|Nascimento=1990|Nacionalidade=Brasileira|Ocupação=Desenvolvedor}}',
+      '{{Infobox person|title=Sample Person|subtitle=Researcher & Author|Born=1990|Nationality=Brazilian|Occupation=Developer}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome completo',
-        placeholder: 'Nome da personalidade',
-        defaultValue: 'Nome da Personalidade',
+        key: 'title',
+        label: 'Full name',
+        placeholder: 'Person name',
+        defaultValue: 'Sample Person',
         required: true,
       },
       {
-        key: 'subtítulo',
-        label: 'Descrição curta',
-        placeholder: 'Pesquisador e Autor',
-        defaultValue: 'Pesquisador e Autor',
+        key: 'subtitle',
+        label: 'Short description',
+        placeholder: 'Researcher & Author',
+        defaultValue: 'Researcher & Author',
       },
       {
-        key: 'Nascimento',
-        label: 'Nascimento',
-        placeholder: 'Data e local',
+        key: 'Born',
+        label: 'Born',
+        placeholder: 'Date and place',
         defaultValue: '1990',
       },
       {
-        key: 'Nacionalidade',
-        label: 'Nacionalidade',
-        placeholder: 'Brasileira',
-        defaultValue: 'Brasileira',
+        key: 'Nationality',
+        label: 'Nationality',
+        placeholder: 'Brazilian',
+        defaultValue: 'Brazilian',
       },
       {
-        key: 'Ocupação',
-        label: 'Ocupação',
-        placeholder: 'Escritor, engenheiro...',
-        defaultValue: 'Pesquisador',
+        key: 'Occupation',
+        label: 'Occupation',
+        placeholder: 'Writer, engineer...',
+        defaultValue: 'Researcher',
       },
     ],
   },
   {
     id: 'info-empresa',
-    name: 'Info/Empresa',
+    name: 'Infobox company',
     aliases: ['info/empresa', 'info/organizacao', 'infobox company'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Caixa de informações da Wikipédia para empresas, instituições e fundações ({{Info/Empresa}} / {{Infobox company}}).',
+      'Wikipedia infobox for companies, institutions, and foundations ({{Infobox company}}).',
     exampleSnippet:
-      '{{Info/Empresa|título=Organização Exemplo|Tipo=Instituição independente|Fundação=2024|Sede=Brasil|Site=[wazzimagiygg.com](https://wazzimagiygg.com/)}}',
+      '{{Infobox company|title=Sample Organization|Type=Independent institution|Founded=2024|Headquarters=Brazil|Website=[wazzimagiygg.com](https://wazzimagiygg.com/)}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome da organização',
-        placeholder: 'Nome da empresa ou entidade',
-        defaultValue: 'Organização Exemplo',
+        key: 'title',
+        label: 'Organization name',
+        placeholder: 'Company or entity name',
+        defaultValue: 'Sample Organization',
         required: true,
       },
       {
-        key: 'Tipo',
-        label: 'Tipo / Natureza',
-        placeholder: 'Empresa, ONG, Fundação...',
-        defaultValue: 'Organização independente',
+        key: 'Type',
+        label: 'Type / Nature',
+        placeholder: 'Company, NGO, Foundation...',
+        defaultValue: 'Independent organization',
       },
       {
-        key: 'Fundação',
-        label: 'Fundação',
+        key: 'Founded',
+        label: 'Founded',
         placeholder: '2024',
         defaultValue: '2024',
       },
       {
-        key: 'Sede',
-        label: 'Sede',
-        placeholder: 'Cidade, País',
-        defaultValue: 'Brasil',
+        key: 'Headquarters',
+        label: 'Headquarters',
+        placeholder: 'City, Country',
+        defaultValue: 'Brazil',
       },
       {
-        key: 'Site',
-        label: 'Website oficial',
+        key: 'Website',
+        label: 'Official website',
         placeholder: '[wazzimagiygg.com](https://wazzimagiygg.com/)',
         defaultValue: '[wazzimagiygg.com](https://wazzimagiygg.com/)',
       },
@@ -1017,43 +1017,43 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info-jogo',
-    name: 'Info/Jogo',
+    name: 'Infobox video game',
     aliases: ['info/jogo', 'info/software', 'infobox video game', 'infobox software'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Ficha técnica padrão Wikipédia para jogos eletrônicos e softwares ({{Info/Jogo}} / {{Infobox video game}}).',
+      'Wikipedia technical infobox for video games and software ({{Infobox video game}}).',
     exampleSnippet:
-      '{{Info/Jogo|título=Título do Jogo|Desenvolvedora=Estúdio Independente|Gênero=RPG / Simulação|Plataformas=PC, Web|Lançamento=2026}}',
+      '{{Infobox video game|title=Sample Game|Developer=Indie Studio|Genre=RPG / Simulation|Platforms=PC, Web|Release=2026}}',
     params: [
       {
-        key: 'título',
-        label: 'Título do jogo ou software',
-        placeholder: 'Nome do título',
-        defaultValue: 'Título do Projeto',
+        key: 'title',
+        label: 'Game or software title',
+        placeholder: 'Title name',
+        defaultValue: 'Sample Project',
         required: true,
       },
       {
-        key: 'Desenvolvedora',
-        label: 'Desenvolvedora',
-        placeholder: 'Nome do estúdio',
-        defaultValue: 'Estúdio Independente',
+        key: 'Developer',
+        label: 'Developer',
+        placeholder: 'Studio name',
+        defaultValue: 'Indie Studio',
       },
       {
-        key: 'Gênero',
-        label: 'Gênero / Categoria',
-        placeholder: 'RPG, Aventura, Utilitário...',
-        defaultValue: 'Simulação / Wiki',
+        key: 'Genre',
+        label: 'Genre / Category',
+        placeholder: 'RPG, Adventure, Utility...',
+        defaultValue: 'Simulation / Wiki',
       },
       {
-        key: 'Plataformas',
-        label: 'Plataformas',
+        key: 'Platforms',
+        label: 'Platforms',
         placeholder: 'PC, Web, Linux',
         defaultValue: 'PC, Web',
       },
       {
-        key: 'Lançamento',
-        label: 'Ano de lançamento',
+        key: 'Release',
+        label: 'Release year',
         placeholder: '2026',
         defaultValue: '2026',
       },
@@ -1061,50 +1061,50 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info-pais',
-    name: 'Info/País',
+    name: 'Infobox country',
     aliases: ['info/pais', 'info/local', 'infobox country', 'infobox settlement'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Infocaixa geográfica estilo Wikipédia ({{Info/País}} / {{Infobox country}}) para países, estados, cidades ou regiões.',
+      'Wikipedia-style geographic infobox ({{Infobox country}}) for countries, states, cities, or regions.',
     exampleSnippet:
-      '{{Info/País|título=República Exemplo|Capital=Cidade Central|Idioma=Português|População=1.200.000|Moeda=Real}}',
+      '{{Infobox country|title=Sample Republic|Capital=Central City|Language=English|Population=1,200,000|Currency=Dollar}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome do país ou localidade',
-        placeholder: 'Nome oficial',
-        defaultValue: 'Localidade Exemplo',
+        key: 'title',
+        label: 'Country or locality name',
+        placeholder: 'Official name',
+        defaultValue: 'Sample Location',
         required: true,
       },
       {
         key: 'Capital',
-        label: 'Capital / Sede',
-        placeholder: 'Cidade principal',
-        defaultValue: 'Cidade Central',
+        label: 'Capital / Seat',
+        placeholder: 'Main city',
+        defaultValue: 'Central City',
       },
       {
-        key: 'Idioma',
-        label: 'Idioma oficial',
-        placeholder: 'Português',
-        defaultValue: 'Português',
+        key: 'Language',
+        label: 'Official language',
+        placeholder: 'English',
+        defaultValue: 'English',
       },
       {
-        key: 'População',
-        label: 'População estimada',
-        placeholder: '1.000.000',
-        defaultValue: '1.000.000',
+        key: 'Population',
+        label: 'Estimated population',
+        placeholder: '1,000,000',
+        defaultValue: '1,000,000',
       },
     ],
   },
   {
     id: 'ecossistema-wazzimagiygg',
-    name: 'Ecossistema WazzimaGiygg',
+    name: 'WazzimaGiygg Ecosystem',
     aliases: ['ecossistema wazzimagiygg', 'wazzimagiygg', 'wikipedia dossie', 'a verdade'],
     category: 'ecosystem',
     description:
-      'Caixa institucional padrão conectando os 5 portais WazzimaGiygg e o dossiê A Verdade sobre a Wikipédia.',
-    exampleSnippet: '{{Ecossistema WazzimaGiygg}}',
+      'Standard institutional box connecting the 5 WazzimaGiygg portals and the A Verdade dossier on Wikipedia.',
+    exampleSnippet: '{{WazzimaGiygg Ecosystem}}',
     params: [],
   },
   // --- English MediaWiki Templates ---
@@ -1647,356 +1647,356 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   // --- Extended Wikipedia & MediaWiki Catalog ---
   {
     id: 'bpv',
-    name: 'Biografia de pessoa viva',
+    name: 'BLP sources',
     aliases: ['biografia de pessoa viva', 'bpv', 'blp', 'blp sources'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Política rigorosa da Wikipédia para biografias de pessoas vivas, exigindo fontes independentes para qualquer afirmação sensível.',
-    exampleSnippet: '{{Biografia de pessoa viva|data=Novembro de 2026}}',
+      'Strict Wikipedia policy banner for biographies of living persons (BLP), requiring independent reliable sources for sensitive claims.',
+    exampleSnippet: '{{BLP sources|date=November 2026}}',
     params: [
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'fontes-primarias',
-    name: 'Fontes primárias',
+    name: 'Primary sources',
     aliases: ['fontes primarias', 'sem fontes fiaveis', 'primary sources', 'self-published'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Alerta que o artigo depende excessivamente de fontes primárias, institucionais ou autopublicadas.',
+      'Alerts readers that the article relies too heavily on primary, institutional, or self-published sources.',
     exampleSnippet:
-      '{{Fontes primárias|motivo=Adicionar análises independentes de imprensa ou periódicos revisados.|data=Novembro de 2026}}',
+      '{{Primary sources|reason=Add independent coverage from press outlets or peer-reviewed journals.|date=November 2026}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Observação (opcional)',
-        placeholder: 'Indique quais fontes secundárias faltam...',
-        defaultValue: 'Requer fontes secundárias independentes e confiáveis.',
+        key: 'reason',
+        label: 'Note (optional)',
+        placeholder: 'Indicate which secondary sources are needed...',
+        defaultValue: 'Requires independent, reliable secondary sources.',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'vda',
-    name: 'Conteúdo suspeito',
+    name: 'Copyvio',
     aliases: ['conteudo suspeito', 'vda', 'copyvio', 'copyright', 'violacao de direitos'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca seção ou artigo sob suspeita de violação de direitos autorais (VDA / Copyvio) para revisão ou reescrita.',
-    exampleSnippet: '{{VDA|fonte=https://exemplo.org/texto-original|motivo=Trecho copiado sem adaptação editorial.}}',
+      'Flags a section or article suspected of copyright infringement (Copyvio) for license review or rewriting.',
+    exampleSnippet: '{{Copyvio|source=https://example.org/original-text|reason=Passage copied without editorial adaptation.}}',
     params: [
       {
-        key: 'fonte',
-        label: 'Fonte original suspeita',
+        key: 'source',
+        label: 'Suspected original source',
         placeholder: 'https://...',
         defaultValue: '',
       },
       {
-        key: 'motivo',
-        label: 'Detalhes',
-        placeholder: 'Descreva os trechos afetados...',
-        defaultValue: 'Verificação preventiva de compatibilidade de licença e texto autoral.',
+        key: 'reason',
+        label: 'Details',
+        placeholder: 'Describe the affected passages...',
+        defaultValue: 'Preventive copyright and license compatibility check.',
       },
     ],
   },
   {
     id: 'orfao',
-    name: 'Órfão',
+    name: 'Orphan',
     aliases: ['orfao', 'pagina orfa', 'orphan', 'dead end', 'sem ligacoes'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que o artigo possui poucas ou nenhuma ligação interna vinda de outras páginas da wiki.',
-    exampleSnippet: '{{Órfão|data=Novembro de 2026}}',
+      'Indicates that the article has few or no incoming internal links from other wiki pages.',
+    exampleSnippet: '{{Orphan|date=November 2026}}',
     params: [
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'introducao-longa',
-    name: 'Introdução longa',
+    name: 'Lead too long',
     aliases: ['introducao longa', 'lead too long', 'lead missing', 'sem introducao'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sinaliza que o resumo introdutório está extenso demais ou ausente e precisa seguir o padrão enciclopédico.',
-    exampleSnippet: '{{Introdução longa|Sugestão: condensar em 2 parágrafos e mover detalhes para o corpo.}}',
+      'Flags that the lead summary is overly long or missing and should follow encyclopedic structure.',
+    exampleSnippet: '{{Lead too long|Suggestion: condense into 2 paragraphs and move details into the body.}}',
     params: [
       {
         key: '1',
-        label: 'Observação (opcional)',
-        placeholder: 'Como ajustar a introdução...',
-        defaultValue: 'Resuma os pontos principais antes do sumário de seções.',
+        label: 'Note (optional)',
+        placeholder: 'How to adjust the lead section...',
+        defaultValue: 'Summarize key points concisely before the table of contents.',
       },
     ],
   },
   {
     id: 'expandir-secao',
-    name: 'Expandir secção',
+    name: 'Expand section',
     aliases: ['expandir secao', 'expandir', 'expand section', 'empty section', 'secao vazia'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Convida colaboradores a ampliar uma secção específica que está vazia ou incompleta.',
-    exampleSnippet: '{{Expandir secção|secao=Histórico|motivo=Detalhar os marcos entre 2022 e 2026.}}',
+      'Invites contributors to expand a specific section that is currently empty or incomplete.',
+    exampleSnippet: '{{Expand section|section=History|reason=Detail milestones between 2022 and 2026.}}',
     params: [
       {
-        key: 'secao',
-        label: 'Nome da secção',
-        placeholder: 'Histórico',
-        defaultValue: 'Desenvolvimento',
+        key: 'section',
+        label: 'Section name',
+        placeholder: 'History',
+        defaultValue: 'Development',
       },
       {
-        key: 'motivo',
-        label: 'O que acrescentar',
-        placeholder: 'Tópicos ou fontes desejadas...',
-        defaultValue: 'Esta secção encontra-se incompleta e pode ser expandida com fontes fiáveis.',
+        key: 'reason',
+        label: 'What to add',
+        placeholder: 'Topics or sources needed...',
+        defaultValue: 'This section is incomplete and can be expanded with reliable sources.',
       },
     ],
   },
   {
     id: 'prosa',
-    name: 'Prosa',
+    name: 'Prose',
     aliases: ['prosa', 'em formato de lista', 'prose', 'list to prose'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Recomenda converter listas extensas de tópicos em texto corrido em prosa enciclopédica.',
-    exampleSnippet: '{{Prosa|secao=Cronologia}}',
+      'Recommends converting long bullet lists into continuous encyclopedic prose.',
+    exampleSnippet: '{{Prose|section=Timeline}}',
     params: [
       {
-        key: 'secao',
-        label: 'Secção (opcional)',
-        placeholder: 'Cronologia',
+        key: 'section',
+        label: 'Section (optional)',
+        placeholder: 'Timeline',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'divisao',
-    name: 'Divisão',
+    name: 'Split',
     aliases: ['divisao', 'dividir', 'split', 'split section'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Propõe dividir um artigo muito extenso ou uma secção independente em novos verbetes específicos.',
-    exampleSnippet: '{{Divisão|sugestao=ecossistema-wazzimagiygg|motivo=Secção extensa o suficiente para artigo próprio.}}',
+      'Proposes splitting an overly long article or standalone section into separate focused entries.',
+    exampleSnippet: '{{Split|suggestion=ecossistema-wazzimagiygg|reason=Section is extensive enough for its own dedicated article.}}',
     params: [
       {
-        key: 'sugestao',
-        label: 'Slug sugerido para o novo artigo',
-        placeholder: 'novo-artigo',
+        key: 'suggestion',
+        label: 'Suggested slug for the new article',
+        placeholder: 'new-article',
         defaultValue: '',
       },
       {
-        key: 'motivo',
-        label: 'Justificativa',
-        placeholder: 'Por que dividir...',
-        defaultValue: 'O volume de conteúdo justifica separar o tópico em página dedicada.',
+        key: 'reason',
+        label: 'Rationale',
+        placeholder: 'Why split...',
+        defaultValue: 'The amount of content justifies splitting this topic into a dedicated page.',
       },
     ],
   },
   {
     id: 'publicidade',
-    name: 'Publicidade',
+    name: 'Advert',
     aliases: ['publicidade', 'propaganda', 'promocional', 'advert', 'spam', 'peacock'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso clássico de tom promocional ou publicitário; pede reescrita em linguagem neutra e factual.',
-    exampleSnippet: '{{Publicidade|motivo=Remover adjetivos promocionais e embasar fatos em fontes independentes.}}',
+      'Classic Wikipedia promotional-tone warning; requests rewriting in neutral, factual language.',
+    exampleSnippet: '{{Advert|reason=Remove promotional adjectives and ground facts in independent sources.}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Trechos ou ajustes recomendados',
-        placeholder: 'Descreva o que precisa de tom neutro...',
-        defaultValue: 'Reescrever em tom enciclopédico neutro, sem adjetivos elogiosos.',
+        key: 'reason',
+        label: 'Passages or recommended edits',
+        placeholder: 'Describe what needs a neutral tone...',
+        defaultValue: 'Rewrite in a neutral encyclopedic tone without promotional phrasing.',
       },
     ],
   },
   {
     id: 'notoriedade',
-    name: 'Notoriedade',
+    name: 'Notability',
     aliases: ['notoriedade', 'sem relevancia', 'relevancia', 'notability'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Questiona se o assunto cumpre os critérios mínimos de notoriedade enciclopédica por falta de cobertura independente.',
-    exampleSnippet: '{{Notoriedade|motivo=Necessita cobertura significativa em fontes terceiras confiáveis.}}',
+      'Questions whether the subject meets minimum encyclopedic notability guidelines due to limited independent coverage.',
+    exampleSnippet: '{{Notability|reason=Requires significant coverage in reliable third-party sources.}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Observação (opcional)',
-        placeholder: 'Critérios pendentes...',
-        defaultValue: 'O tema pode não atender aos critérios de notoriedade sem fontes independentes.',
+        key: 'reason',
+        label: 'Note (optional)',
+        placeholder: 'Pending criteria...',
+        defaultValue: 'The topic may not meet notability guidelines without independent sources.',
       },
     ],
   },
   {
     id: 'globalizar',
-    name: 'Globalizar',
+    name: 'Globalize',
     aliases: ['globalizar', 'lusofonia', 'visao regional', 'globalize'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que os exemplos e o enfoque do artigo estão restritos a um único país ou região.',
-    exampleSnippet: '{{Globalizar|regiao=Brasil|motivo=Incluir perspectiva de outros países lusófonos e internacionais.}}',
+      'Indicates that the examples and scope of the article are limited to a single country or region.',
+    exampleSnippet: '{{Globalize|region=Brazil|reason=Include perspectives from other countries and international contexts.}}',
     params: [
       {
-        key: 'regiao',
-        label: 'Região predominante atual',
-        placeholder: 'Brasil / Portugal / EUA',
-        defaultValue: 'um único país',
+        key: 'region',
+        label: 'Current predominant region',
+        placeholder: 'Brazil / US / Europe',
+        defaultValue: 'a single country',
       },
       {
-        key: 'motivo',
-        label: 'Sugestão (opcional)',
-        placeholder: 'Como ampliar o escopo...',
-        defaultValue: 'Ampliar a cobertura para representar uma visão global do tema.',
+        key: 'reason',
+        label: 'Suggestion (optional)',
+        placeholder: 'How to broaden scope...',
+        defaultValue: 'Broaden coverage to represent a global view of the subject.',
       },
     ],
   },
   {
     id: 'ficcao',
-    name: 'Ficção',
+    name: 'In-universe',
     aliases: ['ficcao', 'enredo', 'in-universe', 'plot'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Alerta que o texto descreve uma obra ficcional como se fosse real, sem contexto editorial do mundo real.',
-    exampleSnippet: '{{Ficção|obra=Universo da Obra}}',
+      'Warns that a fictional work is described as if it were real without real-world editorial context.',
+    exampleSnippet: '{{In-universe|work=Story Universe}}',
     params: [
       {
-        key: 'obra',
-        label: 'Obra ou franquia (opcional)',
-        placeholder: 'Título da obra',
+        key: 'work',
+        label: 'Work or franchise (optional)',
+        placeholder: 'Title of the work',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'pesquisa-inedita',
-    name: 'Pesquisa inédita',
+    name: 'Original research',
     aliases: ['pesquisa inedita', 'original research', 'or', 'sintese'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca afirmações interpretativas ou conclusões próprias não publicadas previamente por fontes externas.',
-    exampleSnippet: '{{Pesquisa inédita|secao=Análise|data=Novembro de 2026}}',
+      'Flags interpretive claims or unpublished conclusions not previously supported by external sources.',
+    exampleSnippet: '{{Original research|section=Analysis|date=November 2026}}',
     params: [
       {
-        key: 'secao',
-        label: 'Secção (opcional)',
-        placeholder: 'Análise',
+        key: 'section',
+        label: 'Section (optional)',
+        placeholder: 'Analysis',
         defaultValue: '',
       },
       {
-        key: 'data',
-        label: 'Data (opcional)',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'date',
+        label: 'Date (optional)',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
     ],
   },
   {
     id: 'curiosidades',
-    name: 'Curiosidades',
+    name: 'Trivia',
     aliases: ['curiosidades', 'trivia'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sugere reorganizar seções de curiosidades soltas integrando fatos relevantes às seções temáticas.',
-    exampleSnippet: '{{Curiosidades|motivo=Integrar os itens relevantes nas seções de História e Recepção.}}',
+      'Suggests reorganizing standalone trivia sections by integrating relevant facts into thematic sections.',
+    exampleSnippet: '{{Trivia|reason=Incorporate relevant items into the History and Reception sections.}}',
     params: [
       {
-        key: 'motivo',
-        label: 'Orientação (opcional)',
-        placeholder: 'Como reorganizar...',
-        defaultValue: 'Recomenda-se incorporar fatos relevantes ao texto principal do artigo.',
+        key: 'reason',
+        label: 'Guidance (optional)',
+        placeholder: 'How to reorganize...',
+        defaultValue: 'Relevant facts should be integrated into the main body of the article.',
       },
     ],
   },
   {
     id: 'aviso-medico',
-    name: 'Aviso médico',
+    name: 'Medical disclaimer',
     aliases: ['aviso medico', 'medical', 'aviso legal', 'legal disclaimer'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Isenção de responsabilidade clássica da Wikipédia para artigos informativos sobre saúde, medicina ou direito.',
-    exampleSnippet: '{{Aviso médico|tipo=medico}}',
+      'Classic Wikipedia disclaimer banner for informational articles covering health, medicine, or law.',
+    exampleSnippet: '{{Medical disclaimer|type=medical}}',
     params: [
       {
-        key: 'tipo',
-        label: 'Tipo (medico ou legal)',
-        placeholder: 'medico',
-        defaultValue: 'medico',
+        key: 'type',
+        label: 'Type (medical or legal)',
+        placeholder: 'medical',
+        defaultValue: 'medical',
       },
     ],
   },
   {
     id: 'humor',
-    name: 'Humor',
+    name: 'Humour',
     aliases: ['humor', 'piada', 'satira', 'humour'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Identifica ensaios humorísticos ou sátiras comunitárias que não devem ser confundidos com política oficial.',
-    exampleSnippet: '{{Humor|Ensaio leve da comunidade sobre boas práticas de edição.}}',
+      'Identifies humorous essays or community satire that must not be mistaken for official policy.',
+    exampleSnippet: '{{Humour|Lighthearted community essay on editing best practices.}}',
     params: [
       {
         key: '1',
-        label: 'Nota contextual (opcional)',
-        placeholder: 'Descrição do ensaio...',
-        defaultValue: 'Esta página contém humor comunitário e não representa regra normativa oficial.',
+        label: 'Context note (optional)',
+        placeholder: 'Essay description...',
+        defaultValue: 'This page contains community humor and does not represent an official policy.',
       },
     ],
   },
   {
     id: 'arquivo-discussao',
-    name: 'Arquivo',
+    name: 'Talk archive',
     aliases: ['arquivo', 'talk archive', 'historico preservado', 'archive'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que a página ou subpágina preserva discussões encerradas para consulta histórica.',
-    exampleSnippet: '{{Arquivo|periodo=2025–2026}}',
+      'Indicates that the page or subpage preserves closed discussions for historical reference.',
+    exampleSnippet: '{{Talk archive|period=2025–2026}}',
     params: [
       {
-        key: 'periodo',
-        label: 'Período arquivado (opcional)',
+        key: 'period',
+        label: 'Archived period (optional)',
         placeholder: '2025–2026',
-        defaultValue: 'Ciclo anterior',
+        defaultValue: 'Previous cycle',
       },
     ],
   },
   {
     id: 'spoiler-fim',
-    name: 'Fim de spoiler',
+    name: 'End spoiler',
     aliases: ['fim de spoiler', 'end spoiler', 'spoiler end'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca o encerramento do trecho com revelações de enredo iniciado por {{Spoiler}}.',
-    exampleSnippet: '{{Fim de spoiler}}',
+      'Marks the end of a plot spoiler section opened by {{Spoiler}}.',
+    exampleSnippet: '{{End spoiler}}',
     params: [],
   },
   {
@@ -2004,29 +2004,29 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Userbox',
     aliases: ['userbox', 'caixa de usuario', 'babel'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Clássica caixa de perfil pessoal ou nível de idioma ({{Userbox}} / {{Babel}}) usada em páginas de usuário.',
+      'Classic personal profile or language proficiency box ({{Userbox}} / {{Babel}}) used on user pages.',
     exampleSnippet:
-      '{{Userbox|sigla=PT-N|titulo=Idioma|texto=Este colaborador tem o português como língua materna.}}',
+      '{{Userbox|code=EN-N|title=Language|text=This contributor is a native English speaker.}}',
     params: [
       {
-        key: 'sigla',
-        label: 'Código / Sigla (ex.: PT-N, EN-3, DEV)',
-        placeholder: 'PT-N',
-        defaultValue: 'PT-N',
+        key: 'code',
+        label: 'Code / Badge (e.g., EN-N, PT-3, DEV)',
+        placeholder: 'EN-N',
+        defaultValue: 'EN-N',
       },
       {
-        key: 'titulo',
-        label: 'Categoria',
-        placeholder: 'Idioma / Interesse',
-        defaultValue: 'Idioma',
+        key: 'title',
+        label: 'Category',
+        placeholder: 'Language / Interest',
+        defaultValue: 'Language',
       },
       {
-        key: 'texto',
-        label: 'Descrição no perfil',
-        placeholder: 'Este colaborador...',
-        defaultValue: 'Este colaborador contribui em português.',
+        key: 'text',
+        label: 'Profile description',
+        placeholder: 'This contributor...',
+        defaultValue: 'This contributor edits in English.',
         required: true,
       },
     ],
@@ -2036,34 +2036,34 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Navbox',
     aliases: ['caixa de navegacao', 'navbox', 'navegacao'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Barra horizontal estilo Navbox conectando uma coleção ou série de artigos relacionados.',
+      'Horizontal Navbox-style navigation bar linking a collection or series of related articles.',
     exampleSnippet:
-      '{{Navbox|titulo=Série Documental WikiMaker|1=start|2=markdown-guide|3=ecossistema-wazzimagiygg}}',
+      '{{Navbox|title=WikiMaker Documentation Series|1=start|2=markdown-guide|3=ecossistema-wazzimagiygg}}',
     params: [
       {
-        key: 'titulo',
-        label: 'Título da caixa de navegação',
-        placeholder: 'Série de artigos',
-        defaultValue: 'Artigos relacionados',
+        key: 'title',
+        label: 'Navbox title',
+        placeholder: 'Article series',
+        defaultValue: 'Related articles',
         required: true,
       },
       {
         key: '1',
-        label: 'Primeiro slug',
+        label: 'First slug',
         placeholder: 'start',
         defaultValue: 'start',
       },
       {
         key: '2',
-        label: 'Segundo slug',
+        label: 'Second slug',
         placeholder: 'markdown-guide',
         defaultValue: 'markdown-guide',
       },
       {
         key: '3',
-        label: 'Terceiro slug (opcional)',
+        label: 'Third slug (optional)',
         placeholder: 'ecossistema-wazzimagiygg',
         defaultValue: 'ecossistema-wazzimagiygg',
       },
@@ -2071,37 +2071,37 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'artigo-em-serie',
-    name: 'Artigo em série',
+    name: 'Part of a series',
     aliases: ['artigo em serie', 'serie', 'part of a series'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que o verbete integra uma série temática com links para o índice da série, anterior e próximo.',
+      'Indicates that an entry belongs to a thematic series with links to the series index, previous, and next pages.',
     exampleSnippet:
-      '{{Artigo em série|serie=Documentação WikiMaker|indice=markdown-guide|anterior=start|proximo=best-practices}}',
+      '{{Part of a series|series=WikiMaker Documentation|index=markdown-guide|previous=start|next=best-practices}}',
     params: [
       {
-        key: 'serie',
-        label: 'Nome da série',
-        placeholder: 'Série temática',
-        defaultValue: 'Guias Editoriais',
+        key: 'series',
+        label: 'Series name',
+        placeholder: 'Thematic series',
+        defaultValue: 'Editorial Guides',
         required: true,
       },
       {
-        key: 'indice',
-        label: 'Slug do índice da série (opcional)',
+        key: 'index',
+        label: 'Series index slug (optional)',
         placeholder: 'markdown-guide',
         defaultValue: 'markdown-guide',
       },
       {
-        key: 'anterior',
-        label: 'Slug anterior (opcional)',
+        key: 'previous',
+        label: 'Previous slug (optional)',
         placeholder: 'start',
         defaultValue: 'start',
       },
       {
-        key: 'proximo',
-        label: 'Próximo slug (opcional)',
+        key: 'next',
+        label: 'Next slug (optional)',
         placeholder: 'best-practices',
         defaultValue: 'best-practices',
       },
@@ -2109,117 +2109,117 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'lista-dinamica',
-    name: 'Lista dinâmica',
+    name: 'Dynamic list',
     aliases: ['lista dinamica', 'dynamic list', 'lista incompleta'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso para listas enciclopédicas abertas que podem nunca estar completas e aceitam novos itens referenciados.',
-    exampleSnippet: '{{Lista dinâmica|tema=extensões e predefinições da wiki}}',
+      'Notice for open encyclopedic lists that may never be complete and welcome new referenced entries.',
+    exampleSnippet: '{{Dynamic list|topic=wiki extensions and templates}}',
     params: [
       {
-        key: 'tema',
-        label: 'Assunto da lista (opcional)',
-        placeholder: 'itens documentados',
-        defaultValue: 'entradas documentadas',
+        key: 'topic',
+        label: 'List subject (optional)',
+        placeholder: 'documented items',
+        defaultValue: 'documented entries',
       },
     ],
   },
   {
     id: 'documentacao',
-    name: 'Documentação',
+    name: 'Documentation',
     aliases: ['documentacao', 'documentation', 'doc'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Cabeçalho padrão de documentação técnica para páginas Predefinição:* e guias de uso.',
+      'Standard technical documentation header for Template:* pages and usage guides.',
     exampleSnippet:
-      '{{Documentação|texto=Consulte os parâmetros suportados e exemplos antes de transcluir em artigos principais.}}',
+      '{{Documentation|text=Review the supported parameters and examples before transcluding into main articles.}}',
     params: [
       {
-        key: 'texto',
-        label: 'Nota de documentação',
-        placeholder: 'Instruções de uso...',
-        defaultValue: 'Esta caixa exibe a documentação oficial de parâmetros e exemplos de transclusão.',
+        key: 'text',
+        label: 'Documentation note',
+        placeholder: 'Usage instructions...',
+        defaultValue: 'This box displays official parameter documentation and transclusion examples.',
       },
     ],
   },
   {
     id: 'indice-toc',
-    name: 'Índice',
+    name: 'Compact TOC',
     aliases: ['indice', 'compact toc', 'tocright', 'toc'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica navegação estruturada por seções ou catálogo alfabético na página.',
-    exampleSnippet: '{{Índice|Use os cabeçalhos do artigo ou a barra lateral para saltar entre seções.}}',
+      'Indicates structured section navigation or alphabetical catalog navigation on the page.',
+    exampleSnippet: '{{Compact TOC|Use the article headings or the sidebar to jump between sections.}}',
     params: [
       {
         key: '1',
-        label: 'Nota de navegação (opcional)',
-        placeholder: 'Instrução...',
-        defaultValue: 'Navegue pelas seções pelo índice lateral automático da página.',
+        label: 'Navigation note (optional)',
+        placeholder: 'Instruction...',
+        defaultValue: 'Browse sections using the automatic sidebar table of contents.',
       },
     ],
   },
   {
     id: 'ancora',
-    name: 'Âncora',
+    name: 'Anchor',
     aliases: ['ancora', 'anchor'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Insere um marcador de âncora HTML invisível para links diretos de seção (#identificador).',
-    exampleSnippet: '{{Âncora|secao-especial}}',
+      'Inserts an invisible HTML anchor marker for direct section links (#identifier).',
+    exampleSnippet: '{{Anchor|special-section}}',
     params: [
       {
         key: '1',
-        label: 'ID da âncora',
-        placeholder: 'identificador-secao',
-        defaultValue: 'secao-referencia',
+        label: 'Anchor ID',
+        placeholder: 'section-identifier',
+        defaultValue: 'reference-section',
         required: true,
       },
     ],
   },
   {
     id: 'citar-periodico',
-    name: 'Citar periódico',
-    aliases: ['citar periodico', 'citar revista', 'citar tese', 'cite thesis'],
+    name: 'Cite journal',
+    aliases: ['citar periodico', 'citar revista', 'citar tese', 'cite thesis', 'cite journal'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Citação acadêmica para artigos científicos, revistas ou teses com volume, DOI e ano (<ref>).',
+      'Academic citation for journal articles, periodicals, or theses with volume, DOI, and year (<ref>).',
     exampleSnippet:
-      '{{Citar periódico|título=Governança Aberta em Enciclopédias Digitais|autor=Costa, R.|revista=Revista Ciência Aberta|volume=12|ano=2025|doi=10.1000/exemplo}}',
+      '{{Cite journal|title=Open Governance in Digital Encyclopedias|author=Costa, R.|journal=Open Science Journal|volume=12|year=2025|doi=10.1000/example}}',
     params: [
       {
-        key: 'título',
-        label: 'Título do estudo ou artigo',
-        placeholder: 'Título científico',
-        defaultValue: 'Estudo sobre Conhecimento Aberto',
+        key: 'title',
+        label: 'Study or article title',
+        placeholder: 'Scientific title',
+        defaultValue: 'Study on Open Knowledge',
         required: true,
       },
       {
-        key: 'autor',
-        label: 'Autor(es)',
-        placeholder: 'Sobrenome, N.',
+        key: 'author',
+        label: 'Author(s)',
+        placeholder: 'Last, F.',
         defaultValue: 'Costa, R.',
       },
       {
-        key: 'revista',
-        label: 'Periódico / Instituição',
-        placeholder: 'Nome da revista ou universidade',
-        defaultValue: 'Revista Ciência Aberta',
+        key: 'journal',
+        label: 'Journal / Institution',
+        placeholder: 'Journal or university name',
+        defaultValue: 'Open Science Journal',
       },
       {
-        key: 'ano',
-        label: 'Ano',
+        key: 'year',
+        label: 'Year',
         placeholder: '2026',
         defaultValue: '2026',
       },
       {
         key: 'doi',
-        label: 'DOI (opcional)',
+        label: 'DOI (optional)',
         placeholder: '10.1000/...',
         defaultValue: '',
       },
@@ -2227,37 +2227,37 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'citar-video',
-    name: 'Citar vídeo',
+    name: 'Cite AV media',
     aliases: ['citar video', 'citar youtube', 'cite av media', 'cite video'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Citação bibliográfica para vídeos, documentários ou palestras gravadas; gera nota <ref>.',
+      'Bibliographic citation for videos, documentaries, or recorded talks; generates a <ref> footnote.',
     exampleSnippet:
-      '{{Citar vídeo|título=Documentário WazzimaGiygg|autor=Canal Oficial|ano=2026|url=https://wazzimagiygg.com/}}',
+      '{{Cite AV media|title=WazzimaGiygg Documentary|author=Official Channel|year=2026|url=https://wazzimagiygg.com/}}',
     params: [
       {
-        key: 'título',
-        label: 'Título do vídeo ou documentário',
-        placeholder: 'Título da mídia',
-        defaultValue: 'Apresentação do Projeto',
+        key: 'title',
+        label: 'Video or documentary title',
+        placeholder: 'Media title',
+        defaultValue: 'Project Presentation',
         required: true,
       },
       {
-        key: 'autor',
-        label: 'Canal / Direção',
-        placeholder: 'Autor ou canal',
+        key: 'author',
+        label: 'Channel / Director',
+        placeholder: 'Author or channel',
         defaultValue: 'WazzimaGiygg',
       },
       {
-        key: 'ano',
-        label: 'Ano / Data',
+        key: 'year',
+        label: 'Year / Date',
         placeholder: '2026',
         defaultValue: '2026',
       },
       {
         key: 'url',
-        label: 'URL (opcional)',
+        label: 'URL (optional)',
         placeholder: 'https://...',
         defaultValue: 'https://wazzimagiygg.com/',
       },
@@ -2265,37 +2265,37 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'citar-enciclopedia',
-    name: 'Citar enciclopédia',
+    name: 'Cite encyclopedia',
     aliases: ['citar enciclopedia', 'cite encyclopedia'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Citação de verbete em enciclopédia, dicionário ou obra de referência coletiva (<ref>).',
+      'Citation for an entry in an encyclopedia, dictionary, or collective reference work (<ref>).',
     exampleSnippet:
-      '{{Citar enciclopedia|verbete=Wiki|obra=Enciclopédia Livre|editora=Imprensa Aberta|ano=2025}}',
+      '{{Cite encyclopedia|entry=Wiki|encyclopedia=Open Encyclopedia|publisher=Open Press|year=2025}}',
     params: [
       {
-        key: 'verbete',
-        label: 'Nome do verbete',
-        placeholder: 'Entrada citada',
+        key: 'entry',
+        label: 'Entry title',
+        placeholder: 'Cited entry',
         defaultValue: 'Wiki',
         required: true,
       },
       {
-        key: 'obra',
-        label: 'Enciclopédia / Dicionário',
-        placeholder: 'Nome da obra',
-        defaultValue: 'Enciclopédia de Referência',
+        key: 'encyclopedia',
+        label: 'Encyclopedia / Dictionary',
+        placeholder: 'Work title',
+        defaultValue: 'Reference Encyclopedia',
       },
       {
-        key: 'editora',
-        label: 'Editora (opcional)',
-        placeholder: 'Editora',
+        key: 'publisher',
+        label: 'Publisher (optional)',
+        placeholder: 'Publisher',
         defaultValue: '',
       },
       {
-        key: 'ano',
-        label: 'Ano (opcional)',
+        key: 'year',
+        label: 'Year (optional)',
         placeholder: '2026',
         defaultValue: '2026',
       },
@@ -2306,30 +2306,30 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Quote box',
     aliases: ['citacoes', 'wikiquote', 'quote box'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Caixa destacada de citação com título de contexto, autor e obra citada.',
+      'Highlighted quotation box with context title, author, and cited work.',
     exampleSnippet:
-      '{{Quote box|titulo=Declaração Histórica|texto=A transparência editorial é a base da confiança pública.|autor=Conselho Editorial}}',
+      '{{Quote box|title=Historical Statement|text=Editorial transparency is the foundation of public trust.|author=Editorial Board}}',
     params: [
       {
-        key: 'titulo',
-        label: 'Título da caixa',
-        placeholder: 'Declaração',
-        defaultValue: 'Citação em destaque',
+        key: 'title',
+        label: 'Box title',
+        placeholder: 'Statement',
+        defaultValue: 'Featured Quote',
       },
       {
-        key: 'texto',
-        label: 'Texto citado',
-        placeholder: 'Trecho...',
-        defaultValue: 'A transparência editorial é a base da confiança pública.',
+        key: 'text',
+        label: 'Quoted text',
+        placeholder: 'Excerpt...',
+        defaultValue: 'Editorial transparency is the foundation of public trust.',
         required: true,
       },
       {
-        key: 'autor',
-        label: 'Autor',
-        placeholder: 'Nome do autor',
-        defaultValue: 'Conselho Editorial',
+        key: 'author',
+        label: 'Author',
+        placeholder: 'Author name',
+        defaultValue: 'Editorial Board',
       },
     ],
   },
@@ -2338,46 +2338,46 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Tl',
     aliases: ['etiqueta', 'tl', 'predef'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Exibe sintaxe de predefinição inline formatada em código (`{{Aviso}}`), idêntica à {{Tl}} da Wikipédia.',
-    exampleSnippet: '{{Tl|Aviso|tipo=cuidado}}',
+      'Displays inline template syntax formatted as code (`{{Notice}}`), identical to Wikipedia {{Tl}}.',
+    exampleSnippet: '{{Tl|Notice|type=warning}}',
     params: [
       {
         key: '1',
-        label: 'Nome da predefinição',
-        placeholder: 'Aviso',
-        defaultValue: 'Aviso',
+        label: 'Template name',
+        placeholder: 'Notice',
+        defaultValue: 'Notice',
         required: true,
       },
       {
         key: '2',
-        label: 'Exemplo de parâmetro (opcional)',
-        placeholder: 'tipo=cuidado',
+        label: 'Parameter example (optional)',
+        placeholder: 'type=warning',
         defaultValue: '',
       },
     ],
   },
   {
     id: 'tecla-kbd',
-    name: 'Tecla',
+    name: 'Key press',
     aliases: ['tecla', 'kbd', 'key press'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Formata combinações de teclas inline estilo Wikipédia (ex.: `Ctrl` + `S` ou `Enter`).',
-    exampleSnippet: '{{Tecla|Ctrl|S}}',
+      'Formats inline Wikipedia-style key combinations (e.g., `Ctrl` + `S` or `Enter`).',
+    exampleSnippet: '{{Key press|Ctrl|S}}',
     params: [
       {
         key: '1',
-        label: 'Primeira tecla',
+        label: 'First key',
         placeholder: 'Ctrl',
         defaultValue: 'Ctrl',
         required: true,
       },
       {
         key: '2',
-        label: 'Segunda tecla (opcional)',
+        label: 'Second key (optional)',
         placeholder: 'S',
         defaultValue: 'S',
       },
@@ -2385,31 +2385,31 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'conversao',
-    name: 'Converter',
+    name: 'Convert',
     aliases: ['conversao', 'converter', 'convert'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Converte unidades comuns inline (km/mi, m/ft, kg/lb, °C/°F) exatamente como {{Convert}} na Wikipédia.',
-    exampleSnippet: '{{Converter|100|km|mi}}',
+      'Converts common units inline (km/mi, m/ft, kg/lb, °C/°F) just like Wikipedia {{Convert}}.',
+    exampleSnippet: '{{Convert|100|km|mi}}',
     params: [
       {
         key: '1',
-        label: 'Valor numérico',
+        label: 'Numeric value',
         placeholder: '100',
         defaultValue: '100',
         required: true,
       },
       {
         key: '2',
-        label: 'Unidade de origem (km, m, kg, C, mi, ft, lb, F)',
+        label: 'Source unit (km, m, kg, C, mi, ft, lb, F)',
         placeholder: 'km',
         defaultValue: 'km',
         required: true,
       },
       {
         key: '3',
-        label: 'Unidade de destino (opcional)',
+        label: 'Target unit (optional)',
         placeholder: 'mi',
         defaultValue: 'mi',
       },
@@ -2417,26 +2417,26 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'moeda',
-    name: 'Moeda',
+    name: 'Currency',
     aliases: ['moeda', 'brl', 'usd', 'eur', 'currency'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Formata valores monetários padronizados inline (`R$ 1.500`, `US$ 250`, `€ 100`).',
-    exampleSnippet: '{{Moeda|1500|BRL}}',
+      'Formats standardized currency values inline (`$1,500`, `R$ 1,500`, `€100`).',
+    exampleSnippet: '{{Currency|1500|USD}}',
     params: [
       {
         key: '1',
-        label: 'Valor',
+        label: 'Amount',
         placeholder: '1500',
         defaultValue: '1500',
         required: true,
       },
       {
         key: '2',
-        label: 'Código da moeda (BRL, USD, EUR, GBP)',
-        placeholder: 'BRL',
-        defaultValue: 'BRL',
+        label: 'Currency code (USD, EUR, GBP, BRL)',
+        placeholder: 'USD',
+        defaultValue: 'USD',
       },
     ],
   },
@@ -2445,9 +2445,9 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Coord',
     aliases: ['coordenadas', 'coord', 'coordinates'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Formata latitude e longitude inline estilo {{Coord}} da Wikipédia com link externo para mapa.',
+      'Formats inline latitude and longitude in Wikipedia {{Coord}} style with an external map link.',
     exampleSnippet: '{{Coord|-23.5505|-46.6333}}',
     params: [
       {
@@ -2468,31 +2468,31 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'idade',
-    name: 'Idade',
+    name: 'Birth date and age',
     aliases: ['idade', 'age', 'data de nascimento', 'birth date and age'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Formata data de nascimento e calcula a idade atual automaticamente (`15/05/1990 (36 anos)`).',
-    exampleSnippet: '{{Idade|1990|5|15}}',
+      'Formats a birth date and automatically calculates current age (`1990-05-15 (age 36)`).',
+    exampleSnippet: '{{Birth date and age|1990|5|15}}',
     params: [
       {
         key: '1',
-        label: 'Ano',
+        label: 'Year',
         placeholder: '1990',
         defaultValue: '1990',
         required: true,
       },
       {
         key: '2',
-        label: 'Mês (1-12)',
+        label: 'Month (1-12)',
         placeholder: '5',
         defaultValue: '5',
         required: true,
       },
       {
         key: '3',
-        label: 'Dia (1-31)',
+        label: 'Day (1-31)',
         placeholder: '15',
         defaultValue: '15',
         required: true,
@@ -2501,26 +2501,26 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'amostra-cor',
-    name: 'Cor',
+    name: 'Color sample',
     aliases: ['cor', 'color sample', 'swatch'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Exibe referência textual e código hexadecimal de cor (`🎨 #2563EB`), útil em tabelas de identidade visual.',
-    exampleSnippet: '{{Cor|#2563EB|Azul Editorial}}',
+      'Displays a color swatch reference and hex code (`🎨 #2563EB`), useful in visual identity tables.',
+    exampleSnippet: '{{Color sample|#2563EB|Editorial Blue}}',
     params: [
       {
         key: '1',
-        label: 'Código hexadecimal',
+        label: 'Hex code',
         placeholder: '#2563EB',
         defaultValue: '#2563EB',
         required: true,
       },
       {
         key: '2',
-        label: 'Nome da cor (opcional)',
-        placeholder: 'Azul Editorial',
-        defaultValue: 'Azul Editorial',
+        label: 'Color name (optional)',
+        placeholder: 'Editorial Blue',
+        defaultValue: 'Editorial Blue',
       },
     ],
   },
@@ -2529,20 +2529,20 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'DOI',
     aliases: ['isbn', 'doi', 'issn', 'arxiv'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Formata identificadores bibliográficos (ISBN, DOI, ISSN, arXiv) com link direto para consulta acadêmica.',
+      'Formats bibliographic identifiers (ISBN, DOI, ISSN, arXiv) with a direct lookup link.',
     exampleSnippet: '{{DOI|10.1038/nature12373}}',
     params: [
       {
-        key: 'tipo',
-        label: 'Tipo (DOI, ISBN, ISSN, arXiv)',
+        key: 'type',
+        label: 'Type (DOI, ISBN, ISSN, arXiv)',
         placeholder: 'DOI',
         defaultValue: 'DOI',
       },
       {
         key: '1',
-        label: 'Identificador',
+        label: 'Identifier',
         placeholder: '10.1038/nature12373',
         defaultValue: '10.1038/nature12373',
         required: true,
@@ -2551,62 +2551,62 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'sim-nao-tabela',
-    name: 'Sim',
+    name: 'Yes',
     aliases: ['sim', 'yes', 'nao', 'no', 'parcialmente', 'maybe', 'check', 'cross'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marcações visuais inline (`✅ Sim`, `❌ Não`, `⚠️ Parcial`) muito usadas em tabelas comparativas da Wikipédia (também aceita {{Não}} e {{Parcialmente}}).',
-    exampleSnippet: '{{Sim}} · {{Não}} · {{Parcialmente}}',
+      'Inline visual status markers (`✅ Yes`, `❌ No`, `⚠️ Partial`) commonly used in Wikipedia comparison tables (also accepts {{No}} and {{Maybe}}).',
+    exampleSnippet: '{{Yes}} · {{No}} · {{Maybe}}',
     params: [
       {
         key: '1',
-        label: 'Rótulo personalizado (opcional)',
-        placeholder: 'Sim / Suportado',
-        defaultValue: 'Sim',
+        label: 'Custom label (optional)',
+        placeholder: 'Yes / Supported',
+        defaultValue: 'Yes',
       },
     ],
   },
   // --- Additional Wikipedia Infobox Presets ---
   {
     id: 'info-filme',
-    name: 'Info/Filme',
+    name: 'Infobox film',
     aliases: ['info/filme', 'info/serie', 'infobox film', 'infobox television'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Infocaixa cinematográfica estilo Wikipédia ({{Info/Filme}} / {{Infobox film}}) com direção, elenco e duração.',
+      'Wikipedia-style film or series infobox ({{Infobox film}} / {{Info/Filme}}) with director, genre, and runtime.',
     exampleSnippet:
-      '{{Info/Filme|título=Filme Exemplo|Direção=Diretor Exemplo|Gênero=Documentário|Duração=110 min|Ano=2026}}',
+      '{{Infobox film|title=Sample Film|Director=Sample Director|Genre=Documentary|Runtime=110 min|Year=2026}}',
     params: [
       {
-        key: 'título',
-        label: 'Título do filme ou série',
-        placeholder: 'Título oficial',
-        defaultValue: 'Documentário Exemplo',
+        key: 'title',
+        label: 'Film or series title',
+        placeholder: 'Official title',
+        defaultValue: 'Sample Documentary',
         required: true,
       },
       {
-        key: 'Direção',
-        label: 'Direção',
-        placeholder: 'Nome do(a) diretor(a)',
-        defaultValue: 'Direção Independente',
+        key: 'Director',
+        label: 'Director',
+        placeholder: 'Director name',
+        defaultValue: 'Independent Director',
       },
       {
-        key: 'Gênero',
-        label: 'Gênero',
-        placeholder: 'Documentário, Drama...',
-        defaultValue: 'Documentário',
+        key: 'Genre',
+        label: 'Genre',
+        placeholder: 'Documentary, Drama...',
+        defaultValue: 'Documentary',
       },
       {
-        key: 'Duração',
-        label: 'Duração',
+        key: 'Runtime',
+        label: 'Runtime',
         placeholder: '95 min',
         defaultValue: '95 min',
       },
       {
-        key: 'Ano',
-        label: 'Ano de lançamento',
+        key: 'Year',
+        label: 'Release year',
         placeholder: '2026',
         defaultValue: '2026',
       },
@@ -2614,43 +2614,43 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info-livro',
-    name: 'Info/Livro',
+    name: 'Infobox book',
     aliases: ['info/livro', 'info/obra', 'infobox book'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Ficha literária da Wikipédia ({{Info/Livro}} / {{Infobox book}}) com autor, idioma, editora e páginas.',
+      'Wikipedia literary infobox ({{Infobox book}} / {{Info/Livro}}) with author, language, publisher, and page count.',
     exampleSnippet:
-      '{{Info/Livro|título=Livro Exemplo|Autor=Autor Exemplo|Idioma=Português|Editora=Imprensa Aberta|Páginas=280|Ano=2026}}',
+      '{{Infobox book|title=Sample Book|Author=Sample Author|Language=English|Publisher=Open Press|Pages=280|Year=2026}}',
     params: [
       {
-        key: 'título',
-        label: 'Título do livro',
-        placeholder: 'Nome da obra',
-        defaultValue: 'Manual de Conhecimento Aberto',
+        key: 'title',
+        label: 'Book title',
+        placeholder: 'Work title',
+        defaultValue: 'Open Knowledge Handbook',
         required: true,
       },
       {
-        key: 'Autor',
-        label: 'Autor(a)',
-        placeholder: 'Nome do autor',
-        defaultValue: 'Autor Exemplo',
+        key: 'Author',
+        label: 'Author',
+        placeholder: 'Author name',
+        defaultValue: 'Sample Author',
       },
       {
-        key: 'Idioma',
-        label: 'Idioma original',
-        placeholder: 'Português',
-        defaultValue: 'Português',
+        key: 'Language',
+        label: 'Original language',
+        placeholder: 'English',
+        defaultValue: 'English',
       },
       {
-        key: 'Editora',
-        label: 'Editora',
-        placeholder: 'Nome da editora',
-        defaultValue: 'Imprensa Aberta',
+        key: 'Publisher',
+        label: 'Publisher',
+        placeholder: 'Publisher name',
+        defaultValue: 'Open Press',
       },
       {
-        key: 'Páginas',
-        label: 'Páginas',
+        key: 'Pages',
+        label: 'Pages',
         placeholder: '240',
         defaultValue: '240',
       },
@@ -2658,125 +2658,125 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info-musica',
-    name: 'Info/Música',
+    name: 'Infobox album',
     aliases: ['info/musica', 'info/album', 'infobox album', 'infobox song'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Infocaixa musical da Wikipédia ({{Info/Álbum}} / {{Infobox album}}) para álbuns, singles e trilhas sonoras.',
+      'Wikipedia music infobox ({{Infobox album}} / {{Info/Álbum}}) for albums, singles, and soundtracks.',
     exampleSnippet:
-      '{{Info/Música|título=Álbum Exemplo|Artista=Banda Exemplo|Lançamento=2026|Gênero=Rock Alternativo|Gravadora=Independente}}',
+      '{{Infobox album|title=Sample Album|Artist=Sample Band|Released=2026|Genre=Alternative Rock|Label=Independent}}',
     params: [
       {
-        key: 'título',
-        label: 'Título do álbum ou canção',
-        placeholder: 'Nome do álbum',
-        defaultValue: 'Trilha Sonora Oficial',
+        key: 'title',
+        label: 'Album or song title',
+        placeholder: 'Album title',
+        defaultValue: 'Official Soundtrack',
         required: true,
       },
       {
-        key: 'Artista',
-        label: 'Artista / Banda',
-        placeholder: 'Nome do artista',
-        defaultValue: 'Artista Independente',
+        key: 'Artist',
+        label: 'Artist / Band',
+        placeholder: 'Artist name',
+        defaultValue: 'Independent Artist',
       },
       {
-        key: 'Gênero',
-        label: 'Gênero musical',
-        placeholder: 'Rock, Eletrônica, MPB...',
+        key: 'Genre',
+        label: 'Genre',
+        placeholder: 'Rock, Electronic, Folk...',
         defaultValue: 'Instrumental',
       },
       {
-        key: 'Lançamento',
-        label: 'Lançamento',
+        key: 'Released',
+        label: 'Release date',
         placeholder: '2026',
         defaultValue: '2026',
       },
       {
-        key: 'Gravadora',
-        label: 'Gravadora / Selo',
-        placeholder: 'Selo independente',
-        defaultValue: 'Independente',
+        key: 'Label',
+        label: 'Record label',
+        placeholder: 'Independent label',
+        defaultValue: 'Independent',
       },
     ],
   },
   {
     id: 'info-personagem',
-    name: 'Info/Personagem',
+    name: 'Infobox character',
     aliases: ['info/personagem', 'infobox character'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Ficha de personagem fictício estilo Wikipédia ({{Info/Personagem}} / {{Infobox character}}) com obra, criador e afiliação.',
+      'Wikipedia fictional character infobox ({{Infobox character}}) with work, creator, species, and affiliation.',
     exampleSnippet:
-      '{{Info/Personagem|título=Personagem Exemplo|Obra=Série Exemplo|Criador=Estúdio Criativo|Espécie=Humano|Afiliação=Aliança Central}}',
+      '{{Infobox character|title=Sample Character|Work=Sample Series|Creator=Creative Studio|Species=Human|Affiliation=Central Alliance}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome do personagem',
-        placeholder: 'Nome completo',
-        defaultValue: 'Personagem Exemplo',
+        key: 'title',
+        label: 'Character name',
+        placeholder: 'Full name',
+        defaultValue: 'Sample Character',
         required: true,
       },
       {
-        key: 'Obra',
-        label: 'Obra / Universo',
-        placeholder: 'Jogo, livro ou série',
-        defaultValue: 'Universo Exemplo',
+        key: 'Work',
+        label: 'Work / Universe',
+        placeholder: 'Game, book, or series',
+        defaultValue: 'Sample Universe',
       },
       {
-        key: 'Criador',
-        label: 'Criador(es)',
-        placeholder: 'Autor ou estúdio',
-        defaultValue: 'Estúdio Criativo',
+        key: 'Creator',
+        label: 'Creator(s)',
+        placeholder: 'Author or studio',
+        defaultValue: 'Creative Studio',
       },
       {
-        key: 'Afiliação',
-        label: 'Afiliação / Facção',
-        placeholder: 'Grupo ou equipe',
-        defaultValue: 'Independente',
+        key: 'Affiliation',
+        label: 'Affiliation / Faction',
+        placeholder: 'Group or team',
+        defaultValue: 'Independent',
       },
     ],
   },
   {
     id: 'info-software',
-    name: 'Info/Software',
+    name: 'Infobox software',
     aliases: ['info/software', 'infobox software', 'info/aplicativo'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Ficha técnica de software estilo Wikipédia ({{Info/Software}} / {{Infobox software}}) com licença, linguagem e versão.',
+      'Wikipedia software technical infobox ({{Infobox software}}) with developer, version, language, and license.',
     exampleSnippet:
-      '{{Info/Software|título=WikiMaker Engine|Desenvolvedor=WazzimaGiygg|Versão=2.0|Linguagem=TypeScript|Licença=Open Source}}',
+      '{{Infobox software|title=WikiMaker Engine|Developer=WazzimaGiygg|Version=2.0|Language=TypeScript|License=Open Source}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome do software',
-        placeholder: 'Nome do aplicativo',
-        defaultValue: 'Software Exemplo',
+        key: 'title',
+        label: 'Software name',
+        placeholder: 'Application name',
+        defaultValue: 'Sample Software',
         required: true,
       },
       {
-        key: 'Desenvolvedor',
-        label: 'Desenvolvedor',
-        placeholder: 'Autor ou organização',
-        defaultValue: 'Comunidade Aberta',
+        key: 'Developer',
+        label: 'Developer',
+        placeholder: 'Author or organization',
+        defaultValue: 'Open Community',
       },
       {
-        key: 'Versão',
-        label: 'Versão estável',
+        key: 'Version',
+        label: 'Stable release',
         placeholder: '1.0.0',
         defaultValue: '1.0.0',
       },
       {
-        key: 'Linguagem',
-        label: 'Linguagem / Stack',
+        key: 'Language',
+        label: 'Written in / Stack',
         placeholder: 'TypeScript, Rust, Python...',
         defaultValue: 'TypeScript',
       },
       {
-        key: 'Licença',
-        label: 'Licença',
+        key: 'License',
+        label: 'License',
         placeholder: 'MIT, GPLv3, Apache 2.0...',
         defaultValue: 'MIT',
       },
@@ -2784,77 +2784,77 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info-evento',
-    name: 'Info/Evento',
+    name: 'Infobox event',
     aliases: ['info/evento', 'info/acontecimento', 'infobox event'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Ficha resumida para eventos históricos, conferências e acontecimentos ({{Info/Evento}} / {{Infobox event}}).',
+      'Summary infobox for historical events, conferences, and milestones ({{Infobox event}}).',
     exampleSnippet:
-      '{{Info/Evento|título=Conferência Aberta 2026|Data=Novembro de 2026|Local=São Paulo|Participantes=Comunidade Wiki|Resultado=Publicação da Carta Aberta}}',
+      '{{Infobox event|title=Open Conference 2026|Date=November 2026|Location=Online|Participants=Wiki Community|Outcome=Publication of Open Charter}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome do evento',
-        placeholder: 'Título do acontecimento',
-        defaultValue: 'Evento Histórico Exemplo',
+        key: 'title',
+        label: 'Event name',
+        placeholder: 'Event title',
+        defaultValue: 'Sample Historical Event',
         required: true,
       },
       {
-        key: 'Data',
-        label: 'Data ou período',
-        placeholder: 'Novembro de 2026',
-        defaultValue: 'Novembro de 2026',
+        key: 'Date',
+        label: 'Date or period',
+        placeholder: 'November 2026',
+        defaultValue: 'November 2026',
       },
       {
-        key: 'Local',
-        label: 'Local',
-        placeholder: 'Cidade, País',
+        key: 'Location',
+        label: 'Location',
+        placeholder: 'City, Country',
         defaultValue: 'Online / Global',
       },
       {
-        key: 'Resultado',
-        label: 'Desfecho / Impacto',
-        placeholder: 'Principais consequências...',
-        defaultValue: 'Registro documentado em fontes públicas',
+        key: 'Outcome',
+        label: 'Outcome / Impact',
+        placeholder: 'Key consequences...',
+        defaultValue: 'Documented in public sources',
       },
     ],
   },
   {
     id: 'info-universidade',
-    name: 'Info/Universidade',
+    name: 'Infobox university',
     aliases: ['info/universidade', 'info/escola', 'infobox university'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Infocaixa acadêmica da Wikipédia para universidades, faculdades e centros de pesquisa ({{Info/Universidade}}).',
+      'Wikipedia academic infobox for universities, colleges, and research institutes ({{Infobox university}}).',
     exampleSnippet:
-      '{{Info/Universidade|título=Universidade Exemplo|Tipo=Pública|Fundação=1934|Localização=Brasil|Estudantes=25.000}}',
+      '{{Infobox university|title=Sample University|Type=Public|Established=1934|Location=International|Students=25,000}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome da instituição',
-        placeholder: 'Nome completo',
-        defaultValue: 'Universidade Exemplo',
+        key: 'title',
+        label: 'Institution name',
+        placeholder: 'Full name',
+        defaultValue: 'Sample University',
         required: true,
       },
       {
-        key: 'Tipo',
-        label: 'Natureza (Pública / Privada)',
-        placeholder: 'Pública',
-        defaultValue: 'Pública',
+        key: 'Type',
+        label: 'Type (Public / Private)',
+        placeholder: 'Public',
+        defaultValue: 'Public',
       },
       {
-        key: 'Fundação',
-        label: 'Ano de fundação',
+        key: 'Established',
+        label: 'Year established',
         placeholder: '1934',
         defaultValue: '1934',
       },
       {
-        key: 'Localização',
-        label: 'Localização',
-        placeholder: 'Cidade, País',
-        defaultValue: 'Brasil',
+        key: 'Location',
+        label: 'Location',
+        placeholder: 'City, Country',
+        defaultValue: 'International',
       },
     ],
   },
@@ -2863,40 +2863,40 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Taxobox',
     aliases: ['info/taxonomia', 'info/especie', 'taxocaixa', 'taxobox'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'A clássica Taxobox da Wikipédia para classificação científica de espécies (Reino, Filo, Classe, Ordem, Família, Espécie).',
+      'Classic Wikipedia Taxobox for scientific classification of species (Kingdom, Phylum, Class, Order, Family, Species).',
     exampleSnippet:
-      '{{Taxobox|título=Lobo-guará|subtítulo=Chrysocyon brachyurus|Reino=Animalia|Filo=Chordata|Classe=Mammalia|Família=Canidae|Espécie=C. brachyurus}}',
+      '{{Taxobox|title=Maned wolf|subtitle=Chrysocyon brachyurus|Kingdom=Animalia|Phylum=Chordata|Class=Mammalia|Family=Canidae|Species=C. brachyurus}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome popular',
-        placeholder: 'Nome da espécie',
-        defaultValue: 'Lobo-guará',
+        key: 'title',
+        label: 'Common name',
+        placeholder: 'Species name',
+        defaultValue: 'Maned wolf',
         required: true,
       },
       {
-        key: 'subtítulo',
-        label: 'Nome científico',
-        placeholder: 'Espécie binomial',
+        key: 'subtitle',
+        label: 'Binomial name',
+        placeholder: 'Scientific species name',
         defaultValue: 'Chrysocyon brachyurus',
       },
       {
-        key: 'Reino',
-        label: 'Reino',
+        key: 'Kingdom',
+        label: 'Kingdom',
         placeholder: 'Animalia',
         defaultValue: 'Animalia',
       },
       {
-        key: 'Classe',
-        label: 'Classe',
+        key: 'Class',
+        label: 'Class',
         placeholder: 'Mammalia',
         defaultValue: 'Mammalia',
       },
       {
-        key: 'Família',
-        label: 'Família',
+        key: 'Family',
+        label: 'Family',
         placeholder: 'Canidae',
         defaultValue: 'Canidae',
       },
@@ -2907,34 +2907,34 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Chembox',
     aliases: ['info/quimica', 'chembox', 'infobox element'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Ficha técnica estilo Chembox da Wikipédia para elementos e compostos químicos (Fórmula, Massa Molar, Ponto de Fusão).',
+      'Wikipedia-style Chembox technical card for chemical elements and compounds (Formula, Molar mass, Melting point).',
     exampleSnippet:
-      '{{Chembox|título=Água|subtítulo=Óxido de di-hidrogênio|Fórmula=H₂O|Massa molar=18,015 g/mol|Ponto de fusão=0 °C|Ponto de ebulição=100 °C}}',
+      '{{Chembox|title=Water|subtitle=Dihydrogen monoxide|Formula=H₂O|Molar mass=18.015 g/mol|Melting point=0 °C|Boiling point=100 °C}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome da substância ou elemento',
-        placeholder: 'Água',
-        defaultValue: 'Água',
+        key: 'title',
+        label: 'Substance or element name',
+        placeholder: 'Water',
+        defaultValue: 'Water',
         required: true,
       },
       {
-        key: 'Fórmula',
-        label: 'Fórmula química / Símbolo',
+        key: 'Formula',
+        label: 'Chemical formula / Symbol',
         placeholder: 'H₂O',
         defaultValue: 'H₂O',
       },
       {
-        key: 'Massa molar',
-        label: 'Massa molar / atômica',
-        placeholder: '18,015 g/mol',
-        defaultValue: '18,015 g/mol',
+        key: 'Molar mass',
+        label: 'Molar / atomic mass',
+        placeholder: '18.015 g/mol',
+        defaultValue: '18.015 g/mol',
       },
       {
-        key: 'Ponto de fusão',
-        label: 'Ponto de fusão',
+        key: 'Melting point',
+        label: 'Melting point',
         placeholder: '0 °C',
         defaultValue: '0 °C',
       },
@@ -2942,667 +2942,667 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
   },
   {
     id: 'info-usuario',
-    name: 'Info/Usuário',
+    name: 'Infobox user',
     aliases: ['info/usuario', 'info/colaborador', 'infobox user'],
     category: 'infobox',
-    language: 'pt',
+    language: 'en',
     description:
-      'Caixa de apresentação para páginas pessoais de colaboradores ({{Info/Usuário}} / {{Infobox user}}).',
+      'Profile box for contributor user pages ({{Infobox user}} / {{Info/Usuário}}).',
     exampleSnippet:
-      '{{Info/Usuário|título=Colaborador Wiki|Idiomas=Português, Inglês|Interesses=História, Software Livre|Status=Ativo}}',
+      '{{Infobox user|title=Wiki Contributor|Languages=English, Portuguese|Interests=History, Open Source|Status=Active}}',
     params: [
       {
-        key: 'título',
-        label: 'Nome do colaborador',
-        placeholder: 'Seu nome na wiki',
-        defaultValue: 'Colaborador Wiki',
+        key: 'title',
+        label: 'Contributor name',
+        placeholder: 'Your wiki handle',
+        defaultValue: 'Wiki Contributor',
         required: true,
       },
       {
-        key: 'Idiomas',
-        label: 'Idiomas',
-        placeholder: 'Português, Inglês',
-        defaultValue: 'Português',
+        key: 'Languages',
+        label: 'Languages',
+        placeholder: 'English, Portuguese',
+        defaultValue: 'English',
       },
       {
-        key: 'Interesses',
-        label: 'Áreas de interesse',
-        placeholder: 'Tecnologia, História...',
-        defaultValue: 'Documentação e Ciência',
+        key: 'Interests',
+        label: 'Areas of interest',
+        placeholder: 'Technology, History...',
+        defaultValue: 'Documentation and Science',
       },
       {
         key: 'Status',
-        label: 'Status editorial',
-        placeholder: 'Ativo',
-        defaultValue: 'Ativo',
+        label: 'Editorial status',
+        placeholder: 'Active',
+        defaultValue: 'Active',
       },
     ],
   },
-  // --- Lote 3: Predefinições Adicionais da Wikipédia (Avisos, Discussão, Citações, Utilitários e Infoboxes) ---
+  // --- Batch 3: Additional Wikipedia Templates (Notices, Talk, Citations, Utilities & Infoboxes) ---
   {
     id: 'wikificacao',
-    name: 'Wikificação',
+    name: 'Wikify',
     aliases: ['wikificacao', 'wikificar', 'wikify'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que o verbete precisa de formatação wiki (secções, negrito inicial e ligações internas).',
-    exampleSnippet: '{{Wikificação|motivo=Adicionar secções e ligações internas para termos-chave.|data=Novembro de 2026}}',
+      'Indicates that the entry needs wiki formatting (sections, bold lead title, and internal links).',
+    exampleSnippet: '{{Wikify|reason=Add sections and internal links for key terms.|date=November 2026}}',
     params: [
-      { key: 'motivo', label: 'Motivo', placeholder: 'Adicionar secções e links...', defaultValue: 'Formatar secções e ligações internas.' },
-      { key: 'data', label: 'Data', placeholder: 'Novembro de 2026', defaultValue: 'Novembro de 2026' },
+      { key: 'reason', label: 'Reason', placeholder: 'Add sections and links...', defaultValue: 'Format sections and internal links.' },
+      { key: 'date', label: 'Date', placeholder: 'November 2026', defaultValue: 'November 2026' },
     ],
   },
   {
     id: 'contextualizar',
-    name: 'Contextualizar',
+    name: 'Context',
     aliases: ['contextualizar', 'context', 'falta contexto'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sinaliza que a introdução não situa claramente o leitor leigo sobre o tema e sua área.',
-    exampleSnippet: '{{Contextualizar|motivo=Esclarecer na introdução o período histórico e a área do conceito.}}',
+      'Flags that the lead paragraph does not clearly orient a general reader on the topic and field.',
+    exampleSnippet: '{{Context|reason=Clarify the historical period and discipline in the introduction.}}',
     params: [
-      { key: 'motivo', label: 'O que contextualizar', placeholder: 'Esclarecer área e período...', defaultValue: 'Esclarecer na introdução o escopo e a área do tema.' },
+      { key: 'reason', label: 'What needs context', placeholder: 'Clarify field and period...', defaultValue: 'Clarify the scope and subject area in the introduction.' },
     ],
   },
   {
     id: 'revisao-tecnica',
-    name: 'Revisão',
+    name: 'Copy edit',
     aliases: ['revisao', 'revisar', 'copyedit', 'fact check'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Solicita revisão ortográfica, gramatical e verificação factual das afirmações do artigo.',
-    exampleSnippet: '{{Revisão|motivo=Conferir datas e padronizar terminologia técnica.|data=Novembro de 2026}}',
+      'Requests spelling, grammar, and factual consistency review across the article.',
+    exampleSnippet: '{{Copy edit|reason=Verify dates and standardize technical terminology.|date=November 2026}}',
     params: [
-      { key: 'motivo', label: 'Pontos a revisar', placeholder: 'Conferir datas e estilo...', defaultValue: 'Revisão ortográfica e consistência factual.' },
-      { key: 'data', label: 'Data', placeholder: 'Novembro de 2026', defaultValue: 'Novembro de 2026' },
+      { key: 'reason', label: 'Items to review', placeholder: 'Check dates and style...', defaultValue: 'Grammar copy edit and factual consistency check.' },
+      { key: 'date', label: 'Date', placeholder: 'November 2026', defaultValue: 'November 2026' },
     ],
   },
   {
     id: 'mais-fontes',
-    name: 'Mais fontes',
+    name: 'More citations needed',
     aliases: ['mais fontes', 'more citations needed', 'refimprove', 'fontes insuficientes'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que o artigo possui algumas referências, mas ainda necessita de fontes adicionais para verificação completa.',
-    exampleSnippet: '{{Mais fontes|secao=História|data=Novembro de 2026}}',
+      'Indicates that the article has some references, but still needs additional citations for full verification.',
+    exampleSnippet: '{{More citations needed|section=History|date=November 2026}}',
     params: [
-      { key: 'secao', label: 'Secção (opcional)', placeholder: 'História', defaultValue: '' },
-      { key: 'data', label: 'Data', placeholder: 'Novembro de 2026', defaultValue: 'Novembro de 2026' },
+      { key: 'section', label: 'Section (optional)', placeholder: 'History', defaultValue: '' },
+      { key: 'date', label: 'Date', placeholder: 'November 2026', defaultValue: 'November 2026' },
     ],
   },
   {
     id: 'sem-notas',
-    name: 'Sem notas',
+    name: 'No footnotes',
     aliases: ['sem notas', 'no footnotes', 'more footnotes', 'sem notas de rodape'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'O verbete lista bibliografia geral, porém carece de notas de rodapé inline ligando afirmações às fontes.',
-    exampleSnippet: '{{Sem notas|motivo=Vincular as afirmações do corpo do texto às obras listadas na bibliografia.}}',
+      'The entry lists general bibliography, but lacks inline footnotes linking specific claims to sources.',
+    exampleSnippet: '{{No footnotes|reason=Link body statements to the works listed in the bibliography.}}',
     params: [
-      { key: 'motivo', label: 'Orientação', placeholder: 'Adicionar citações inline...', defaultValue: 'Inserir notas inline (`<ref>`) ligando os parágrafos às fontes.' },
+      { key: 'reason', label: 'Guidance', placeholder: 'Add inline citations...', defaultValue: 'Insert inline citations (`<ref>`) linking paragraphs to sources.' },
     ],
   },
   {
     id: 'fonte-nao-confiavel',
-    name: 'Fonte não confiável',
+    name: 'Unreliable source',
     aliases: ['fonte nao confiavel', 'unreliable source', 'fontes duvidosas'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Alerta que o artigo cita blogs pessoais, fóruns ou fontes sem revisão editorial fiável.',
-    exampleSnippet: '{{Fonte não confiável|motivo=Substituir referências de fóruns por publicações jornalísticas ou acadêmicas.}}',
+      'Alerts readers that the article cites personal blogs, forums, or sources lacking editorial review.',
+    exampleSnippet: '{{Unreliable source|reason=Replace forum references with journalistic or academic publications.}}',
     params: [
-      { key: 'motivo', label: 'Detalhes', placeholder: 'Substituir fontes sem revisão...', defaultValue: 'Substituir fontes opinativas por referências independentes e fiáveis.' },
+      { key: 'reason', label: 'Details', placeholder: 'Replace unreviewed sources...', defaultValue: 'Replace opinionated sources with independent, reliable references.' },
     ],
   },
   {
     id: 'conflito-de-interesses',
-    name: 'Conflito de interesses',
+    name: 'COI',
     aliases: ['conflito de interesses', 'coi', 'conflict of interest', 'edicao remunerada'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica possível vínculo pessoal, institucional ou comercial entre o editor e o assunto do verbete.',
-    exampleSnippet: '{{Conflito de interesses|motivo=Texto redigido por representante oficial; requer revisão independente.}}',
+      'Indicates a possible personal, institutional, or commercial connection between an editor and the article subject.',
+    exampleSnippet: '{{COI|reason=Drafted by an official representative; requires independent review.}}',
     params: [
-      { key: 'motivo', label: 'Observação', placeholder: 'Motivo da sinalização...', defaultValue: 'Possível conflito de interesses; recomenda-se revisão imparcial por terceiros.' },
+      { key: 'reason', label: 'Note', placeholder: 'Reason for flagging...', defaultValue: 'Possible conflict of interest; impartial third-party review recommended.' },
     ],
   },
   {
     id: 'contraditorio',
-    name: 'Contraditório',
+    name: 'Contradict',
     aliases: ['contraditorio', 'contradict', 'inconsistente'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sinaliza contradições internas entre secções ou divergência com dados de outros verbetes.',
-    exampleSnippet: '{{Contraditório|motivo=A data na infobox diverge do parágrafo introdutório.}}',
+      'Flags internal contradictions between sections or discrepancies with data in related entries.',
+    exampleSnippet: '{{Contradict|reason=The date in the infobox differs from the lead paragraph.}}',
     params: [
-      { key: 'motivo', label: 'Contradição identificada', placeholder: 'Descreva a divergência...', defaultValue: 'Existem informações conflitantes entre secções que precisam ser harmonizadas.' },
+      { key: 'reason', label: 'Identified contradiction', placeholder: 'Describe the discrepancy...', defaultValue: 'Conflicting statements exist across sections and need reconciliation.' },
     ],
   },
   {
     id: 'confuso',
-    name: 'Confuso',
+    name: 'Confusing',
     aliases: ['confuso', 'confusing', 'incompreensivel'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Avisa que a redação atual está obscura ou fragmentada, dificultando a compreensão do leitor.',
-    exampleSnippet: '{{Confuso|secao=Metodologia|motivo=Reescrever os parágrafos com termos claros e definidos.}}',
+      'Warns that the current wording is unclear or fragmented, making it difficult for readers to follow.',
+    exampleSnippet: '{{Confusing|section=Methodology|reason=Rewrite paragraphs using clear, well-defined terms.}}',
     params: [
-      { key: 'secao', label: 'Secção (opcional)', placeholder: 'Metodologia', defaultValue: '' },
-      { key: 'motivo', label: 'Sugestão de melhoria', placeholder: 'Clarificar jargões...', defaultValue: 'Reescrever com maior clareza e encadeamento lógico.' },
+      { key: 'section', label: 'Section (optional)', placeholder: 'Methodology', defaultValue: '' },
+      { key: 'reason', label: 'Suggested improvement', placeholder: 'Clarify jargon...', defaultValue: 'Rewrite with clearer prose and logical structure.' },
     ],
   },
   {
     id: 'tom-ensaistico',
-    name: 'Tom ensaístico',
+    name: 'Essay-like',
     aliases: ['tom ensaistico', 'ensaio', 'essay like', 'opinativo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca texto escrito como ensaio pessoal, crônica ou reflexão opinativa fora do padrão enciclopédico.',
-    exampleSnippet: '{{Tom ensaístico|motivo=Remover adjetivações subjetivas e apresentar apenas fatos verificáveis.}}',
+      'Flags text written like a personal essay or opinion piece rather than an encyclopedic article.',
+    exampleSnippet: '{{Essay-like|reason=Remove subjective phrasing and present only verifiable facts.}}',
     params: [
-      { key: 'motivo', label: 'Ajustes necessários', placeholder: 'Adotar tom neutro...', defaultValue: 'Substituir linguagem opinativa por descrição objetiva e referenciada.' },
+      { key: 'reason', label: 'Required edits', placeholder: 'Adopt neutral tone...', defaultValue: 'Replace opinionated language with objective, sourced description.' },
     ],
   },
   {
     id: 'como-fazer',
-    name: 'Como fazer',
+    name: 'How-to',
     aliases: ['como fazer', 'howto', 'manual', 'guia passo a passo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que o verbete foi redigido em forma de tutorial passo a passo em vez de texto enciclopédico descritivo.',
-    exampleSnippet: '{{Como fazer|motivo=Converter instruções imperativas em explicação conceitual do processo.}}',
+      'Indicates that the entry is written as a step-by-step tutorial rather than descriptive encyclopedic text.',
+    exampleSnippet: '{{How-to|reason=Convert imperative instructions into a conceptual overview of the process.}}',
     params: [
-      { key: 'motivo', label: 'Orientação', placeholder: 'Evitar instruções passo a passo...', defaultValue: 'Resumir o funcionamento de forma enciclopédica sem manuais imperativos.' },
+      { key: 'reason', label: 'Guidance', placeholder: 'Avoid step-by-step instructions...', defaultValue: 'Summarize how the subject works encyclopedically without imperative manuals.' },
     ],
   },
   {
     id: 'exemplos-excessivos',
-    name: 'Exemplos excessivos',
+    name: 'Excessive examples',
     aliases: ['exemplos excessivos', 'excessive examples', 'muitos exemplos'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Alerta que uma secção acumula exemplos redundantes sem critério editorial de representatividade.',
-    exampleSnippet: '{{Exemplos excessivos|secao=Aplicações|motivo=Manter apenas os exemplos historicamente mais notáveis.}}',
+      'Warns that a section accumulates redundant examples without clear editorial selection criteria.',
+    exampleSnippet: '{{Excessive examples|section=Applications|reason=Keep only the most historically notable examples.}}',
     params: [
-      { key: 'secao', label: 'Secção (opcional)', placeholder: 'Aplicações', defaultValue: '' },
-      { key: 'motivo', label: 'Critério de seleção', placeholder: 'Reduzir lista...', defaultValue: 'Selecionar apenas exemplos representativos com relevância documentada.' },
+      { key: 'section', label: 'Section (optional)', placeholder: 'Applications', defaultValue: '' },
+      { key: 'reason', label: 'Selection criteria', placeholder: 'Trim list...', defaultValue: 'Select only representative examples with documented notability.' },
     ],
   },
   {
     id: 'traducao-automatica',
-    name: 'Tradução automática',
+    name: 'Rough translation',
     aliases: ['traducao automatica', 'rough translation', 'traducao de maquina'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca artigo traduzido de outro idioma de forma literal ou mecânica, necessitando revisão idiomática.',
-    exampleSnippet: '{{Tradução automática|idioma=Inglês|motivo=Ajustar expressões idiomáticas e concordância verbal.}}',
+      'Marks an article translated literally or mechanically from another language that needs native copy editing.',
+    exampleSnippet: '{{Rough translation|language=Portuguese|reason=Fix idiomatic expressions and phrasing.}}',
     params: [
-      { key: 'idioma', label: 'Idioma original', placeholder: 'Inglês', defaultValue: 'Inglês' },
-      { key: 'motivo', label: 'Detalhes', placeholder: 'Revisar fluência...', defaultValue: 'Revisar sintaxe, termos técnicos e falsos cognatos.' },
+      { key: 'language', label: 'Source language', placeholder: 'Portuguese', defaultValue: 'Portuguese' },
+      { key: 'reason', label: 'Details', placeholder: 'Review fluency...', defaultValue: 'Review syntax, technical terms, and false friends.' },
     ],
   },
   {
     id: 'especialista',
-    name: 'Especialista',
+    name: 'Expert needed',
     aliases: ['especialista', 'expert needed', 'perito', 'revisao especializada'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Solicita revisão de colaborador familiarizado com a disciplina técnica ou científica do tema.',
-    exampleSnippet: '{{Especialista|area=Física Teórica|motivo=Validar notação matemática e definições formais.}}',
+      'Requests review from a contributor familiar with the technical or scientific discipline of the topic.',
+    exampleSnippet: '{{Expert needed|area=Theoretical Physics|reason=Verify mathematical notation and formal definitions.}}',
     params: [
-      { key: 'area', label: 'Área de conhecimento', placeholder: 'Física Teórica', defaultValue: 'área temática' },
-      { key: 'motivo', label: 'O que verificar', placeholder: 'Validar termos técnicos...', defaultValue: 'Revisar precisão conceitual e terminologia especializada.' },
+      { key: 'area', label: 'Subject area', placeholder: 'Theoretical Physics', defaultValue: 'subject area' },
+      { key: 'reason', label: 'What to verify', placeholder: 'Validate technical terms...', defaultValue: 'Review conceptual accuracy and specialized terminology.' },
     ],
   },
   {
     id: 'sem-saida',
-    name: 'Sem saída',
+    name: 'Dead end',
     aliases: ['sem saida', 'dead end', 'beco sem saida', 'sem ligacoes'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que o verbete não possui (ou possui pouquíssimos) links internos conectando-o a outros artigos da wiki.',
-    exampleSnippet: '{{Sem saída|data=Novembro de 2026}}',
+      'Indicates that the entry has few or no outgoing internal links connecting it to other wiki articles.',
+    exampleSnippet: '{{Dead end|date=November 2026}}',
     params: [
-      { key: 'data', label: 'Data', placeholder: 'Novembro de 2026', defaultValue: 'Novembro de 2026' },
+      { key: 'date', label: 'Date', placeholder: 'November 2026', defaultValue: 'November 2026' },
     ],
   },
   {
     id: 'sem-categorias',
-    name: 'Sem categorias',
+    name: 'Uncategorized',
     aliases: ['sem categorias', 'uncategorized', 'sem categoria', 'categorizar'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sinaliza que o artigo ainda não foi classificado com categoria ou tags temáticas adequadas.',
-    exampleSnippet: '{{Sem categorias|sugestao=Ciência e Tecnologia}}',
+      'Flags that the article has not yet been assigned appropriate thematic categories or tags.',
+    exampleSnippet: '{{Uncategorized|suggestion=Science and Technology}}',
     params: [
-      { key: 'sugestao', label: 'Categoria sugerida (opcional)', placeholder: 'Ciência', defaultValue: '' },
+      { key: 'suggestion', label: 'Suggested category (optional)', placeholder: 'Science', defaultValue: '' },
     ],
   },
   {
     id: 'sem-imagem',
-    name: 'Sem imagem',
+    name: 'Image requested',
     aliases: ['sem imagem', 'image requested', 'falta imagem', 'foto'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Solicita fotografia, diagrama, mapa ou ilustração livre para enriquecer visualmente o verbete.',
-    exampleSnippet: '{{Sem imagem|tema=Diagrama ilustrativo da arquitetura do sistema}}',
+      'Requests an openly licensed photograph, diagram, map, or illustration to enrich the entry.',
+    exampleSnippet: '{{Image requested|topic=Illustrative diagram of the system architecture}}',
     params: [
-      { key: 'tema', label: 'Descrição da imagem pedida', placeholder: 'Foto ou diagrama...', defaultValue: 'Fotografia ou diagrama explicativo pertinente ao tema.' },
+      { key: 'topic', label: 'Requested image description', placeholder: 'Photo or diagram...', defaultValue: 'Relevant photograph or explanatory diagram for the topic.' },
     ],
   },
   {
     id: 'falta-infobox',
-    name: 'Falta infobox',
+    name: 'New infobox',
     aliases: ['falta infobox', 'new infobox', 'sem info'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sugere a inclusão de uma caixa de informação (`{{Info/...}}`) no topo do artigo para resumir dados-chave.',
-    exampleSnippet: '{{Falta infobox|modelo=Info/Biografia}}',
+      'Suggests adding a structured infobox (`{{Infobox ...}}`) at the top of the article to summarize key facts.',
+    exampleSnippet: '{{New infobox|model=Infobox person}}',
     params: [
-      { key: 'modelo', label: 'Modelo sugerido', placeholder: 'Info/Biografia', defaultValue: 'Info' },
+      { key: 'model', label: 'Suggested template', placeholder: 'Infobox person', defaultValue: 'Infobox' },
     ],
   },
   {
     id: 'renomear-pagina',
-    name: 'Renomear',
+    name: 'Requested move',
     aliases: ['renomear', 'mover', 'requested move', 'mudar titulo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Propõe a alteração do título do artigo para uma forma mais precisa, usual ou padronizada.',
-    exampleSnippet: '{{Renomear|sugestao=Novo Título Padronizado|motivo=Seguir nomenclatura oficial em português.}}',
+      'Proposes renaming the article to a more accurate, common, or standardized title.',
+    exampleSnippet: '{{Requested move|suggestion=Standardized New Title|reason=Follow common English naming conventions.}}',
     params: [
-      { key: 'sugestao', label: 'Novo título proposto', placeholder: 'Novo título...', defaultValue: 'Título padronizado' },
-      { key: 'motivo', label: 'Justificativa', placeholder: 'Uso mais comum...', defaultValue: 'Adequação às convenções de nomenclatura.' },
+      { key: 'suggestion', label: 'Proposed new title', placeholder: 'New title...', defaultValue: 'Standardized title' },
+      { key: 'reason', label: 'Rationale', placeholder: 'Common usage...', defaultValue: 'Alignment with naming conventions.' },
     ],
   },
   {
     id: 'introducao-curta',
-    name: 'Introdução curta',
+    name: 'Lead too short',
     aliases: ['introducao curta', 'lead too short', 'resumo curto'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Avisa que o parágrafo introdutório está excessivamente breve e não resume as principais secções do verbete.',
-    exampleSnippet: '{{Introdução curta|motivo=Ampliar a introdução resumindo contexto, história e importância do tema.}}',
+      'Warns that the lead paragraph is overly brief and does not summarize the main sections of the entry.',
+    exampleSnippet: '{{Lead too short|reason=Expand the introduction to summarize context, history, and significance.}}',
     params: [
-      { key: 'motivo', label: 'Orientação', placeholder: 'Expandir resumo...', defaultValue: 'Resumir os tópicos principais do artigo logo no início.' },
+      { key: 'reason', label: 'Guidance', placeholder: 'Expand summary...', defaultValue: 'Summarize the main topics of the article in the opening lead.' },
     ],
   },
   {
     id: 'artigo-bom',
-    name: 'Artigo bom',
+    name: 'Good article',
     aliases: ['artigo bom', 'good article', 'bom artigo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Selo editorial que certifica que o artigo atende aos padrões de qualidade, clareza e verificabilidade.',
-    exampleSnippet: '{{Artigo bom|data=Novembro de 2026}}',
+      'Editorial badge certifying that the article meets quality, clarity, and verifiability standards.',
+    exampleSnippet: '{{Good article|date=November 2026}}',
     params: [
-      { key: 'data', label: 'Data de reconhecimento', placeholder: 'Novembro de 2026', defaultValue: 'Novembro de 2026' },
+      { key: 'date', label: 'Recognition date', placeholder: 'November 2026', defaultValue: 'November 2026' },
     ],
   },
   {
     id: 'lista-destacada',
-    name: 'Lista destacada',
+    name: 'Featured list',
     aliases: ['lista destacada', 'featured list'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Selo editorial concedido a listas completas, bem estruturadas e integralmente referenciadas.',
-    exampleSnippet: '{{Lista destacada|data=Novembro de 2026}}',
+      'Editorial badge awarded to complete, well-structured, and thoroughly sourced lists.',
+    exampleSnippet: '{{Featured list|date=November 2026}}',
     params: [
-      { key: 'data', label: 'Data', placeholder: 'Novembro de 2026', defaultValue: 'Novembro de 2026' },
+      { key: 'date', label: 'Date', placeholder: 'November 2026', defaultValue: 'November 2026' },
     ],
   },
   {
     id: 'aviso-legal',
-    name: 'Aviso legal',
+    name: 'Legal disclaimer',
     aliases: ['aviso legal', 'legal disclaimer', 'aviso juridico'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Caixa informativa esclarecendo que o artigo sobre direito ou legislação não substitui orientação jurídica profissional.',
-    exampleSnippet: '{{Aviso legal}}',
+      'Informational notice clarifying that articles on law or legislation do not constitute professional legal advice.',
+    exampleSnippet: '{{Legal disclaimer}}',
     params: [],
   },
   {
     id: 'conteudo-sensivel',
-    name: 'Conteúdo sensível',
+    name: 'Content warning',
     aliases: ['conteudo sensivel', 'content warning', 'tema sensivel'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso editorial discreto informando que o verbete documenta temas históricos ou sociais sensíveis.',
-    exampleSnippet: '{{Conteúdo sensível|tema=Relatos históricos de conflito e impacto humanitário}}',
+      'Neutral editorial notice informing readers that the entry documents sensitive historical or social subjects.',
+    exampleSnippet: '{{Content warning|topic=Historical accounts of conflict and humanitarian impact}}',
     params: [
-      { key: 'tema', label: 'Descrição neutra', placeholder: 'Tema abordado...', defaultValue: 'Esta página aborda temas sensíveis sob perspectiva estritamente documental.' },
+      { key: 'topic', label: 'Neutral description', placeholder: 'Subject covered...', defaultValue: 'This page covers sensitive subjects from a strictly documentary perspective.' },
     ],
   },
   {
     id: 'discussao-encerrada',
-    name: 'Discussão encerrada',
+    name: 'Closed',
     aliases: ['discussao encerrada', 'closed', 'consenso encerrado', 'arquivado'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Registra o encerramento formal e o consenso alcançado em um debate na página de discussão.',
-    exampleSnippet: '{{Discussão encerrada|resultado=Proposta aprovada por consenso editorial.|responsavel=Admin}}',
+      'Records the formal closure and consensus reached in a talk page discussion.',
+    exampleSnippet: '{{Closed|outcome=Proposal approved by editorial consensus.|responsible=Admin}}',
     params: [
-      { key: 'resultado', label: 'Síntese do consenso', placeholder: 'Decisão tomada...', defaultValue: 'Consenso registrado; tópico encerrado para novas edições.' },
-      { key: 'responsavel', label: 'Encerrado por', placeholder: 'Moderador', defaultValue: 'Moderação' },
+      { key: 'outcome', label: 'Consensus summary', placeholder: 'Decision reached...', defaultValue: 'Consensus recorded; discussion closed to further edits.' },
+      { key: 'responsible', label: 'Closed by', placeholder: 'Moderator', defaultValue: 'Moderation' },
     ],
   },
-  // --- Discussão, Votação, Hatnotes, Citações e Utilitários Inline ---
+  // --- Talk, Voting, Hatnotes, Citations & Inline Utilities ---
   {
     id: 'ping-usuario',
     name: 'Ping',
     aliases: ['ping', 'responder', 'mention', 'notificar'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Menciona e notifica visualmente um colaborador em respostas de discussão (`@Usuário`).',
-    exampleSnippet: '{{Ping|Editor Exemplo}}',
+      'Visually mentions and notifies a contributor in talk page replies (`@User`).',
+    exampleSnippet: '{{Ping|Sample Editor}}',
     params: [
-      { key: '1', label: 'Nome do usuário', placeholder: 'Editor Exemplo', defaultValue: 'Colaborador', required: true },
+      { key: '1', label: 'Username', placeholder: 'Sample Editor', defaultValue: 'Collaborator', required: true },
     ],
   },
   {
     id: 'nao-assinou',
-    name: 'Não assinou',
+    name: 'Unsigned',
     aliases: ['nao assinou', 'unsigned', 'sem assinatura'],
     category: 'navigation',
-    language: 'pt',
+    language: 'en',
     description:
-      'Atribui autoria e data a um comentário deixado sem assinatura em página de discussão.',
-    exampleSnippet: '{{Não assinou|Usuário Exemplo|26 de novembro de 2026}}',
+      'Attributes authorship and timestamp to an unsigned comment on a talk page.',
+    exampleSnippet: '{{Unsigned|Sample User|November 26, 2026}}',
     params: [
-      { key: '1', label: 'Autor do comentário', placeholder: 'Usuário', defaultValue: 'Colaborador', required: true },
-      { key: '2', label: 'Data/hora (opcional)', placeholder: '26 de novembro de 2026', defaultValue: '' },
+      { key: '1', label: 'Comment author', placeholder: 'User', defaultValue: 'Collaborator', required: true },
+      { key: '2', label: 'Date/time (optional)', placeholder: 'November 26, 2026', defaultValue: '' },
     ],
   },
   {
     id: 'voto-apoio',
-    name: 'Apoio',
+    name: 'Support',
     aliases: ['apoio', 'support', 'concordo'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Marcador padrão de voto favorável em discussões e processos de consenso.',
-    exampleSnippet: '{{Apoio}} Concordo com a fusão proposta.',
+    language: 'en',
+    description: 'Standard support vote marker in discussions and consensus reviews.',
+    exampleSnippet: '{{Support}} I agree with the proposed merge.',
     params: [
-      { key: '1', label: 'Rótulo personalizado (opcional)', placeholder: 'Apoio', defaultValue: '' },
+      { key: '1', label: 'Custom label (optional)', placeholder: 'Support', defaultValue: '' },
     ],
   },
   {
     id: 'voto-discordo',
-    name: 'Discordo',
+    name: 'Oppose',
     aliases: ['discordo', 'oppose', 'contra'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Marcador padrão de voto contrário em discussões e processos de consenso.',
-    exampleSnippet: '{{Discordo}} Os dois temas possuem fontes suficientes separados.',
+    language: 'en',
+    description: 'Standard oppose vote marker in discussions and consensus reviews.',
+    exampleSnippet: '{{Oppose}} Both topics have enough independent sources to stand alone.',
     params: [
-      { key: '1', label: 'Rótulo personalizado (opcional)', placeholder: 'Discordo', defaultValue: '' },
+      { key: '1', label: 'Custom label (optional)', placeholder: 'Oppose', defaultValue: '' },
     ],
   },
   {
     id: 'voto-neutro',
-    name: 'Neutro',
+    name: 'Neutral',
     aliases: ['neutro', 'neutral', 'comentario'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Marcador neutro ou de comentário analítico em votações e discussões.',
-    exampleSnippet: '{{Neutro}} Aguardando novas fontes antes de decidir.',
+    language: 'en',
+    description: 'Neutral or analytical comment marker in votes and discussions.',
+    exampleSnippet: '{{Neutral}} Waiting for additional sources before deciding.',
     params: [
-      { key: '1', label: 'Rótulo personalizado (opcional)', placeholder: 'Neutro', defaultValue: '' },
+      { key: '1', label: 'Custom label (optional)', placeholder: 'Neutral', defaultValue: '' },
     ],
   },
   {
     id: 'artigos-principais',
-    name: 'Artigos principais',
+    name: 'Details',
     aliases: ['artigos principais', 'details', 'detalhes'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Nota de seção apontando múltiplos artigos principais relacionados.',
-    exampleSnippet: '{{Artigos principais|start|markdown-guide}}',
+    language: 'en',
+    description: 'Section hatnote pointing to multiple related main articles.',
+    exampleSnippet: '{{Details|start|markdown-guide}}',
     params: [
-      { key: '1', label: 'Primeiro artigo', placeholder: 'start', defaultValue: 'start', required: true },
-      { key: '2', label: 'Segundo artigo (opcional)', placeholder: 'markdown-guide', defaultValue: '' },
+      { key: '1', label: 'First article', placeholder: 'start', defaultValue: 'start', required: true },
+      { key: '2', label: 'Second article (optional)', placeholder: 'markdown-guide', defaultValue: '' },
     ],
   },
   {
     id: 'citar-imprensa',
-    name: 'Citar imprensa',
+    name: 'Cite press release',
     aliases: ['citar imprensa', 'citar comunicado', 'cite press release', 'comunicado'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência de nota oficial ou comunicado à imprensa dentro de `<ref>`.',
-    exampleSnippet: '{{Citar imprensa|título=Lançamento da Plataforma Aberta|instituicao=Fundação Wiki|data=2026-11-10|url=https://exemplo.org/nota}}',
+    language: 'en',
+    description: 'Formats an official press release citation inside `<ref>`.',
+    exampleSnippet: '{{Cite press release|title=Launch of Open Knowledge Platform|institution=Wiki Foundation|date=2026-11-10|url=https://example.org/release}}',
     params: [
-      { key: 'título', label: 'Título do comunicado', placeholder: 'Nota oficial', defaultValue: 'Comunicado oficial', required: true },
-      { key: 'instituicao', label: 'Instituição / Emissor', placeholder: 'Organização', defaultValue: 'Assessoria Institucional' },
-      { key: 'data', label: 'Data', placeholder: '2026-11-10', defaultValue: '2026' },
-      { key: 'url', label: 'URL (opcional)', placeholder: 'https://...', defaultValue: '' },
+      { key: 'title', label: 'Release title', placeholder: 'Official statement', defaultValue: 'Official press release', required: true },
+      { key: 'institution', label: 'Institution / Issuer', placeholder: 'Organization', defaultValue: 'Press Office' },
+      { key: 'date', label: 'Date', placeholder: '2026-11-10', defaultValue: '2026' },
+      { key: 'url', label: 'URL (optional)', placeholder: 'https://...', defaultValue: '' },
     ],
   },
   {
     id: 'citar-mapa',
-    name: 'Citar mapa',
+    name: 'Cite map',
     aliases: ['citar mapa', 'cite map', 'mapa'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata citação bibliográfica de mapas, cartas topográficas ou atlas em `<ref>`.',
-    exampleSnippet: '{{Citar mapa|título=Mapa Físico da Região Sudeste|cartografia=IBGE|escala=1:1.000.000|ano=2025}}',
+    language: 'en',
+    description: 'Formats bibliographic citations for maps, topographic charts, or atlases inside `<ref>`.',
+    exampleSnippet: '{{Cite map|title=Physical Map of the Southeast Region|cartography=National Survey|scale=1:1,000,000|year=2025}}',
     params: [
-      { key: 'título', label: 'Título do mapa', placeholder: 'Atlas Geográfico', defaultValue: 'Carta Geográfica', required: true },
-      { key: 'cartografia', label: 'Órgão / Cartógrafo', placeholder: 'IBGE', defaultValue: 'Instituto Cartográfico' },
-      { key: 'escala', label: 'Escala', placeholder: '1:1.000.000', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '2025', defaultValue: '2025' },
+      { key: 'title', label: 'Map title', placeholder: 'Geographic Atlas', defaultValue: 'Topographic Map', required: true },
+      { key: 'cartography', label: 'Agency / Cartographer', placeholder: 'USGS', defaultValue: 'Cartographic Institute' },
+      { key: 'scale', label: 'Scale', placeholder: '1:1,000,000', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '2025', defaultValue: '2025' },
     ],
   },
   {
     id: 'citar-episodio',
-    name: 'Citar episódio',
+    name: 'Cite episode',
     aliases: ['citar episodio', 'cite episode', 'episodio'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência de episódio de série, documentário ou podcast em `<ref>`.',
-    exampleSnippet: '{{Citar episódio|título=O Despertar da Rede|serie=História da Computação|temporada=1|numero=3|ano=2024}}',
+    language: 'en',
+    description: 'Formats references for TV series, documentary, or podcast episodes inside `<ref>`.',
+    exampleSnippet: '{{Cite episode|title=Awakening the Network|series=History of Computing|season=1|number=3|year=2024}}',
     params: [
-      { key: 'título', label: 'Título do episódio', placeholder: 'Piloto', defaultValue: 'Episódio 1', required: true },
-      { key: 'serie', label: 'Nome da série/programa', placeholder: 'Série Documental', defaultValue: 'Programa' },
-      { key: 'temporada', label: 'Temporada', placeholder: '1', defaultValue: '1' },
-      { key: 'numero', label: 'Número do episódio', placeholder: '1', defaultValue: '1' },
-      { key: 'ano', label: 'Ano', placeholder: '2024', defaultValue: '2024' },
+      { key: 'title', label: 'Episode title', placeholder: 'Pilot', defaultValue: 'Episode 1', required: true },
+      { key: 'series', label: 'Series/program name', placeholder: 'Documentary Series', defaultValue: 'Program' },
+      { key: 'season', label: 'Season', placeholder: '1', defaultValue: '1' },
+      { key: 'number', label: 'Episode number', placeholder: '1', defaultValue: '1' },
+      { key: 'year', label: 'Year', placeholder: '2024', defaultValue: '2024' },
     ],
   },
   {
     id: 'citar-jogo',
-    name: 'Citar jogo',
+    name: 'Cite video game',
     aliases: ['citar jogo', 'cite video game', 'citar videogame'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência direta de diálogos, fases ou arquivos de um jogo eletrônico em `<ref>`.',
-    exampleSnippet: '{{Citar jogo|título=Stardew Valley|desenvolvedora=ConcernedApe|plataforma=PC|ano=2016|citacao=Bem-vindo ao Vale!}}',
+    language: 'en',
+    description: 'Formats direct references to dialogue, levels, or in-game text inside `<ref>`.',
+    exampleSnippet: '{{Cite video game|title=Stardew Valley|developer=ConcernedApe|platform=PC|year=2016|quote=Welcome to Pelican Town!}}',
     params: [
-      { key: 'título', label: 'Título do jogo', placeholder: 'Nome do jogo', defaultValue: 'Título do Jogo', required: true },
-      { key: 'desenvolvedora', label: 'Desenvolvedora', placeholder: 'Estúdio', defaultValue: '' },
-      { key: 'plataforma', label: 'Plataforma', placeholder: 'PC', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '2024', defaultValue: '' },
-      { key: 'citacao', label: 'Citação / Cena (opcional)', placeholder: 'Trecho citado...', defaultValue: '' },
+      { key: 'title', label: 'Game title', placeholder: 'Game name', defaultValue: 'Game Title', required: true },
+      { key: 'developer', label: 'Developer', placeholder: 'Studio', defaultValue: '' },
+      { key: 'platform', label: 'Platform', placeholder: 'PC', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '2024', defaultValue: '' },
+      { key: 'quote', label: 'Quote / Scene (optional)', placeholder: 'Quoted line...', defaultValue: '' },
     ],
   },
   {
     id: 'citar-conferencia',
-    name: 'Citar conferência',
+    name: 'Cite conference',
     aliases: ['citar conferencia', 'cite conference', 'anais'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência de artigos publicados em anais de congressos e simpósios em `<ref>`.',
-    exampleSnippet: '{{Citar conferência|título=Sistemas Distribuídos Abertos|autor=Mendes, A.|conferencia=Simpósio Brasileiro de Computação|ano=2025}}',
+    language: 'en',
+    description: 'Formats references for papers published in conference and symposium proceedings inside `<ref>`.',
+    exampleSnippet: '{{Cite conference|title=Open Distributed Systems|author=Mendes, A.|conference=International Computing Symposium|year=2025}}',
     params: [
-      { key: 'título', label: 'Título do trabalho', placeholder: 'Artigo apresentado', defaultValue: 'Artigo de Conferência', required: true },
-      { key: 'autor', label: 'Autor(es)', placeholder: 'Sobrenome, N.', defaultValue: '' },
-      { key: 'conferencia', label: 'Nome do congresso', placeholder: 'Simpósio...', defaultValue: 'Anais de Conferência' },
-      { key: 'ano', label: 'Ano', placeholder: '2025', defaultValue: '2025' },
+      { key: 'title', label: 'Paper title', placeholder: 'Presented paper', defaultValue: 'Conference Paper', required: true },
+      { key: 'author', label: 'Author(s)', placeholder: 'Last, F.', defaultValue: '' },
+      { key: 'conference', label: 'Conference name', placeholder: 'Symposium...', defaultValue: 'Conference Proceedings' },
+      { key: 'year', label: 'Year', placeholder: '2025', defaultValue: '2025' },
     ],
   },
   {
     id: 'citar-lei',
-    name: 'Citar lei',
+    name: 'Cite act',
     aliases: ['citar lei', 'lei', 'decreto', 'cite act'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata citação de leis, decretos, constituições e atos normativos em `<ref>`.',
-    exampleSnippet: '{{Citar lei|numero=Lei nº 12.965/2014|titulo=Marco Civil da Internet|jurisdicao=Brasil|artigo=Art. 3º}}',
+    language: 'en',
+    description: 'Formats citations of statutes, decrees, constitutions, and regulatory acts inside `<ref>`.',
+    exampleSnippet: '{{Cite act|number=Law No. 12.965/2014|title=Internet Civil Rights Framework|jurisdiction=Brazil|article=Art. 3}}',
     params: [
-      { key: 'numero', label: 'Número / Diploma legal', placeholder: 'Lei nº 12.965/2014', defaultValue: 'Lei', required: true },
-      { key: 'titulo', label: 'Nome ou ementa', placeholder: 'Marco Civil', defaultValue: '' },
-      { key: 'jurisdicao', label: 'Jurisdição', placeholder: 'Brasil', defaultValue: '' },
-      { key: 'artigo', label: 'Artigo / Dispositivo', placeholder: 'Art. 1º', defaultValue: '' },
+      { key: 'number', label: 'Act / Statute number', placeholder: 'Law No. 12.965/2014', defaultValue: 'Act', required: true },
+      { key: 'title', label: 'Short title', placeholder: 'Statute title', defaultValue: '' },
+      { key: 'jurisdiction', label: 'Jurisdiction', placeholder: 'Brazil / US / EU', defaultValue: '' },
+      { key: 'article', label: 'Article / Section', placeholder: 'Sec. 1', defaultValue: '' },
     ],
   },
   {
     id: 'citar-relatorio',
-    name: 'Citar relatório',
+    name: 'Cite report',
     aliases: ['citar relatorio', 'cite report', 'relatorio', 'citar documento'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência de relatórios técnicos, boletins estatísticos e whitepapers em `<ref>`.',
-    exampleSnippet: '{{Citar relatório|título=Panorama da Conectividade Global|instituicao=UNESCO|ano=2025|url=https://exemplo.org/relatorio}}',
+    language: 'en',
+    description: 'Formats references for technical reports, statistical bulletins, and whitepapers inside `<ref>`.',
+    exampleSnippet: '{{Cite report|title=Global Connectivity Outlook|institution=UNESCO|year=2025|url=https://example.org/report}}',
     params: [
-      { key: 'título', label: 'Título do relatório', placeholder: 'Relatório Anual', defaultValue: 'Relatório Técnico', required: true },
-      { key: 'instituicao', label: 'Instituição', placeholder: 'Organização', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '2025', defaultValue: '2025' },
-      { key: 'url', label: 'URL (opcional)', placeholder: 'https://...', defaultValue: '' },
+      { key: 'title', label: 'Report title', placeholder: 'Annual Report', defaultValue: 'Technical Report', required: true },
+      { key: 'institution', label: 'Institution', placeholder: 'Organization', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '2025', defaultValue: '2025' },
+      { key: 'url', label: 'URL (optional)', placeholder: 'https://...', defaultValue: '' },
     ],
   },
   {
     id: 'carece-de-pagina',
-    name: 'Carece de página',
+    name: 'Page needed',
     aliases: ['carece de pagina', 'page needed', 'pagina?'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline solicitando o número exato da página em uma citação de livro ou documento.',
-    exampleSnippet: 'O autor defendeu essa tese{{Carece de página}} em sua obra principal.',
+    language: 'en',
+    description: 'Inline tag requesting the exact page number for a book or document citation.',
+    exampleSnippet: 'The author defended this thesis{{Page needed}} in their main work.',
     params: [],
   },
   {
     id: 'ligacao-inativa',
-    name: 'Ligação inativa',
+    name: 'Dead link',
     aliases: ['ligacao inativa', 'dead link', 'link quebrado'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline `[ligação inativa]` indicando que o link externo original está fora do ar.',
-    exampleSnippet: 'Referência arquivada{{Ligação inativa|data=Novembro de 2026}}.',
+    language: 'en',
+    description: 'Inline tag `[dead link]` indicating that the original external URL is offline.',
+    exampleSnippet: 'Archived reference{{Dead link|date=November 2026}}.',
     params: [
-      { key: 'data', label: 'Data da verificação (opcional)', placeholder: 'Novembro de 2026', defaultValue: '' },
+      { key: 'date', label: 'Check date (optional)', placeholder: 'November 2026', defaultValue: '' },
     ],
   },
   {
     id: 'exemplo-necessario',
-    name: 'Exemplo necessário',
+    name: 'Example needed',
     aliases: ['exemplo necessario', 'example needed', 'exemplo?'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline solicitando um exemplo concreto para ilustrar uma afirmação abstrata.',
-    exampleSnippet: 'Diversas linguagens adotam esse paradigma{{Exemplo necessário}}.',
+    language: 'en',
+    description: 'Inline tag requesting a concrete example to illustrate an abstract statement.',
+    exampleSnippet: 'Several languages adopt this paradigm{{Example needed}}.',
     params: [],
   },
   {
     id: 'por-quem',
-    name: 'Por quem?',
+    name: 'By whom?',
     aliases: ['por quem', 'por quem?', 'by whom', 'by whom?', 'segundo quem', 'segundo quem?'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline `[segundo quem?]` contra atribuições vagas como "especialistas afirmam".',
-    exampleSnippet: 'A medida foi elogiada por críticos{{Por quem?}} na época.',
+    language: 'en',
+    description: 'Inline tag `[by whom?]` challenging vague attributions such as "experts say".',
+    exampleSnippet: 'The measure was praised by critics{{By whom?}} at the time.',
     params: [],
   },
   {
     id: 'como-tag',
-    name: 'Como?',
+    name: 'How?',
     aliases: ['como', 'como?', 'how', 'how?'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline `[como?]` pedindo esclarecimento do mecanismo ou método mencionado.',
-    exampleSnippet: 'O protocolo acelera a sincronização{{Como?}} entre os nós.',
+    language: 'en',
+    description: 'Inline tag `[how?]` asking for clarification on the mechanism or method mentioned.',
+    exampleSnippet: 'The protocol accelerates synchronization{{How?}} across nodes.',
     params: [],
   },
   {
     id: 'porque-tag',
-    name: 'Por quê?',
+    name: 'Why?',
     aliases: ['por que', 'por que?', 'porque', 'porque?', 'why', 'why?'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline `[por quê?]` pedindo explicação causal de uma afirmação.',
-    exampleSnippet: 'O projeto foi transferido para outro município{{Por quê?}}.',
+    language: 'en',
+    description: 'Inline tag `[why?]` asking for a causal explanation behind a claim.',
+    exampleSnippet: 'The project was relocated to another city{{Why?}}.',
     params: [],
   },
   {
     id: 'melhor-fonte',
-    name: 'Melhor fonte',
+    name: 'Better source needed',
     aliases: ['melhor fonte', 'better source needed', 'fonte melhor'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline `[carece de fonte melhor]` quando a referência atual é fraca ou secundária demais.',
-    exampleSnippet: 'O recorde foi registrado em 2019{{Melhor fonte}}.',
+    language: 'en',
+    description: 'Inline tag `[better source needed]` when the current reference is weak or overly secondary.',
+    exampleSnippet: 'The record was set in 2019{{Better source needed}}.',
     params: [],
   },
   {
     id: 'duvidoso-tag',
-    name: 'Duvidoso',
+    name: 'Dubious',
     aliases: ['duvidoso', 'dubious', 'contestado'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Etiqueta inline `[duvidoso – discutir]` sinalizando afirmação factual controversa.',
-    exampleSnippet: 'A cidade possuía dois milhões de habitantes no século XVI{{Duvidoso}}.',
+    language: 'en',
+    description: 'Inline tag `[dubious – discuss]` flagging a disputed factual statement.',
+    exampleSnippet: 'The city had two million inhabitants in the 16th century{{Dubious}}.',
     params: [],
   },
   {
     id: 'data-formatada',
-    name: 'Data',
+    name: 'Date',
     aliases: ['data', 'date'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata datas numéricas (`dia|mês|ano`) no estilo enciclopédico em português.',
-    exampleSnippet: '{{Data|26|11|2026}}',
+    language: 'en',
+    description: 'Formats numeric dates (`day|month|year`) in standard encyclopedic English style.',
+    exampleSnippet: '{{Date|26|11|2026}}',
     params: [
-      { key: '1', label: 'Dia', placeholder: '26', defaultValue: '26', required: true },
-      { key: '2', label: 'Mês (1-12)', placeholder: '11', defaultValue: '11', required: true },
-      { key: '3', label: 'Ano', placeholder: '2026', defaultValue: '2026', required: true },
+      { key: '1', label: 'Day', placeholder: '26', defaultValue: '26', required: true },
+      { key: '2', label: 'Month (1-12)', placeholder: '11', defaultValue: '11', required: true },
+      { key: '3', label: 'Year', placeholder: '2026', defaultValue: '2026', required: true },
     ],
   },
   {
     id: 'porcentagem',
-    name: 'Porcentagem',
+    name: 'Percentage',
     aliases: ['porcentagem', 'pct', 'percentage'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Calcula e exibe automaticamente o percentual entre parte e total (`{{Porcentagem|25|100}}`).',
-    exampleSnippet: '{{Porcentagem|3|4|1}}',
+    language: 'en',
+    description: 'Automatically computes and displays the percentage between part and total (`{{Percentage|25|100}}`).',
+    exampleSnippet: '{{Percentage|3|4|1}}',
     params: [
-      { key: '1', label: 'Parte (numerador)', placeholder: '3', defaultValue: '1', required: true },
-      { key: '2', label: 'Total (denominador)', placeholder: '4', defaultValue: '4', required: true },
-      { key: '3', label: 'Casas decimais', placeholder: '1', defaultValue: '1' },
+      { key: '1', label: 'Part (numerator)', placeholder: '3', defaultValue: '1', required: true },
+      { key: '2', label: 'Total (denominator)', placeholder: '4', defaultValue: '4', required: true },
+      { key: '3', label: 'Decimal places', placeholder: '1', defaultValue: '1' },
     ],
   },
   {
@@ -3610,11 +3610,11 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'IPA',
     aliases: ['ipa', 'afi', 'pronuncia', 'pronunciation'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata transcrição fonética no Alfabeto Fonético Internacional (AFI/IPA).',
-    exampleSnippet: '{{IPA|wi.kiˈpɛ.dʒɐ}}',
+    language: 'en',
+    description: 'Formats phonetic transcriptions in the International Phonetic Alphabet (IPA).',
+    exampleSnippet: '{{IPA|ˌwɪkɪˈpiːdiə}}',
     params: [
-      { key: '1', label: 'Transcrição IPA', placeholder: 'wi.kiˈpɛ.dʒɐ', defaultValue: 'ɛ.zẽ.plu', required: true },
+      { key: '1', label: 'IPA transcription', placeholder: 'ˌwɪkɪˈpiːdiə', defaultValue: 'ɪɡˈzɑːmpəl', required: true },
     ],
   },
   {
@@ -3622,12 +3622,12 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Lang',
     aliases: ['lang', 'idioma', 'estrangeiro'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Identifica termo ou expressão em idioma estrangeiro com seu código linguístico.',
+    language: 'en',
+    description: 'Tags a foreign-language term or phrase with its ISO language code.',
     exampleSnippet: '{{Lang|la|Alea iacta est}}',
     params: [
-      { key: '1', label: 'Código do idioma (en, la, fr, ja...)', placeholder: 'la', defaultValue: 'en', required: true },
-      { key: '2', label: 'Texto no idioma', placeholder: 'Texto estrangeiro', defaultValue: 'Example', required: true },
+      { key: '1', label: 'Language code (la, fr, pt, ja...)', placeholder: 'la', defaultValue: 'la', required: true },
+      { key: '2', label: 'Text in language', placeholder: 'Foreign text', defaultValue: 'Example', required: true },
     ],
   },
   {
@@ -3635,25 +3635,25 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Nihongo',
     aliases: ['nihongo', 'japones'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formatação clássica da Wikipédia para termos japoneses (Português, Kanji e Romaji).',
-    exampleSnippet: '{{Nihongo|Enciclopédia|百科事典|Hyakka jiten}}',
+    language: 'en',
+    description: 'Classic Wikipedia formatting for Japanese terms (English, Kanji/Kana, and Hepburn Romaji).',
+    exampleSnippet: '{{Nihongo|Encyclopedia|百科事典|Hyakka jiten}}',
     params: [
-      { key: '1', label: 'Termo em português', placeholder: 'Enciclopédia', defaultValue: 'Termo', required: true },
+      { key: '1', label: 'English term', placeholder: 'Encyclopedia', defaultValue: 'Term', required: true },
       { key: '2', label: 'Kanji / Kana', placeholder: '百科事典', defaultValue: '' },
       { key: '3', label: 'Romaji', placeholder: 'Hyakka jiten', defaultValue: '' },
     ],
   },
   {
     id: 'codigo-inline',
-    name: 'Código',
+    name: 'Code',
     aliases: ['codigo', 'code', 'syntax'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata trecho curto de código ou comando inline em fonte monoespaçada.',
-    exampleSnippet: '{{Código|npm run build}}',
+    language: 'en',
+    description: 'Formats a short code snippet or command inline in monospace type.',
+    exampleSnippet: '{{Code|npm run build}}',
     params: [
-      { key: '1', label: 'Trecho de código', placeholder: 'console.log()', defaultValue: 'code()', required: true },
+      { key: '1', label: 'Code snippet', placeholder: 'console.log()', defaultValue: 'code()', required: true },
     ],
   },
   {
@@ -3661,38 +3661,38 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Tag',
     aliases: ['tag', 'htmltag', 'xml'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Exibe nomes de tags HTML/XML/Wiki formatados (`<ref>...</ref>`) para documentação.',
-    exampleSnippet: '{{Tag|ref|Conteúdo da nota}}',
+    language: 'en',
+    description: 'Displays formatted HTML/XML/Wiki tag names (`<ref>...</ref>`) for documentation.',
+    exampleSnippet: '{{Tag|ref|Footnote content}}',
     params: [
-      { key: '1', label: 'Nome da tag', placeholder: 'ref', defaultValue: 'div', required: true },
-      { key: '2', label: 'Conteúdo interno (opcional)', placeholder: '...', defaultValue: '' },
+      { key: '1', label: 'Tag name', placeholder: 'ref', defaultValue: 'div', required: true },
+      { key: '2', label: 'Inner content (optional)', placeholder: '...', defaultValue: '' },
     ],
   },
   {
     id: 'ocultar-caixa',
-    name: 'Ocultar',
+    name: 'Collapse',
     aliases: ['ocultar', 'collapse', 'esconder', 'caixa expansivel'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Bloco organizado com título destacado para exibir anexos, listas extensas ou tabelas.',
-    exampleSnippet: '{{Ocultar|titulo=Lista completa de versões|conteudo=v1.0 (2024) · v2.0 (2025) · v3.0 (2026)}}',
+    language: 'en',
+    description: 'Structured box with a prominent header for appendices, long lists, or notes.',
+    exampleSnippet: '{{Collapse|title=Full version history|content=v1.0 (2024) · v2.0 (2025) · v3.0 (2026)}}',
     params: [
-      { key: 'titulo', label: 'Cabeçalho da caixa', placeholder: 'Detalhes adicionais', defaultValue: 'Conteúdo complementar', required: true },
-      { key: 'conteudo', label: 'Conteúdo', placeholder: 'Texto ou itens...', defaultValue: 'Detalhes listados.', required: true },
+      { key: 'title', label: 'Box header', placeholder: 'Additional details', defaultValue: 'Supplementary content', required: true },
+      { key: 'content', label: 'Content', placeholder: 'Text or items...', defaultValue: 'Listed details.', required: true },
     ],
   },
   {
     id: 'barra-de-progresso',
-    name: 'Barra de progresso',
+    name: 'Progress bar',
     aliases: ['barra de progresso', 'progresso', 'progress bar'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Indicador visual percentual de progresso para projetos colaborativos e metas editoriais.',
-    exampleSnippet: '{{Barra de progresso|65|Meta de tradução concluída}}',
+    language: 'en',
+    description: 'Visual percentage progress indicator for collaborative projects and editorial goals.',
+    exampleSnippet: '{{Progress bar|65|Translation milestone completed}}',
     params: [
-      { key: '1', label: 'Porcentagem (0 a 100)', placeholder: '65', defaultValue: '50', required: true },
-      { key: '2', label: 'Legenda (opcional)', placeholder: 'Progresso...', defaultValue: '' },
+      { key: '1', label: 'Percentage (0 to 100)', placeholder: '65', defaultValue: '50', required: true },
+      { key: '2', label: 'Caption (optional)', placeholder: 'Progress...', defaultValue: '' },
     ],
   },
   {
@@ -3700,11 +3700,11 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Efn',
     aliases: ['efn', 'nota explicativa', 'notelist'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Insere nota explicativa complementar separada das referências bibliográficas.',
-    exampleSnippet: 'O termo surgiu na década de 1990{{Efn|Originalmente cunhado em simpósios acadêmicos europeus.}}.',
+    language: 'en',
+    description: 'Inserts a supplementary explanatory footnote separate from bibliographic references.',
+    exampleSnippet: 'The term emerged in the 1990s{{Efn|Originally coined in European academic symposia.}}.',
     params: [
-      { key: '1', label: 'Texto da nota explicativa', placeholder: 'Nota complementar...', defaultValue: 'Nota explicativa.', required: true },
+      { key: '1', label: 'Explanatory note text', placeholder: 'Supplementary note...', defaultValue: 'Explanatory note.', required: true },
     ],
   },
   {
@@ -3712,709 +3712,709 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Circa',
     aliases: ['circa', 'aprox'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Padroniza datas históricas aproximadas com a notação `c.` (por volta de).',
+    language: 'en',
+    description: 'Standardizes approximate historical dates using `c.` (around).',
     exampleSnippet: '{{Circa|1450|1455}}',
     params: [
-      { key: '1', label: 'Ano inicial', placeholder: '1450', defaultValue: '1500', required: true },
-      { key: '2', label: 'Ano final (opcional)', placeholder: '1455', defaultValue: '' },
+      { key: '1', label: 'Start year', placeholder: '1450', defaultValue: '1500', required: true },
+      { key: '2', label: 'End year (optional)', placeholder: '1455', defaultValue: '' },
     ],
   },
   {
     id: 'seculo-romano',
-    name: 'Século',
+    name: 'Century',
     aliases: ['seculo', 'century'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Converte número arábico em notação enciclopédica de século em algarismos romanos.',
-    exampleSnippet: '{{Século|21}}',
+    language: 'en',
+    description: 'Converts a cardinal number into standard century notation.',
+    exampleSnippet: '{{Century|21}}',
     params: [
-      { key: '1', label: 'Número do século', placeholder: '21', defaultValue: '21', required: true },
+      { key: '1', label: 'Century number', placeholder: '21', defaultValue: '21', required: true },
     ],
   },
-  // --- Novas Infoboxes da Wikipédia ---
+  // --- Additional Wikipedia Infoboxes ---
   {
     id: 'info-cidade',
-    name: 'Info/Cidade',
+    name: 'Infobox settlement',
     aliases: ['info/cidade', 'info/municipio', 'infobox settlement', 'infobox city'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para municípios, cidades, distritos e localidades urbanas.',
+    language: 'en',
+    description: 'Infobox for cities, municipalities, districts, and urban settlements.',
     exampleSnippet:
-      '{{Info/Cidade|título=Curitiba|País=Brasil|Estado=Paraná|Fundação=29 de março de 1693|População=1 773 718 hab.|Área=435 km²}}',
+      '{{Infobox settlement|title=Curitiba|Country=Brazil|State=Paraná|Established=March 29, 1693|Population=1,773,718|Area=435 km²}}',
     params: [
-      { key: 'título', label: 'Nome da cidade', placeholder: 'São Paulo', defaultValue: 'Cidade Exemplo', required: true },
-      { key: 'País', label: 'País', placeholder: 'Brasil', defaultValue: 'Brasil' },
-      { key: 'Estado', label: 'Estado / Província', placeholder: 'Paraná', defaultValue: 'Estado' },
-      { key: 'População', label: 'População', placeholder: '1 000 000 hab.', defaultValue: '1 000 000 hab.' },
-      { key: 'Área', label: 'Área total', placeholder: '435 km²', defaultValue: '435 km²' },
+      { key: 'title', label: 'City name', placeholder: 'São Paulo', defaultValue: 'Sample City', required: true },
+      { key: 'Country', label: 'Country', placeholder: 'Brazil', defaultValue: 'International' },
+      { key: 'State', label: 'State / Province', placeholder: 'State', defaultValue: 'Province' },
+      { key: 'Population', label: 'Population', placeholder: '1,000,000', defaultValue: '1,000,000' },
+      { key: 'Area', label: 'Total area', placeholder: '435 km²', defaultValue: '435 km²' },
     ],
   },
   {
     id: 'info-artista',
-    name: 'Info/Artista',
+    name: 'Infobox musical artist',
     aliases: ['info/artista', 'info/musico', 'infobox musical artist', 'infobox artist'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para músicos, bandas, pintores e criadores artísticos.',
+    language: 'en',
+    description: 'Infobox for musicians, bands, painters, and visual artists.',
     exampleSnippet:
-      '{{Info/Artista|nome=Banda Horizonte|Origem=Rio de Janeiro, Brasil|Gênero=MPB, Rock alternativo|Atividade=2015–presente|Gravadora=Independente}}',
+      '{{Infobox musical artist|name=Horizon Band|Origin=Rio de Janeiro, Brazil|Genre=Indie, Alternative rock|Years active=2015–present|Label=Independent}}',
     params: [
-      { key: 'nome', label: 'Nome artístico / Banda', placeholder: 'Nome do artista', defaultValue: 'Artista Exemplo', required: true },
-      { key: 'Origem', label: 'Origem', placeholder: 'Cidade, País', defaultValue: 'Brasil' },
-      { key: 'Gênero', label: 'Gênero artístico/musical', placeholder: 'MPB', defaultValue: 'Contemporâneo' },
-      { key: 'Atividade', label: 'Período em atividade', placeholder: '2015–presente', defaultValue: 'Ativo' },
+      { key: 'name', label: 'Artist / Band name', placeholder: 'Artist name', defaultValue: 'Sample Artist', required: true },
+      { key: 'Origin', label: 'Origin', placeholder: 'City, Country', defaultValue: 'International' },
+      { key: 'Genre', label: 'Artistic/musical genre', placeholder: 'Indie Rock', defaultValue: 'Contemporary' },
+      { key: 'Years active', label: 'Years active', placeholder: '2015–present', defaultValue: 'Active' },
     ],
   },
   {
     id: 'info-serie',
-    name: 'Info/Série',
+    name: 'Infobox television',
     aliases: ['info/serie', 'info/tv', 'infobox television', 'info/anime'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para séries de televisão, streaming, animações e animes.',
+    language: 'en',
+    description: 'Infobox for television series, streaming shows, animations, and anime.',
     exampleSnippet:
-      '{{Info/Série|título=Horizontes|Formato=Série de televisão|Gênero=Ficção científica|Temporadas=3|Episódios=24|Emissora=Canal Aberto}}',
+      '{{Infobox television|title=Horizons|Format=Television series|Genre=Science fiction|Seasons=3|Episodes=24|Network=Open Channel}}',
     params: [
-      { key: 'título', label: 'Título da série', placeholder: 'Nome da série', defaultValue: 'Série Exemplo', required: true },
-      { key: 'Gênero', label: 'Gênero', placeholder: 'Drama, Ficção', defaultValue: 'Drama' },
-      { key: 'Temporadas', label: 'Temporadas', placeholder: '3', defaultValue: '1' },
-      { key: 'Episódios', label: 'Episódios', placeholder: '24', defaultValue: '10' },
-      { key: 'Emissora', label: 'Emissora / Plataforma', placeholder: 'TV / Streaming', defaultValue: 'Streaming' },
+      { key: 'title', label: 'Series title', placeholder: 'Series name', defaultValue: 'Sample Series', required: true },
+      { key: 'Genre', label: 'Genre', placeholder: 'Drama, Sci-Fi', defaultValue: 'Drama' },
+      { key: 'Seasons', label: 'Seasons', placeholder: '3', defaultValue: '1' },
+      { key: 'Episodes', label: 'Episodes', placeholder: '24', defaultValue: '10' },
+      { key: 'Network', label: 'Network / Platform', placeholder: 'TV / Streaming', defaultValue: 'Streaming' },
     ],
   },
   {
     id: 'info-album',
-    name: 'Info/Álbum',
+    name: 'Infobox album',
     aliases: ['info/album', 'infobox album'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para álbuns de estúdio, coletâneas e discos ao vivo.',
+    language: 'en',
+    description: 'Infobox for studio albums, compilations, and live recordings.',
     exampleSnippet:
-      '{{Info/Álbum|título=Ventos do Sul|Artista=Banda Horizonte|Lançamento=14 de agosto de 2024|Gênero=Indie, MPB|Duração=42:18|Gravadora=Selo Norte}}',
+      '{{Infobox album|title=Southern Winds|Artist=Horizon Band|Released=August 14, 2024|Genre=Indie, Folk|Length=42:18|Label=North Records}}',
     params: [
-      { key: 'título', label: 'Título do álbum', placeholder: 'Nome do álbum', defaultValue: 'Álbum Exemplo', required: true },
-      { key: 'Artista', label: 'Artista / Banda', placeholder: 'Artista', defaultValue: 'Artista' },
-      { key: 'Lançamento', label: 'Data de lançamento', placeholder: '2024', defaultValue: '2024' },
-      { key: 'Gênero', label: 'Gênero', placeholder: 'Rock, MPB', defaultValue: 'Musical' },
-      { key: 'Duração', label: 'Duração total', placeholder: '42:18', defaultValue: '40:00' },
+      { key: 'title', label: 'Album title', placeholder: 'Album name', defaultValue: 'Sample Album', required: true },
+      { key: 'Artist', label: 'Artist / Band', placeholder: 'Artist', defaultValue: 'Artist' },
+      { key: 'Released', label: 'Release date', placeholder: '2024', defaultValue: '2024' },
+      { key: 'Genre', label: 'Genre', placeholder: 'Rock, Folk', defaultValue: 'Musical' },
+      { key: 'Length', label: 'Total length', placeholder: '42:18', defaultValue: '40:00' },
     ],
   },
   {
     id: 'info-cancao',
-    name: 'Info/Canção',
+    name: 'Infobox song',
     aliases: ['info/cancao', 'info/single', 'infobox song'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para canções, singles e composições individuais.',
+    language: 'en',
+    description: 'Infobox for individual songs, singles, and compositions.',
     exampleSnippet:
-      '{{Info/Canção|título=Luz da Manhã|Artista=Clara Nunes|Álbum=Canto Livre|Lançamento=2023|Compositor=Clara Nunes|Duração=3:45}}',
+      '{{Infobox song|title=Morning Light|Artist=Clara Nunes|Album=Open Song|Released=2023|Writer=Clara Nunes|Length=3:45}}',
     params: [
-      { key: 'título', label: 'Título da canção', placeholder: 'Nome da canção', defaultValue: 'Canção Exemplo', required: true },
-      { key: 'Artista', label: 'Intérprete', placeholder: 'Artista', defaultValue: 'Artista' },
-      { key: 'Álbum', label: 'Álbum', placeholder: 'Álbum', defaultValue: 'Single' },
-      { key: 'Lançamento', label: 'Lançamento', placeholder: '2024', defaultValue: '2024' },
-      { key: 'Duração', label: 'Duração', placeholder: '3:45', defaultValue: '3:30' },
+      { key: 'title', label: 'Song title', placeholder: 'Song name', defaultValue: 'Sample Song', required: true },
+      { key: 'Artist', label: 'Performer', placeholder: 'Artist', defaultValue: 'Artist' },
+      { key: 'Album', label: 'Album', placeholder: 'Album', defaultValue: 'Single' },
+      { key: 'Released', label: 'Released', placeholder: '2024', defaultValue: '2024' },
+      { key: 'Length', label: 'Length', placeholder: '3:45', defaultValue: '3:30' },
     ],
   },
   {
     id: 'info-clube',
-    name: 'Info/Clube',
+    name: 'Infobox football club',
     aliases: ['info/clube', 'info/futebol', 'infobox football club'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para clubes de futebol e associações esportivas.',
+    language: 'en',
+    description: 'Infobox for football clubs and sports associations.',
     exampleSnippet:
-      '{{Info/Clube|nome=Atlético Modelo|Fundação=1912|Estádio=Arena Central|Capacidade=45 000|Liga=Série A|Treinador=R. Silva}}',
+      '{{Infobox football club|name=Athletic Model|Founded=1912|Ground=Central Arena|Capacity=45,000|League=Premier Division|Manager=R. Silva}}',
     params: [
-      { key: 'nome', label: 'Nome do clube', placeholder: 'Clube Esportivo', defaultValue: 'Clube Exemplo', required: true },
-      { key: 'Fundação', label: 'Ano de fundação', placeholder: '1912', defaultValue: '1920' },
-      { key: 'Estádio', label: 'Estádio / Arena', placeholder: 'Estádio Central', defaultValue: 'Estádio Municipal' },
-      { key: 'Liga', label: 'Competição principal', placeholder: 'Primeira Divisão', defaultValue: 'Liga Nacional' },
+      { key: 'name', label: 'Club name', placeholder: 'Sports Club', defaultValue: 'Sample Club', required: true },
+      { key: 'Founded', label: 'Year founded', placeholder: '1912', defaultValue: '1920' },
+      { key: 'Ground', label: 'Stadium / Arena', placeholder: 'Central Stadium', defaultValue: 'Municipal Stadium' },
+      { key: 'League', label: 'Main competition', placeholder: 'First Division', defaultValue: 'National League' },
     ],
   },
   {
     id: 'info-atleta',
-    name: 'Info/Atleta',
+    name: 'Infobox sportsperson',
     aliases: ['info/atleta', 'info/futebolista', 'infobox sportsperson', 'infobox football biography'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para atletas olímpicos, futebolistas e esportistas profissionais.',
+    language: 'en',
+    description: 'Infobox for Olympic athletes, footballers, and professional sportspeople.',
     exampleSnippet:
-      '{{Info/Atleta|nome=Lucas Andrade|Modalidade=Futebol|Posição=Meio-campista|Nacionalidade=Brasileira|Clube atual=Atlético Modelo}}',
+      '{{Infobox sportsperson|name=Lucas Andrade|Sport=Football|Position=Midfielder|Nationality=Brazilian|Current club=Athletic Model}}',
     params: [
-      { key: 'nome', label: 'Nome do atleta', placeholder: 'Nome completo', defaultValue: 'Atleta Exemplo', required: true },
-      { key: 'Modalidade', label: 'Esporte / Modalidade', placeholder: 'Futebol / Atletismo', defaultValue: 'Atletismo' },
-      { key: 'Posição', label: 'Posição / Prova', placeholder: 'Atacante', defaultValue: 'Titular' },
-      { key: 'Nacionalidade', label: 'Nacionalidade', placeholder: 'Brasileira', defaultValue: 'Brasileira' },
+      { key: 'name', label: 'Athlete name', placeholder: 'Full name', defaultValue: 'Sample Athlete', required: true },
+      { key: 'Sport', label: 'Sport / Discipline', placeholder: 'Football / Athletics', defaultValue: 'Athletics' },
+      { key: 'Position', label: 'Position / Event', placeholder: 'Forward', defaultValue: 'Starter' },
+      { key: 'Nationality', label: 'Nationality', placeholder: 'International', defaultValue: 'International' },
     ],
   },
   {
     id: 'info-politico',
-    name: 'Info/Político',
+    name: 'Infobox officeholder',
     aliases: ['info/politico', 'infobox officeholder'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para chefes de Estado, governantes, parlamentares e autoridades públicas.',
+    language: 'en',
+    description: 'Infobox for heads of state, governors, legislators, and public officials.',
     exampleSnippet:
-      '{{Info/Político|nome=Helena Tavares|Cargo=Senadora da República|Mandato=2023–presente|Partido=Partido Democrático|Nascimento=1972}}',
+      '{{Infobox officeholder|name=Helena Tavares|Office=Senator|Term=2023–present|Party=Democratic Party|Born=1972}}',
     params: [
-      { key: 'nome', label: 'Nome da autoridade', placeholder: 'Nome completo', defaultValue: 'Autoridade Exemplo', required: true },
-      { key: 'Cargo', label: 'Cargo público', placeholder: 'Ministra / Governador', defaultValue: 'Cargo Público' },
-      { key: 'Mandato', label: 'Período do mandato', placeholder: '2023–2027', defaultValue: '2023–presente' },
-      { key: 'Partido', label: 'Partido / Coalizão', placeholder: 'Independente', defaultValue: 'Independente' },
+      { key: 'name', label: 'Official name', placeholder: 'Full name', defaultValue: 'Sample Official', required: true },
+      { key: 'Office', label: 'Public office', placeholder: 'Minister / Governor', defaultValue: 'Public Office' },
+      { key: 'Term', label: 'Term in office', placeholder: '2023–2027', defaultValue: '2023–present' },
+      { key: 'Party', label: 'Party / Coalition', placeholder: 'Independent', defaultValue: 'Independent' },
     ],
   },
   {
     id: 'info-cientista',
-    name: 'Info/Cientista',
+    name: 'Infobox scientist',
     aliases: ['info/cientista', 'infobox scientist'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox biográfica dedicada a cientistas, pesquisadores e inventores.',
+    language: 'en',
+    description: 'Biographical infobox dedicated to scientists, researchers, and inventors.',
     exampleSnippet:
-      '{{Info/Cientista|nome=Dra. Beatriz Costa|Área=Astrofísica|Instituição=Observatório Nacional|Conhecida por=Mapeamento de exoplanetas|Prêmios=Medalha Ciência Aberta}}',
+      '{{Infobox scientist|name=Dr. Beatriz Costa|Field=Astrophysics|Institutions=National Observatory|Known for=Exoplanet mapping|Awards=Open Science Medal}}',
     params: [
-      { key: 'nome', label: 'Nome do cientista', placeholder: 'Nome completo', defaultValue: 'Cientista Exemplo', required: true },
-      { key: 'Área', label: 'Área científica', placeholder: 'Física, Biologia...', defaultValue: 'Ciências Exatas' },
-      { key: 'Instituição', label: 'Instituição', placeholder: 'Universidade / Instituto', defaultValue: 'Instituto de Pesquisa' },
-      { key: 'Conhecida por', label: 'Contribuição principal', placeholder: 'Descoberta ou teoria', defaultValue: 'Pesquisa fundamental' },
+      { key: 'name', label: 'Scientist name', placeholder: 'Full name', defaultValue: 'Sample Scientist', required: true },
+      { key: 'Field', label: 'Scientific field', placeholder: 'Physics, Biology...', defaultValue: 'Exact Sciences' },
+      { key: 'Institutions', label: 'Institution', placeholder: 'University / Institute', defaultValue: 'Research Institute' },
+      { key: 'Known for', label: 'Primary contribution', placeholder: 'Discovery or theory', defaultValue: 'Fundamental research' },
     ],
   },
   {
     id: 'info-edificio',
-    name: 'Info/Edifício',
+    name: 'Infobox building',
     aliases: ['info/edificio', 'info/construcao', 'infobox building'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para prédios históricos, arranha-céus, museus e monumentos arquitetônicos.',
+    language: 'en',
+    description: 'Infobox for historic buildings, skyscrapers, museums, and architectural landmarks.',
     exampleSnippet:
-      '{{Info/Edifício|nome=Museu da Ciência|Localização=Belo Horizonte, Brasil|Arquiteto=O. Mendes|Inauguração=1998|Altura=48 m}}',
+      '{{Infobox building|name=Science Museum|Location=Belo Horizonte, Brazil|Architect=O. Mendes|Opened=1998|Height=48 m}}',
     params: [
-      { key: 'nome', label: 'Nome do edifício', placeholder: 'Palácio / Torre', defaultValue: 'Edifício Exemplo', required: true },
-      { key: 'Localização', label: 'Cidade / País', placeholder: 'Cidade, Brasil', defaultValue: 'Brasil' },
-      { key: 'Arquiteto', label: 'Arquiteto(a)', placeholder: 'Nome', defaultValue: 'Não informado' },
-      { key: 'Inauguração', label: 'Ano de inauguração', placeholder: '1998', defaultValue: '2000' },
+      { key: 'name', label: 'Building name', placeholder: 'Palace / Tower', defaultValue: 'Sample Building', required: true },
+      { key: 'Location', label: 'City / Country', placeholder: 'City, Country', defaultValue: 'International' },
+      { key: 'Architect', label: 'Architect', placeholder: 'Name', defaultValue: 'Undisclosed' },
+      { key: 'Opened', label: 'Year opened', placeholder: '1998', defaultValue: '2000' },
     ],
   },
   {
     id: 'info-aeroporto',
-    name: 'Info/Aeroporto',
+    name: 'Infobox airport',
     aliases: ['info/aeroporto', 'info/estacao', 'infobox airport', 'infobox station'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para aeroportos internacionais, terminais e estações ferroviárias/metroviárias.',
+    language: 'en',
+    description: 'Infobox for international airports, transit hubs, and railway/metro stations.',
     exampleSnippet:
-      '{{Info/Aeroporto|nome=Aeroporto Internacional Central|IATA=CWB|ICAO=SBCT|Cidade=Curitiba|Inauguração=1946|Operadora=Infraero}}',
+      '{{Infobox airport|name=Central International Airport|IATA=CWB|ICAO=SBCT|City=Curitiba|Opened=1946|Operator=Airport Authority}}',
     params: [
-      { key: 'nome', label: 'Nome do terminal/aeroporto', placeholder: 'Aeroporto...', defaultValue: 'Aeroporto Exemplo', required: true },
-      { key: 'IATA', label: 'Código IATA / Sigla', placeholder: 'GRU', defaultValue: 'XXX' },
-      { key: 'ICAO', label: 'Código ICAO', placeholder: 'SBGR', defaultValue: 'XXXX' },
-      { key: 'Cidade', label: 'Cidade atendida', placeholder: 'São Paulo', defaultValue: 'Cidade' },
+      { key: 'name', label: 'Airport/station name', placeholder: 'Airport...', defaultValue: 'Sample Airport', required: true },
+      { key: 'IATA', label: 'IATA / Station code', placeholder: 'GRU', defaultValue: 'XXX' },
+      { key: 'ICAO', label: 'ICAO code', placeholder: 'SBGR', defaultValue: 'XXXX' },
+      { key: 'City', label: 'City served', placeholder: 'City', defaultValue: 'City' },
     ],
   },
   {
     id: 'info-linguagem',
-    name: 'Info/Linguagem',
+    name: 'Infobox programming language',
     aliases: ['info/linguagem', 'info/idioma', 'infobox programming language', 'infobox language'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para linguagens de programação ou idiomas humanos.',
+    language: 'en',
+    description: 'Infobox for programming languages or natural human languages.',
     exampleSnippet:
-      '{{Info/Linguagem|nome=TypeScript|Paradigma=Multiparadigma, tipagem estática|Criador=Microsoft|Lançamento=2012|Extensão=.ts, .tsx}}',
+      '{{Infobox programming language|name=TypeScript|Paradigm=Multi-paradigm, static typing|Designer=Microsoft|First appeared=2012|Filename extensions=.ts, .tsx}}',
     params: [
-      { key: 'nome', label: 'Linguagem / Idioma', placeholder: 'TypeScript', defaultValue: 'Linguagem Exemplo', required: true },
-      { key: 'Paradigma', label: 'Paradigma / Família', placeholder: 'Funcional, OO', defaultValue: 'Multiparadigma' },
-      { key: 'Criador', label: 'Criador / Falantes', placeholder: 'Autor / Região', defaultValue: 'Comunidade' },
-      { key: 'Lançamento', label: 'Ano / Código ISO', placeholder: '2012', defaultValue: '2020' },
+      { key: 'name', label: 'Language name', placeholder: 'TypeScript', defaultValue: 'Sample Language', required: true },
+      { key: 'Paradigm', label: 'Paradigm / Family', placeholder: 'Functional, OOP', defaultValue: 'Multi-paradigm' },
+      { key: 'Designer', label: 'Designer / Speakers', placeholder: 'Author / Region', defaultValue: 'Community' },
+      { key: 'First appeared', label: 'Year / ISO code', placeholder: '2012', defaultValue: '2020' },
     ],
   },
   {
     id: 'info-astro',
-    name: 'Info/Astro',
+    name: 'Infobox planet',
     aliases: ['info/astro', 'info/planeta', 'infobox planet'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox astronômica para planetas, estrelas, luas, cometas e galáxias.',
+    language: 'en',
+    description: 'Astronomical infobox for planets, stars, moons, comets, and galaxies.',
     exampleSnippet:
-      '{{Info/Astro|nome=Marte|Tipo=Planeta telúrico|Raio médio=3 389,5 km|Período orbital=687 dias|Satélites=2 (Fobos e Deimos)}}',
+      '{{Infobox planet|name=Mars|Type=Terrestrial planet|Mean radius=3,389.5 km|Orbital period=687 days|Satellites=2 (Phobos and Deimos)}}',
     params: [
-      { key: 'nome', label: 'Corpo celeste', placeholder: 'Marte', defaultValue: 'Astro Exemplo', required: true },
-      { key: 'Tipo', label: 'Classificação', placeholder: 'Planeta telúrico', defaultValue: 'Corpo celeste' },
-      { key: 'Raio médio', label: 'Raio / Diâmetro', placeholder: '3 389 km', defaultValue: '1 000 km' },
-      { key: 'Período orbital', label: 'Período orbital', placeholder: '365 dias', defaultValue: '365 dias' },
+      { key: 'name', label: 'Celestial body', placeholder: 'Mars', defaultValue: 'Sample Celestial Body', required: true },
+      { key: 'Type', label: 'Classification', placeholder: 'Terrestrial planet', defaultValue: 'Celestial body' },
+      { key: 'Mean radius', label: 'Radius / Diameter', placeholder: '3,389 km', defaultValue: '1,000 km' },
+      { key: 'Orbital period', label: 'Orbital period', placeholder: '365 days', defaultValue: '365 days' },
     ],
   },
   {
     id: 'info-elemento',
-    name: 'Info/Elemento',
+    name: 'Infobox element',
     aliases: ['info/elemento', 'infobox element'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox da tabela periódica para elementos químicos.',
+    language: 'en',
+    description: 'Periodic table infobox for chemical elements.',
     exampleSnippet:
-      '{{Info/Elemento|nome=Carbono|Símbolo=C|Número atômico=6|Massa atômica=12,011 u|Família=Não metal|Estado físico=Sólido}}',
+      '{{Infobox element|name=Carbon|Symbol=C|Atomic number=6|Atomic weight=12.011 u|Group=Nonmetal|Phase at STP=Solid}}',
     params: [
-      { key: 'nome', label: 'Nome do elemento', placeholder: 'Carbono', defaultValue: 'Elemento Exemplo', required: true },
-      { key: 'Símbolo', label: 'Símbolo químico', placeholder: 'C', defaultValue: 'X' },
-      { key: 'Número atômico', label: 'Número atômico (Z)', placeholder: '6', defaultValue: '1' },
-      { key: 'Massa atômica', label: 'Massa atômica', placeholder: '12,011 u', defaultValue: '1,008 u' },
+      { key: 'name', label: 'Element name', placeholder: 'Carbon', defaultValue: 'Sample Element', required: true },
+      { key: 'Symbol', label: 'Chemical symbol', placeholder: 'C', defaultValue: 'X' },
+      { key: 'Atomic number', label: 'Atomic number (Z)', placeholder: '6', defaultValue: '1' },
+      { key: 'Atomic weight', label: 'Atomic weight', placeholder: '12.011 u', defaultValue: '1.008 u' },
     ],
   },
   {
     id: 'info-doenca',
-    name: 'Info/Doença',
+    name: 'Infobox medical condition',
     aliases: ['info/doenca', 'infobox medical condition'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox clínica e médica para condições de saúde e patologias.',
+    language: 'en',
+    description: 'Clinical and medical infobox for health conditions and pathologies.',
     exampleSnippet:
-      '{{Info/Doença|nome=Enxaqueca|Especialidade=Neurologia|Sintomas=Cefaleia pulsátil, fotofobia|CID-11=8A80}}',
+      '{{Infobox medical condition|name=Migraine|Specialty=Neurology|Symptoms=Throbbing headache, photophobia|ICD-11=8A80}}',
     params: [
-      { key: 'nome', label: 'Condição médica', placeholder: 'Nome da condição', defaultValue: 'Condição Exemplo', required: true },
-      { key: 'Especialidade', label: 'Especialidade', placeholder: 'Neurologia', defaultValue: 'Clínica Médica' },
-      { key: 'Sintomas', label: 'Sintomas comuns', placeholder: 'Dor, febre...', defaultValue: 'Variáveis' },
-      { key: 'CID-11', label: 'Código CID', placeholder: '8A80', defaultValue: '—' },
+      { key: 'name', label: 'Medical condition', placeholder: 'Condition name', defaultValue: 'Sample Condition', required: true },
+      { key: 'Specialty', label: 'Specialty', placeholder: 'Neurology', defaultValue: 'Internal Medicine' },
+      { key: 'Symptoms', label: 'Common symptoms', placeholder: 'Pain, fever...', defaultValue: 'Variable' },
+      { key: 'ICD-11', label: 'ICD code', placeholder: '8A80', defaultValue: '—' },
     ],
   },
   {
     id: 'info-conflito',
-    name: 'Info/Conflito',
+    name: 'Infobox military conflict',
     aliases: ['info/conflito', 'info/batalha', 'infobox military conflict'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox historiográfica para guerras, campanhas e batalhas históricas.',
+    language: 'en',
+    description: 'Historiographical infobox for wars, campaigns, and historical battles.',
     exampleSnippet:
-      '{{Info/Conflito|nome=Batalha Histórica Exemplo|Data=1815|Local=Europa Central|Resultado=Tratado de paz|Beligerantes=Força A vs. Força B}}',
+      '{{Infobox military conflict|name=Sample Historical Battle|Date=1815|Location=Central Europe|Result=Peace treaty|Belligerents=Force A vs. Force B}}',
     params: [
-      { key: 'nome', label: 'Nome do conflito', placeholder: 'Batalha de...', defaultValue: 'Conflito Exemplo', required: true },
-      { key: 'Data', label: 'Data / Período', placeholder: '1815', defaultValue: 'Século XIX' },
-      { key: 'Local', label: 'Localização', placeholder: 'Região', defaultValue: 'Região histórica' },
-      { key: 'Resultado', label: 'Resultado', placeholder: 'Acordo de paz', defaultValue: 'Documentado' },
+      { key: 'name', label: 'Conflict name', placeholder: 'Battle of...', defaultValue: 'Sample Conflict', required: true },
+      { key: 'Date', label: 'Date / Period', placeholder: '1815', defaultValue: '19th century' },
+      { key: 'Location', label: 'Location', placeholder: 'Region', defaultValue: 'Historical region' },
+      { key: 'Result', label: 'Result', placeholder: 'Peace treaty', defaultValue: 'Documented' },
     ],
   },
   {
     id: 'info-premio',
-    name: 'Info/Prêmio',
+    name: 'Infobox award',
     aliases: ['info/premio', 'infobox award'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para prêmios científicos, literários, cinematográficos e honrarias.',
+    language: 'en',
+    description: 'Infobox for scientific, literary, film, and civic awards and honors.',
     exampleSnippet:
-      '{{Info/Prêmio|nome=Prêmio Camões|País=Portugal e Brasil|Concedido por=Governos de Portugal e Brasil|Primeira entrega=1989|Categoria=Literatura em língua portuguesa}}',
+      '{{Infobox award|name=Camões Prize|Country=Portugal and Brazil|Presented by=Governments of Portugal and Brazil|First awarded=1989|Category=Portuguese-language literature}}',
     params: [
-      { key: 'nome', label: 'Nome da honraria', placeholder: 'Prêmio Nobel', defaultValue: 'Prêmio Exemplo', required: true },
-      { key: 'País', label: 'País / Âmbito', placeholder: 'Internacional', defaultValue: 'Internacional' },
-      { key: 'Concedido por', label: 'Instituição outorgante', placeholder: 'Academia', defaultValue: 'Comitê' },
-      { key: 'Primeira entrega', label: 'Ano de criação', placeholder: '1989', defaultValue: '2000' },
+      { key: 'name', label: 'Award name', placeholder: 'Nobel Prize', defaultValue: 'Sample Award', required: true },
+      { key: 'Country', label: 'Country / Scope', placeholder: 'International', defaultValue: 'International' },
+      { key: 'Presented by', label: 'Awarding institution', placeholder: 'Academy', defaultValue: 'Committee' },
+      { key: 'First awarded', label: 'Year established', placeholder: '1989', defaultValue: '2000' },
     ],
   },
   {
     id: 'info-jornal',
-    name: 'Info/Jornal',
+    name: 'Infobox newspaper',
     aliases: ['info/jornal', 'info/revista', 'infobox newspaper', 'infobox journal'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para jornais, revistas, portais jornalísticos e periódicos científicos.',
+    language: 'en',
+    description: 'Infobox for newspapers, magazines, news outlets, and scientific journals.',
     exampleSnippet:
-      '{{Info/Jornal|nome=Jornal Ciência Hoje|Tipo=Periódico mensal|Fundação=1982|Idioma=Português|Sede=Rio de Janeiro}}',
+      '{{Infobox newspaper|name=Science Today Journal|Type=Monthly periodical|Founded=1982|Language=English|Headquarters=London}}',
     params: [
-      { key: 'nome', label: 'Nome da publicação', placeholder: 'Jornal / Revista', defaultValue: 'Publicação Exemplo', required: true },
-      { key: 'Tipo', label: 'Periodicidade / Tipo', placeholder: 'Diário / Mensal', defaultValue: 'Periódico' },
-      { key: 'Fundação', label: 'Ano de fundação', placeholder: '1982', defaultValue: '2000' },
-      { key: 'Idioma', label: 'Idioma', placeholder: 'Português', defaultValue: 'Português' },
+      { key: 'name', label: 'Publication name', placeholder: 'Newspaper / Journal', defaultValue: 'Sample Publication', required: true },
+      { key: 'Type', label: 'Frequency / Type', placeholder: 'Daily / Monthly', defaultValue: 'Periodical' },
+      { key: 'Founded', label: 'Year founded', placeholder: '1982', defaultValue: '2000' },
+      { key: 'Language', label: 'Language', placeholder: 'English', defaultValue: 'English' },
     ],
   },
-  // --- Lote 4: Mais Predefinições Populares da Wikipédia (250+ no total) ---
+  // --- Batch 4: Additional Popular Wikipedia Templates (250+ total) ---
   {
     id: 'vandalismo',
-    name: 'Vandalismo',
+    name: 'Uw-vandalism',
     aliases: ['vandalismo', 'uw-vandalism', 'aviso vandalismo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso de discussão ao usuário sobre edições destrutivas ou remoção injustificada de conteúdo.',
-    exampleSnippet: '{{Vandalismo|pagina=start|nivel=1}}',
+      'User talk page warning about destructive edits or unjustified removal of content.',
+    exampleSnippet: '{{Uw-vandalism|page=start|level=1}}',
     params: [
-      { key: 'pagina', label: 'Página afetada (opcional)', placeholder: 'start', defaultValue: '' },
-      { key: 'nivel', label: 'Nível do aviso (1 a 4)', placeholder: '1', defaultValue: '1' },
+      { key: 'page', label: 'Affected page (optional)', placeholder: 'start', defaultValue: '' },
+      { key: 'level', label: 'Warning level (1 to 4)', placeholder: '1', defaultValue: '1' },
     ],
   },
   {
     id: 'teste-edicao',
-    name: 'Teste',
+    name: 'Uw-test',
     aliases: ['teste', 'uw-test', 'edicao de teste'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Mensagem educativa amigável para novos editores que realizaram testes acidentais em artigos.',
-    exampleSnippet: '{{Teste|pagina=start}}',
+      'Friendly educational message for new editors who made accidental test edits in articles.',
+    exampleSnippet: '{{Uw-test|page=start}}',
     params: [
-      { key: 'pagina', label: 'Página testada (opcional)', placeholder: 'start', defaultValue: '' },
+      { key: 'page', label: 'Tested page (optional)', placeholder: 'start', defaultValue: '' },
     ],
   },
   {
     id: 'aviso-spam',
-    name: 'Aviso spam',
+    name: 'Uw-spam',
     aliases: ['aviso spam', 'uw-spam', 'links promocionais'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso em página de discussão contra inserção recorrente de propaganda ou links externos promocionais.',
-    exampleSnippet: '{{Aviso spam|pagina=start}}',
+      'Talk page warning against repeated insertion of promotional copy or spam external links.',
+    exampleSnippet: '{{Uw-spam|page=start}}',
     params: [
-      { key: 'pagina', label: 'Página afetada (opcional)', placeholder: 'start', defaultValue: '' },
+      { key: 'page', label: 'Affected page (optional)', placeholder: 'start', defaultValue: '' },
     ],
   },
   {
     id: 'remocao-conteudo',
-    name: 'Remoção de conteúdo',
+    name: 'Uw-delete',
     aliases: ['remocao de conteudo', 'uw-delete', 'apagamento indevido'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso educativo quando um editor remove parágrafos referenciados sem apresentar justificativa no resumo.',
-    exampleSnippet: '{{Remoção de conteúdo|pagina=start}}',
+      'Educational notice when an editor removes sourced paragraphs without providing an edit summary reason.',
+    exampleSnippet: '{{Uw-delete|page=start}}',
     params: [
-      { key: 'pagina', label: 'Página afetada (opcional)', placeholder: 'start', defaultValue: '' },
+      { key: 'page', label: 'Affected page (optional)', placeholder: 'start', defaultValue: '' },
     ],
   },
   {
     id: 'sem-consenso',
-    name: 'Sem consenso',
+    name: 'No consensus',
     aliases: ['sem consenso', 'discutido', 'debate em curso'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sinaliza que alterações recentes no verbete aguardam consenso editorial na página de discussão.',
-    exampleSnippet: '{{Sem consenso|motivo=Discutir a estrutura da secção antes de novas reversões.}}',
+      'Signals that recent changes to the entry are awaiting editorial consensus on the talk page.',
+    exampleSnippet: '{{No consensus|reason=Discuss section structure before making further reverts.}}',
     params: [
-      { key: 'motivo', label: 'Resumo do debate', placeholder: 'Motivo da disputa...', defaultValue: 'Modificações controversas devem ser alinhadas previamente na página de discussão.' },
+      { key: 'reason', label: 'Discussion summary', placeholder: 'Dispute reason...', defaultValue: 'Controversial changes should be aligned on the talk page first.' },
     ],
   },
   {
     id: 'fusao-historico',
-    name: 'Fusão de histórico',
+    name: 'History merge',
     aliases: ['fusao de historico', 'history merge', 'histmerge'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Solicita à administração a união técnica do histórico de revisões de duas páginas duplicadas.',
-    exampleSnippet: '{{Fusão de histórico|alvo=start|motivo=Artigo recriado por copiar-e-colar.}}',
+      'Requests administrators to technically merge the revision histories of two duplicate pages.',
+    exampleSnippet: '{{History merge|target=start|reason=Article recreated via copy-and-paste.}}',
     params: [
-      { key: 'alvo', label: 'Slug de destino', placeholder: 'start', defaultValue: 'start' },
-      { key: 'motivo', label: 'Motivo', placeholder: 'Histórico dividido...', defaultValue: 'Unificar histórico de edições para preservar atribuição de autoria.' },
+      { key: 'target', label: 'Target slug', placeholder: 'start', defaultValue: 'start' },
+      { key: 'reason', label: 'Reason', placeholder: 'Split history...', defaultValue: 'Unify edit history to preserve author attribution.' },
     ],
   },
   {
     id: 'transferir-wikcionario',
-    name: 'Wikcionário',
+    name: 'Transwiki Wiktionary',
     aliases: ['wikcionario', 'transwiki', 'dicionario'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca verbetes puramente lexicais ou definições breves mais adequadas a um dicionário.',
-    exampleSnippet: '{{Wikcionário|motivo=Conteúdo restrito à definição etimológica do termo.}}',
+      'Flags purely lexical entries or brief definitions better suited for a dictionary.',
+    exampleSnippet: '{{Transwiki Wiktionary|reason=Content limited to etymological definition of the term.}}',
     params: [
-      { key: 'motivo', label: 'Observação', placeholder: 'Definição lexical...', defaultValue: 'Verbete com caráter estritamente dicionarístico.' },
+      { key: 'reason', label: 'Note', placeholder: 'Lexical definition...', defaultValue: 'Entry has strictly dictionary-like scope.' },
     ],
   },
   {
     id: 'transferir-wikisource',
-    name: 'Wikisource',
+    name: 'Transwiki Wikisource',
     aliases: ['wikisource', 'texto integral', 'documento fonte'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Alerta que a página reproduz texto integral de documento histórico ou obra literária de domínio público.',
-    exampleSnippet: '{{Wikisource|obra=Carta Histórica de 1888}}',
+      'Alerts that the page reproduces the full text of a historical document or public-domain literary work.',
+    exampleSnippet: '{{Transwiki Wikisource|work=Historical Charter of 1888}}',
     params: [
-      { key: 'obra', label: 'Título do documento', placeholder: 'Documento original', defaultValue: 'Documento fonte' },
+      { key: 'work', label: 'Document title', placeholder: 'Original document', defaultValue: 'Source document' },
     ],
   },
   {
     id: 'transferir-wikinoticias',
-    name: 'Wikinotícias',
+    name: 'Transwiki Wikinews',
     aliases: ['wikinoticias', 'estilo jornalistico', 'noticiario'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que o texto está escrito em formato de reportagem noticiosa pontual em vez de síntese enciclopédica.',
-    exampleSnippet: '{{Wikinotícias|motivo=Reescrever em perspectiva histórica e impessoal.}}',
+      'Indicates that the text is written like a breaking news report rather than an encyclopedic synthesis.',
+    exampleSnippet: '{{Transwiki Wikinews|reason=Rewrite from a historical and impersonal perspective.}}',
     params: [
-      { key: 'motivo', label: 'Ajuste necessário', placeholder: 'Adotar estilo enciclopédico...', defaultValue: 'O texto adota tom jornalístico efêmero em vez de estilo enciclopédico.' },
+      { key: 'reason', label: 'Required edit', placeholder: 'Adopt encyclopedic style...', defaultValue: 'The text uses ephemeral journalistic tone instead of encyclopedic style.' },
     ],
   },
   {
     id: 'nao-enciclopedico',
-    name: 'Não enciclopédico',
+    name: 'Unencyclopedic',
     aliases: ['nao enciclopedico', 'unencyclopedic', 'fora do escopo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Sinaliza material fora do escopo enciclopédico (panfletos, manifestos pessoais, guias comerciais).',
-    exampleSnippet: '{{Não enciclopédico|motivo=Estrutura em forma de manifesto promocional sem fontes.}}',
+      'Flags material outside encyclopedic scope (pamphlets, personal manifestos, commercial brochures).',
+    exampleSnippet: '{{Unencyclopedic|reason=Structured like a promotional manifesto without sources.}}',
     params: [
-      { key: 'motivo', label: 'Motivo', placeholder: 'Fora do escopo...', defaultValue: 'O conteúdo não segue o propósito informativo de uma enciclopédia.' },
+      { key: 'reason', label: 'Reason', placeholder: 'Out of scope...', defaultValue: 'Content does not match the informative purpose of an encyclopedia.' },
     ],
   },
   {
     id: 'variante-linguistica',
-    name: 'Variante linguística',
+    name: 'Language variety',
     aliases: ['variante linguistica', 'pt br', 'pt pt', 'ortografia'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica a variante do português (brasileiro ou europeu) adotada originalmente no artigo para preservar consistência.',
-    exampleSnippet: '{{Variante linguística|variante=Português brasileiro}}',
+      'Indicates the regional spelling variety originally adopted in the article to maintain consistency.',
+    exampleSnippet: '{{Language variety|variety=American English}}',
     params: [
-      { key: 'variante', label: 'Variante adotada', placeholder: 'Português brasileiro', defaultValue: 'Português brasileiro' },
+      { key: 'variety', label: 'Adopted variety', placeholder: 'American English', defaultValue: 'English' },
     ],
   },
   {
     id: 'linguagem-tecnica',
-    name: 'Linguagem técnica',
+    name: 'Technical',
     aliases: ['linguagem tecnica', 'technical', 'jargao'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Avisa que o artigo usa jargão excessivamente especializado, pedindo uma introdução acessível a leitores leigos.',
-    exampleSnippet: '{{Linguagem técnica|area=Matemática Pura|motivo=Adicionar explicação intuitiva na introdução.}}',
+      'Warns that the article uses overly specialized jargon, asking for an accessible introduction for general readers.',
+    exampleSnippet: '{{Technical|area=Pure Mathematics|reason=Add an intuitive explanation in the introduction.}}',
     params: [
-      { key: 'area', label: 'Área', placeholder: 'Ciência / Direito...', defaultValue: 'área especializada' },
-      { key: 'motivo', label: 'Sugestão', placeholder: 'Simplificar introdução...', defaultValue: 'Acrescentar introdução acessível antes das definições formais.' },
+      { key: 'area', label: 'Subject area', placeholder: 'Science / Law...', defaultValue: 'specialized field' },
+      { key: 'reason', label: 'Suggestion', placeholder: 'Simplify introduction...', defaultValue: 'Add an accessible overview before formal technical definitions.' },
     ],
   },
   {
     id: 'secao-longa',
-    name: 'Secção longa',
+    name: 'Overly detailed',
     aliases: ['secao longa', 'seccao longa', 'overly detailed', 'detalhamento excessivo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Indica que uma secção ficou excessivamente extensa ou minuciosa e pode ser resumida.',
-    exampleSnippet: '{{Secção longa|secao=Cronologia|motivo=Condensar eventos secundários mantendo o essencial.}}',
+      'Indicates that a section has become overly long or granular and can be summarized.',
+    exampleSnippet: '{{Overly detailed|section=Timeline|reason=Condense minor events while keeping essential facts.}}',
     params: [
-      { key: 'secao', label: 'Nome da secção', placeholder: 'Histórico', defaultValue: 'Esta secção' },
-      { key: 'motivo', label: 'Motivo', placeholder: 'Resumir detalhes...', defaultValue: 'Resumir pormenores excessivos em favor da síntese enciclopédica.' },
+      { key: 'section', label: 'Section name', placeholder: 'History', defaultValue: 'This section' },
+      { key: 'reason', label: 'Reason', placeholder: 'Summarize details...', defaultValue: 'Trim excessive minutiae in favor of encyclopedic conciseness.' },
     ],
   },
   {
     id: 'atualizar-apos',
-    name: 'Atualizar após',
+    name: 'Update after',
     aliases: ['atualizar apos', 'update after', 'prazo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Marca afirmação com prazo conhecido para revisão após determinada data ou conclusão de mandato.',
-    exampleSnippet: '{{Atualizar após|2027|Conferir resultado após a eleição ou término do projeto.}}',
+      'Marks a statement with a scheduled review date after an upcoming milestone or term end.',
+    exampleSnippet: '{{Update after|2027|Check outcome after the election or project completion.}}',
     params: [
-      { key: '1', label: 'Ano / Data limite', placeholder: '2027', defaultValue: '2027', required: true },
-      { key: '2', label: 'O que verificar', placeholder: 'Confirmar conclusão...', defaultValue: 'Revisar dados após o marco temporal indicado.' },
+      { key: '1', label: 'Target year / date', placeholder: '2027', defaultValue: '2027', required: true },
+      { key: '2', label: 'What to check', placeholder: 'Confirm completion...', defaultValue: 'Review figures after the indicated milestone date.' },
     ],
   },
   {
     id: 'morte-recente',
-    name: 'Morte recente',
+    name: 'Recent death',
     aliases: ['morte recente', 'recent death', 'falecimento recente'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Aviso editorial clássico para biografias de personalidades falecidas recentemente.',
-    exampleSnippet: '{{Morte recente|nome=Personalidade Exemplo}}',
+      'Classic Wikipedia editorial notice for biographies of individuals who died recently.',
+    exampleSnippet: '{{Recent death|name=Sample Figure}}',
     params: [
-      { key: 'nome', label: 'Nome (opcional)', placeholder: 'Nome da pessoa', defaultValue: '' },
+      { key: 'name', label: 'Name (optional)', placeholder: 'Person name', defaultValue: '' },
     ],
   },
   {
     id: 'homonimos',
-    name: 'Homônimos',
+    name: 'Surname',
     aliases: ['homonimos', 'surname', 'given name', 'lista de nomes'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Identifica páginas de índice onomástico que listam pessoas ou lugares com o mesmo sobrenome/prenome.',
-    exampleSnippet: '{{Homônimos|Silva}}',
+      'Identifies name index pages listing people or places that share the same surname or given name.',
+    exampleSnippet: '{{Surname|Silva}}',
     params: [
-      { key: '1', label: 'Nome ou termo compartilhado', placeholder: 'Silva', defaultValue: 'este nome' },
+      { key: '1', label: 'Shared name or term', placeholder: 'Silva', defaultValue: 'this name' },
     ],
   },
   {
     id: 'esboco-bio',
-    name: 'Esboço-bio',
+    name: 'Bio-stub',
     aliases: ['esboco-bio', 'bio-stub', 'esboco biografia'],
     category: 'notices',
-    language: 'pt',
-    description: 'Marca biografia curta como esboço temático biográfico.',
-    exampleSnippet: '{{Esboço-bio|Cientistas e pesquisadores}}',
-    params: [{ key: '1', label: 'Área biográfica', placeholder: 'Biografias', defaultValue: 'Biografias' }],
+    language: 'en',
+    description: 'Marks a short biographical entry as a biographical stub.',
+    exampleSnippet: '{{Bio-stub|Scientists and researchers}}',
+    params: [{ key: '1', label: 'Biographical field', placeholder: 'Biographies', defaultValue: 'Biographies' }],
   },
   {
     id: 'esboco-geo',
-    name: 'Esboço-geo',
+    name: 'Geo-stub',
     aliases: ['esboco-geo', 'geo-stub', 'esboco geografia'],
     category: 'notices',
-    language: 'pt',
-    description: 'Marca artigo curto sobre cidades, rios ou localidades como esboço geográfico.',
-    exampleSnippet: '{{Esboço-geo|Municípios e Geografia}}',
-    params: [{ key: '1', label: 'Região ou tema', placeholder: 'Geografia', defaultValue: 'Geografia' }],
+    language: 'en',
+    description: 'Marks a short article about cities, rivers, or places as a geographic stub.',
+    exampleSnippet: '{{Geo-stub|Cities and Geography}}',
+    params: [{ key: '1', label: 'Region or topic', placeholder: 'Geography', defaultValue: 'Geography' }],
   },
   {
     id: 'esboco-ciencia',
-    name: 'Esboço-ciência',
+    name: 'Science-stub',
     aliases: ['esboco-ciencia', 'science-stub', 'esboco tecnologia'],
     category: 'notices',
-    language: 'pt',
-    description: 'Marca artigo científico ou tecnológico breve como esboço de ciência.',
-    exampleSnippet: '{{Esboço-ciência|Física e Computação}}',
-    params: [{ key: '1', label: 'Disciplina', placeholder: 'Ciência e Tecnologia', defaultValue: 'Ciência e Tecnologia' }],
+    language: 'en',
+    description: 'Marks a brief scientific or technical entry as a science stub.',
+    exampleSnippet: '{{Science-stub|Physics and Computing}}',
+    params: [{ key: '1', label: 'Discipline', placeholder: 'Science and Technology', defaultValue: 'Science and Technology' }],
   },
   {
     id: 'esboco-jogos',
-    name: 'Esboço-jogos',
+    name: 'Vg-stub',
     aliases: ['esboco-jogos', 'vg-stub', 'esboco videogame'],
     category: 'notices',
-    language: 'pt',
-    description: 'Marca verbete curto sobre jogos eletrônicos ou mecânicas como esboço temático.',
-    exampleSnippet: '{{Esboço-jogos|Jogos Eletrônicos}}',
-    params: [{ key: '1', label: 'Franquia ou gênero', placeholder: 'Jogos Eletrônicos', defaultValue: 'Jogos Eletrônicos' }],
+    language: 'en',
+    description: 'Marks a short article about video games or game mechanics as a topic stub.',
+    exampleSnippet: '{{Vg-stub|Video Games}}',
+    params: [{ key: '1', label: 'Franchise or genre', placeholder: 'Video Games', defaultValue: 'Video Games' }],
   },
   {
     id: 'wikiprojeto',
-    name: 'WikiProjeto',
+    name: 'WikiProject',
     aliases: ['wikiprojeto', 'wikiproject', 'projeto editorial'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Banner de página de discussão vinculando o verbete a um WikiProjeto com avaliação de qualidade e importância.',
-    exampleSnippet: '{{WikiProjeto|projeto=Tecnologia e Software|qualidade=4|importancia=Alta}}',
+      'Talk page banner linking the entry to a WikiProject with quality and importance ratings.',
+    exampleSnippet: '{{WikiProject|project=Technology and Software|quality=4|importance=High}}',
     params: [
-      { key: 'projeto', label: 'Nome do WikiProjeto', placeholder: 'Tecnologia', defaultValue: 'WikiMaker Editorial', required: true },
-      { key: 'qualidade', label: 'Nível de qualidade (1-6)', placeholder: '3', defaultValue: '3' },
-      { key: 'importancia', label: 'Importância (Baixa, Média, Alta)', placeholder: 'Alta', defaultValue: 'Média' },
+      { key: 'project', label: 'WikiProject name', placeholder: 'Technology', defaultValue: 'WikiMaker Editorial', required: true },
+      { key: 'quality', label: 'Quality level (1-6)', placeholder: '3', defaultValue: '3' },
+      { key: 'importance', label: 'Importance (Low, Mid, High)', placeholder: 'High', defaultValue: 'Mid' },
     ],
   },
   {
     id: 'arquivo-bot',
-    name: 'Arquivo automático',
+    name: 'Auto-archive',
     aliases: ['arquivo automatico', 'autoarchive', 'configuracao arquivo'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Informa em páginas de discussão movimentadas que tópicos inativos são arquivados periodicamente.',
-    exampleSnippet: '{{Arquivo automático|dias=90}}',
-    params: [{ key: 'dias', label: 'Prazo em dias', placeholder: '90', defaultValue: '90' }],
+      'Informs active talk pages that inactive discussion threads are periodically archived.',
+    exampleSnippet: '{{Auto-archive|days=90}}',
+    params: [{ key: 'days', label: 'Threshold in days', placeholder: '90', defaultValue: '90' }],
   },
   {
     id: 'em-votacao',
-    name: 'Em votação',
+    name: 'RfC',
     aliases: ['em votacao', 'rfc', 'consulta publica'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Convida toda a comunidade a opinar em uma consulta pública (RfC) ou votação aberta.',
-    exampleSnippet: '{{Em votação|tema=Padronização de infoboxes temáticas|prazo=30 de novembro de 2026}}',
+      'Invites the community to weigh in on a Request for Comment (RfC) or open consultation.',
+    exampleSnippet: '{{RfC|topic=Standardization of topic infoboxes|deadline=November 30, 2026}}',
     params: [
-      { key: 'tema', label: 'Tema em consulta', placeholder: 'Proposta editorial...', defaultValue: 'Proposta editorial aberta à comunidade', required: true },
-      { key: 'prazo', label: 'Prazo final', placeholder: '30 de novembro de 2026', defaultValue: 'Em aberto' },
+      { key: 'topic', label: 'Topic under consultation', placeholder: 'Editorial proposal...', defaultValue: 'Open editorial proposal for community comment', required: true },
+      { key: 'deadline', label: 'Deadline', placeholder: 'November 30, 2026', defaultValue: 'Open' },
     ],
   },
   {
     id: 'pagina-usuario',
-    name: 'Página de usuário',
+    name: 'Userpage',
     aliases: ['pagina de usuario', 'userpage', 'perfil colaborador'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Banner padrão declarando que a página pertence a um colaborador individual e não é um verbete enciclopédico.',
-    exampleSnippet: '{{Página de usuário|usuario=Editor Exemplo}}',
-    params: [{ key: 'usuario', label: 'Nome do usuário', placeholder: 'Colaborador', defaultValue: 'Colaborador' }],
+      'Standard banner declaring that the page belongs to an individual contributor and is not an encyclopedia article.',
+    exampleSnippet: '{{Userpage|user=Sample Editor}}',
+    params: [{ key: 'user', label: 'Username', placeholder: 'Collaborator', defaultValue: 'Collaborator' }],
   },
   {
     id: 'pagina-testes',
-    name: 'Página de testes',
+    name: 'User sandbox',
     aliases: ['pagina de testes', 'sandbox', 'rascunho'],
     category: 'notices',
-    language: 'pt',
+    language: 'en',
     description:
-      'Banner identificando área pessoal de rascunho e experimentação de sintaxe wiki (`{{User sandbox}}`).',
-    exampleSnippet: '{{Página de testes|autor=Editor Exemplo}}',
-    params: [{ key: 'autor', label: 'Colaborador (opcional)', placeholder: 'Editor', defaultValue: '' }],
+      'Banner identifying a personal draft area for experimenting with wiki syntax (`{{User sandbox}}`).',
+    exampleSnippet: '{{User sandbox|author=Sample Editor}}',
+    params: [{ key: 'author', label: 'Contributor (optional)', placeholder: 'Editor', defaultValue: '' }],
   },
-  // --- Navegação, Hatnotes, Citações, Cronologia, Matemática e Utilitários ---
+  // --- Navigation, Hatnotes, Citations, Timelines, Math & Utilities ---
   {
     id: 'hatnote',
     name: 'Hatnote',
     aliases: ['hatnote', 'nota topo'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Nota de topo livre em destaque para orientar a navegação do leitor antes do texto.',
-    exampleSnippet: '{{Hatnote|Este artigo trata da arquitetura clássica; para o estilo moderno, veja [[start]].}}',
-    params: [{ key: '1', label: 'Texto da nota', placeholder: 'Orientação...', defaultValue: 'Nota de navegação no topo do artigo.', required: true }],
+    language: 'en',
+    description: 'Freeform top hatnote guiding reader navigation before the main article text.',
+    exampleSnippet: '{{Hatnote|This article covers the classic architecture; for the modern style, see [[start]].}}',
+    params: [{ key: '1', label: 'Note text', placeholder: 'Guidance...', defaultValue: 'Top navigation hatnote.', required: true }],
   },
   {
     id: 'distinguir',
-    name: 'Distinguir',
+    name: 'Distinguish2',
     aliases: ['distinguir', 'distinguish2'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Nota de topo personalizada para distinguir dois termos semelhantes com explicação livre.',
-    exampleSnippet: '{{Distinguir|Não confundir com [[markdown-guide|Guia de Markdown]], que trata da sintaxe de edição.}}',
-    params: [{ key: '1', label: 'Mensagem de distinção', placeholder: 'Não confundir com...', defaultValue: 'Não confundir com [[start|Página Inicial]].', required: true }],
+    language: 'en',
+    description: 'Custom top hatnote to distinguish two similar terms with a freeform explanation.',
+    exampleSnippet: '{{Distinguish2|Not to be confused with [[markdown-guide|Markdown Guide]], which covers editing syntax.}}',
+    params: [{ key: '1', label: 'Distinction message', placeholder: 'Not to be confused with...', defaultValue: 'Not to be confused with [[start|Home Page]].', required: true }],
   },
   {
     id: 'ver-categoria',
-    name: 'Ver categoria',
+    name: 'See category',
     aliases: ['ver categoria', 'see category', 'categoria'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Aponta diretamente para uma categoria temática relacionada à secção.',
-    exampleSnippet: '{{Ver categoria|Tecnologia}}',
-    params: [{ key: '1', label: 'Nome da categoria', placeholder: 'Tecnologia', defaultValue: 'Geral', required: true }],
+    language: 'en',
+    description: 'Points directly to a thematic category related to the current section.',
+    exampleSnippet: '{{See category|Technology}}',
+    params: [{ key: '1', label: 'Category name', placeholder: 'Technology', defaultValue: 'General', required: true }],
   },
   {
     id: 'tracklist',
     name: 'Tracklist',
     aliases: ['tracklist', 'lista de faixas', 'faixas'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata lista de faixas musicais de um álbum ou trilha sonora com título e duração.',
-    exampleSnippet: '{{Tracklist|titulo=Lado A|faixa1=Abertura (3:12)|faixa2=Horizonte (4:05)|faixa3=Epílogo (5:18)}}',
+    language: 'en',
+    description: 'Formats a music album or soundtrack tracklist with track names and durations.',
+    exampleSnippet: '{{Tracklist|title=Side A|track1=Overture (3:12)|track2=Horizon (4:05)|track3=Epilogue (5:18)}}',
     params: [
-      { key: 'titulo', label: 'Título do disco/lado', placeholder: 'Faixas', defaultValue: 'Lista de faixas' },
-      { key: 'faixa1', label: 'Faixa 1', placeholder: 'Nome (3:10)', defaultValue: 'Faixa 1 (3:20)' },
-      { key: 'faixa2', label: 'Faixa 2', placeholder: 'Nome (4:00)', defaultValue: 'Faixa 2 (4:05)' },
-      { key: 'faixa3', label: 'Faixa 3', placeholder: 'Nome (4:30)', defaultValue: 'Faixa 3 (3:50)' },
+      { key: 'title', label: 'Disc/side title', placeholder: 'Tracks', defaultValue: 'Track listing' },
+      { key: 'track1', label: 'Track 1', placeholder: 'Title (3:10)', defaultValue: 'Track 1 (3:20)' },
+      { key: 'track2', label: 'Track 2', placeholder: 'Title (4:00)', defaultValue: 'Track 2 (4:05)' },
+      { key: 'track3', label: 'Track 3', placeholder: 'Title (4:30)', defaultValue: 'Track 3 (3:50)' },
     ],
   },
   {
     id: 'cronologia',
-    name: 'Cronologia',
+    name: 'Timeline',
     aliases: ['cronologia', 'timeline', 'linha do tempo'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Caixa de sucessão cronológica exibindo item anterior, atual e próximo em séries ou edições.',
-    exampleSnippet: '{{Cronologia|tema=Copas do Mundo|anterior=2022|atual=2026|proximo=2030}}',
+    language: 'en',
+    description: 'Chronological succession strip displaying previous, current, and next items in a series or edition.',
+    exampleSnippet: '{{Timeline|theme=World Cups|prev=2022|current=2026|next=2030}}',
     params: [
-      { key: 'tema', label: 'Série ou tema', placeholder: 'Edições', defaultValue: 'Cronologia' },
-      { key: 'anterior', label: 'Anterior', placeholder: '2022', defaultValue: 'Anterior' },
-      { key: 'atual', label: 'Atual', placeholder: '2026', defaultValue: 'Atual', required: true },
-      { key: 'proximo', label: 'Próximo', placeholder: '2030', defaultValue: 'Próximo' },
+      { key: 'theme', label: 'Series or theme', placeholder: 'Editions', defaultValue: 'Timeline' },
+      { key: 'prev', label: 'Previous', placeholder: '2022', defaultValue: 'Previous' },
+      { key: 'current', label: 'Current', placeholder: '2026', defaultValue: 'Current', required: true },
+      { key: 'next', label: 'Next', placeholder: '2030', defaultValue: 'Next' },
     ],
   },
   {
     id: 'caixa-sucessao',
-    name: 'Sucessão',
+    name: 'Succession box',
     aliases: ['sucessao', 'succession box', 'antecessor'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Caixa clássica da Wikipédia para cargos, mandatos e títulos indicando antecessor e sucessor.',
-    exampleSnippet: '{{Sucessão|cargo=Direção Editorial|periodo=2022–2026|antecessor=Ana Silva|sucessor=Carlos Mendes}}',
+    language: 'en',
+    description: 'Classic Wikipedia succession box for offices, mandates, and titles showing predecessor and successor.',
+    exampleSnippet: '{{Succession box|role=Editorial Director|period=2022–2026|predecessor=Ana Silva|successor=Carlos Mendes}}',
     params: [
-      { key: 'cargo', label: 'Cargo ou título', placeholder: 'Cargo ocupado', defaultValue: 'Cargo', required: true },
-      { key: 'periodo', label: 'Período', placeholder: '2022–2026', defaultValue: '2022–2026' },
-      { key: 'antecessor', label: 'Antecessor(a)', placeholder: 'Nome anterior', defaultValue: '—' },
-      { key: 'sucessor', label: 'Sucessor(a)', placeholder: 'Próximo nome', defaultValue: '—' },
+      { key: 'role', label: 'Office or title', placeholder: 'Office held', defaultValue: 'Office', required: true },
+      { key: 'period', label: 'Period', placeholder: '2022–2026', defaultValue: '2022–2026' },
+      { key: 'predecessor', label: 'Predecessor', placeholder: 'Previous holder', defaultValue: '—' },
+      { key: 'successor', label: 'Successor', placeholder: 'Next holder', defaultValue: '—' },
     ],
   },
   {
@@ -4422,177 +4422,177 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Commons',
     aliases: ['commons', 'wikimedia commons', 'galeria'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Caixa de ligação para galeria ou acervo multimídia relacionado ao tema.',
-    exampleSnippet: '{{Commons|Arquitetura Moderna}}',
-    params: [{ key: '1', label: 'Categoria no acervo', placeholder: 'Tema', defaultValue: 'Acervo Multimídia', required: true }],
+    language: 'en',
+    description: 'Link box pointing to a related media gallery or multimedia archive.',
+    exampleSnippet: '{{Commons|Modern Architecture}}',
+    params: [{ key: '1', label: 'Archive category', placeholder: 'Topic', defaultValue: 'Media Archive', required: true }],
   },
   {
     id: 'link-wikcionario',
-    name: 'Link Wikcionário',
+    name: 'Wiktionary',
     aliases: ['link wikcionario', 'wiktionary', 'definicao'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Caixa lateral com ligação para consulta lexical e etimológica no Wikcionário.',
-    exampleSnippet: '{{Link Wikcionário|enciclopédia}}',
-    params: [{ key: '1', label: 'Verbete lexical', placeholder: 'palavra', defaultValue: 'termo', required: true }],
+    language: 'en',
+    description: 'Sidebar link box pointing to lexical and etymological lookup on Wiktionary.',
+    exampleSnippet: '{{Wiktionary|encyclopedia}}',
+    params: [{ key: '1', label: 'Lexical entry', placeholder: 'word', defaultValue: 'term', required: true }],
   },
   {
     id: 'link-wikiquote',
-    name: 'Link Wikiquote',
-    aliases: ['link wikiquote', 'citacoes relacionadas'],
+    name: 'Wikiquote',
+    aliases: ['link wikiquote', 'citacoes relacionadas', 'wikiquote'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Caixa lateral apontando para coletânea de frases e citações atribuídas ao autor ou tema.',
-    exampleSnippet: '{{Link Wikiquote|Machado de Assis}}',
-    params: [{ key: '1', label: 'Autor ou tema', placeholder: 'Nome', defaultValue: 'Autor', required: true }],
+    language: 'en',
+    description: 'Sidebar link box pointing to collected quotations attributed to an author or topic.',
+    exampleSnippet: '{{Wikiquote|Machado de Assis}}',
+    params: [{ key: '1', label: 'Author or topic', placeholder: 'Name', defaultValue: 'Author', required: true }],
   },
   {
     id: 'citar-podcast',
-    name: 'Citar podcast',
+    name: 'Cite podcast',
     aliases: ['citar podcast', 'cite podcast', 'podcast'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência bibliográfica de episódios de podcast em `<ref>`.',
-    exampleSnippet: '{{Citar podcast|título=Computação em Rede|programa=Podcast Ciência Aberta|apresentador=Lopes, R.|ano=2025}}',
+    language: 'en',
+    description: 'Formats bibliographic citations for podcast episodes inside `<ref>`.',
+    exampleSnippet: '{{Cite podcast|title=Networked Computing|program=Open Science Podcast|host=Lopes, R.|year=2025}}',
     params: [
-      { key: 'título', label: 'Título do episódio', placeholder: 'Episódio...', defaultValue: 'Episódio de Podcast', required: true },
-      { key: 'programa', label: 'Nome do podcast', placeholder: 'Podcast...', defaultValue: 'Podcast' },
-      { key: 'apresentador', label: 'Apresentador / Convidado', placeholder: 'Nome', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '2025', defaultValue: '2025' },
+      { key: 'title', label: 'Episode title', placeholder: 'Episode...', defaultValue: 'Podcast Episode', required: true },
+      { key: 'program', label: 'Podcast name', placeholder: 'Podcast...', defaultValue: 'Podcast' },
+      { key: 'host', label: 'Host / Guest', placeholder: 'Name', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '2025', defaultValue: '2025' },
     ],
   },
   {
     id: 'citar-entrevista',
-    name: 'Citar entrevista',
+    name: 'Cite interview',
     aliases: ['citar entrevista', 'cite interview', 'entrevista'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata citação de entrevista concedida por personalidade ou especialista em `<ref>`.',
-    exampleSnippet: '{{Citar entrevista|entrevistado=Dra. Helena Souza|entrevistador=Revista Pesquisa|titulo=O futuro dos dados abertos|ano=2025}}',
+    language: 'en',
+    description: 'Formats citations for interviews given by public figures or specialists inside `<ref>`.',
+    exampleSnippet: '{{Cite interview|interviewee=Dr. Helena Souza|interviewer=Research Review|title=The future of open data|year=2025}}',
     params: [
-      { key: 'entrevistado', label: 'Pessoa entrevistada', placeholder: 'Nome', defaultValue: 'Entrevistado', required: true },
-      { key: 'entrevistador', label: 'Entrevistador / Veículo', placeholder: 'Veículo', defaultValue: '' },
-      { key: 'titulo', label: 'Título da entrevista', placeholder: 'Título', defaultValue: 'Entrevista' },
-      { key: 'ano', label: 'Ano', placeholder: '2025', defaultValue: '2025' },
+      { key: 'interviewee', label: 'Interviewee', placeholder: 'Name', defaultValue: 'Interviewee', required: true },
+      { key: 'interviewer', label: 'Interviewer / Outlet', placeholder: 'Outlet', defaultValue: '' },
+      { key: 'title', label: 'Interview title', placeholder: 'Title', defaultValue: 'Interview' },
+      { key: 'year', label: 'Year', placeholder: '2025', defaultValue: '2025' },
     ],
   },
   {
     id: 'citar-discurso',
-    name: 'Citar discurso',
+    name: 'Cite speech',
     aliases: ['citar discurso', 'cite speech', 'discurso'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência para pronunciamentos públicos, aulas magnas e palestras em `<ref>`.',
-    exampleSnippet: '{{Citar discurso|autor=R. Oliveira|titulo=Abertura do Fórum Digital|evento=Fórum Internacional|ano=2024}}',
+    language: 'en',
+    description: 'Formats references for public addresses, keynote lectures, and speeches inside `<ref>`.',
+    exampleSnippet: '{{Cite speech|author=R. Oliveira|title=Opening of the Digital Forum|event=International Forum|year=2024}}',
     params: [
-      { key: 'autor', label: 'Orador', placeholder: 'Nome', defaultValue: 'Orador', required: true },
-      { key: 'titulo', label: 'Título do discurso', placeholder: 'Pronunciamento...', defaultValue: 'Discurso' },
-      { key: 'evento', label: 'Evento / Local', placeholder: 'Conferência', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '2024', defaultValue: '2024' },
+      { key: 'author', label: 'Speaker', placeholder: 'Name', defaultValue: 'Speaker', required: true },
+      { key: 'title', label: 'Speech title', placeholder: 'Address...', defaultValue: 'Speech' },
+      { key: 'event', label: 'Event / Venue', placeholder: 'Conference', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '2024', defaultValue: '2024' },
     ],
   },
   {
     id: 'citar-tweet',
-    name: 'Citar tweet',
+    name: 'Cite tweet',
     aliases: ['citar tweet', 'citar post', 'cite tweet', 'rede social'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência de comunicado oficial publicado em redes sociais verificadas em `<ref>`.',
-    exampleSnippet: '{{Citar tweet|usuario=@exemplo_oficial|texto=Confirmamos a abertura do acervo público.|data=2026-10-12}}',
+    language: 'en',
+    description: 'Formats references for official announcements posted on verified social media accounts inside `<ref>`.',
+    exampleSnippet: '{{Cite tweet|user=@official_example|text=We confirm the opening of the public archive.|date=2026-10-12}}',
     params: [
-      { key: 'usuario', label: 'Perfil (@usuario)', placeholder: '@conta', defaultValue: '@conta', required: true },
-      { key: 'texto', label: 'Resumo ou trecho', placeholder: 'Publicação oficial...', defaultValue: 'Publicação oficial', required: true },
-      { key: 'data', label: 'Data', placeholder: '2026-10-12', defaultValue: '2026' },
+      { key: 'user', label: 'Handle (@user)', placeholder: '@account', defaultValue: '@account', required: true },
+      { key: 'text', label: 'Summary or excerpt', placeholder: 'Official post...', defaultValue: 'Official post', required: true },
+      { key: 'date', label: 'Date', placeholder: '2026-10-12', defaultValue: '2026' },
     ],
   },
   {
     id: 'citar-arquivo',
-    name: 'Citar arquivo',
+    name: 'Cite archive',
     aliases: ['citar arquivo', 'cite archive', 'arquivo historico'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência de documentos históricos, códices e fundos arquivísticos em `<ref>`.',
-    exampleSnippet: '{{Citar arquivo|documento=Ata Fundacional nº 04|acervo=Arquivo Nacional|fundo=Fundo República|ano=1932}}',
+    language: 'en',
+    description: 'Formats references for historical records, manuscripts, and archival collections inside `<ref>`.',
+    exampleSnippet: '{{Cite archive|document=Founding Minutes No. 04|archive=National Archives|collection=Republic Fund|year=1932}}',
     params: [
-      { key: 'documento', label: 'Nome do documento', placeholder: 'Manuscrito / Ata', defaultValue: 'Documento de Arquivo', required: true },
-      { key: 'acervo', label: 'Instituição / Arquivo', placeholder: 'Arquivo Nacional', defaultValue: 'Arquivo Público' },
-      { key: 'fundo', label: 'Fundo / Coleção', placeholder: 'Coleção', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '1932', defaultValue: '' },
+      { key: 'document', label: 'Document name', placeholder: 'Manuscript / Minutes', defaultValue: 'Archival Document', required: true },
+      { key: 'archive', label: 'Institution / Archive', placeholder: 'National Archives', defaultValue: 'Public Archive' },
+      { key: 'collection', label: 'Collection / Fond', placeholder: 'Collection', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '1932', defaultValue: '' },
     ],
   },
   {
     id: 'citar-software',
-    name: 'Citar software',
+    name: 'Cite software',
     aliases: ['citar software', 'cite software', 'manual software'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata referência para documentação técnica, releases e repositórios de software em `<ref>`.',
-    exampleSnippet: '{{Citar software|nome=WikiMaker Core|versao=2.4|desenvolvedor=Comunidade Aberta|ano=2026}}',
+    language: 'en',
+    description: 'Formats references for technical documentation, software releases, and repositories inside `<ref>`.',
+    exampleSnippet: '{{Cite software|name=WikiMaker Core|version=2.4|developer=Open Community|year=2026}}',
     params: [
-      { key: 'nome', label: 'Nome do software', placeholder: 'Software', defaultValue: 'Software', required: true },
-      { key: 'versao', label: 'Versão / Release', placeholder: '1.0', defaultValue: '' },
-      { key: 'desenvolvedor', label: 'Autor / Projeto', placeholder: 'Equipe', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '2026', defaultValue: '2026' },
+      { key: 'name', label: 'Software name', placeholder: 'Software', defaultValue: 'Software', required: true },
+      { key: 'version', label: 'Version / Release', placeholder: '1.0', defaultValue: '' },
+      { key: 'developer', label: 'Author / Project', placeholder: 'Team', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '2026', defaultValue: '2026' },
     ],
   },
   {
     id: 'citar-patente',
-    name: 'Citar patente',
+    name: 'Cite patent',
     aliases: ['citar patente', 'cite patent', 'patente'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata citação de registro de patente industrial ou invenção (INPI/USPTO/EPO) em `<ref>`.',
-    exampleSnippet: '{{Citar patente|numero=BR102024001234|titulo=Sistema de Indexação Distribuída|titular=Laboratório Aberto|ano=2024}}',
+    language: 'en',
+    description: 'Formats citations for industrial patent registrations (INPI/USPTO/EPO) inside `<ref>`.',
+    exampleSnippet: '{{Cite patent|number=US102024001234|title=Distributed Indexing System|holder=Open Lab|year=2024}}',
     params: [
-      { key: 'numero', label: 'Número da patente', placeholder: 'BR102024...', defaultValue: 'PAT-0001', required: true },
-      { key: 'titulo', label: 'Título da invenção', placeholder: 'Título', defaultValue: 'Invenção patenteada' },
-      { key: 'titular', label: 'Inventor / Titular', placeholder: 'Nome', defaultValue: '' },
-      { key: 'ano', label: 'Ano', placeholder: '2024', defaultValue: '2024' },
+      { key: 'number', label: 'Patent number', placeholder: 'US102024...', defaultValue: 'PAT-0001', required: true },
+      { key: 'title', label: 'Invention title', placeholder: 'Title', defaultValue: 'Patented invention' },
+      { key: 'holder', label: 'Inventor / Assignee', placeholder: 'Name', defaultValue: '' },
+      { key: 'year', label: 'Year', placeholder: '2024', defaultValue: '2024' },
     ],
   },
   {
     id: 'data-falecimento',
-    name: 'Data de falecimento',
+    name: 'Death date and age',
     aliases: ['data de falecimento', 'death date and age', 'falecimento'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Exibe a data de falecimento e calcula automaticamente a idade final (`falec_ano|mes|dia|nasc_ano|mes|dia`).',
-    exampleSnippet: '{{Data de falecimento|2015|8|20|1940|5|10}}',
+    language: 'en',
+    description: 'Displays date of death and automatically calculates age at death (`death_yr|mo|day|birth_yr|mo|day`).',
+    exampleSnippet: '{{Death date and age|2015|8|20|1940|5|10}}',
     params: [
-      { key: '1', label: 'Ano falecimento', placeholder: '2015', defaultValue: '2015', required: true },
-      { key: '2', label: 'Mês falecimento', placeholder: '8', defaultValue: '8', required: true },
-      { key: '3', label: 'Dia falecimento', placeholder: '20', defaultValue: '20', required: true },
-      { key: '4', label: 'Ano nascimento', placeholder: '1940', defaultValue: '1940', required: true },
-      { key: '5', label: 'Mês nascimento', placeholder: '5', defaultValue: '5' },
-      { key: '6', label: 'Dia nascimento', placeholder: '10', defaultValue: '10' },
+      { key: '1', label: 'Death year', placeholder: '2015', defaultValue: '2015', required: true },
+      { key: '2', label: 'Death month', placeholder: '8', defaultValue: '8', required: true },
+      { key: '3', label: 'Death day', placeholder: '20', defaultValue: '20', required: true },
+      { key: '4', label: 'Birth year', placeholder: '1940', defaultValue: '1940', required: true },
+      { key: '5', label: 'Birth month', placeholder: '5', defaultValue: '5' },
+      { key: '6', label: 'Birth day', placeholder: '10', defaultValue: '10' },
     ],
   },
   {
     id: 'inicio-fim',
-    name: 'Início e fim',
+    name: 'Start and end dates',
     aliases: ['inicio e fim', 'start and end dates', 'periodo'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata intervalos cronológicos padronizados (`2010–2026` ou `2020–presente`).',
-    exampleSnippet: '{{Início e fim|2010|2026}}',
+    language: 'en',
+    description: 'Formats standardized chronological ranges (`2010–2026` or `2020–present`).',
+    exampleSnippet: '{{Start and end dates|2010|2026}}',
     params: [
-      { key: '1', label: 'Ano ou data inicial', placeholder: '2010', defaultValue: '2020', required: true },
-      { key: '2', label: 'Ano ou data final (vazio = presente)', placeholder: '2026', defaultValue: 'presente' },
+      { key: '1', label: 'Start year or date', placeholder: '2010', defaultValue: '2020', required: true },
+      { key: '2', label: 'End year or date (empty = present)', placeholder: '2026', defaultValue: 'present' },
     ],
   },
   {
     id: 'duracao-tempo',
-    name: 'Duração',
+    name: 'Duration',
     aliases: ['duracao', 'duration', 'tempo'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata durações de filmes, músicas ou eventos (`h|min|s` ou `min|s`).',
-    exampleSnippet: '{{Duração|1|42|15}}',
+    language: 'en',
+    description: 'Formats durations for films, tracks, or events (`h|m|s` or `m|s`).',
+    exampleSnippet: '{{Duration|1|42|15}}',
     params: [
-      { key: '1', label: 'Horas (ou minutos se 2 args)', placeholder: '1', defaultValue: '0' },
-      { key: '2', label: 'Minutos', placeholder: '42', defaultValue: '45' },
-      { key: '3', label: 'Segundos (opcional)', placeholder: '15', defaultValue: '' },
+      { key: '1', label: 'Hours (or minutes if 2 args)', placeholder: '1', defaultValue: '0' },
+      { key: '2', label: 'Minutes', placeholder: '42', defaultValue: '45' },
+      { key: '3', label: 'Seconds (optional)', placeholder: '15', defaultValue: '' },
     ],
   },
   {
@@ -4600,39 +4600,39 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Formatnum',
     aliases: ['formatnum', 'numero', 'val'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata grandes números com separadores de milhar e unidade opcional (`1.250.000 km²`).',
+    language: 'en',
+    description: 'Formats large numbers with thousands separators and optional unit (`1,250,000 km²`).',
     exampleSnippet: '{{Formatnum|1250000|km²}}',
     params: [
-      { key: '1', label: 'Número', placeholder: '1250000', defaultValue: '1000', required: true },
-      { key: '2', label: 'Unidade (opcional)', placeholder: 'km²', defaultValue: '' },
+      { key: '1', label: 'Number', placeholder: '1250000', defaultValue: '1000', required: true },
+      { key: '2', label: 'Unit (optional)', placeholder: 'km²', defaultValue: '' },
     ],
   },
   {
     id: 'fracao',
-    name: 'Fração',
+    name: 'Frac',
     aliases: ['fracao', 'frac', 'sfrac'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata frações matemáticas e números mistos de forma legível (`3 1/4` ou `1/2`).',
-    exampleSnippet: '{{Fração|3|1|4}}',
+    language: 'en',
+    description: 'Formats readable mathematical fractions and mixed numbers (`3 1/4` or `1/2`).',
+    exampleSnippet: '{{Frac|3|1|4}}',
     params: [
-      { key: '1', label: 'Numerador (ou inteiro se 3 args)', placeholder: '1', defaultValue: '1', required: true },
-      { key: '2', label: 'Denominador (ou numerador)', placeholder: '2', defaultValue: '2', required: true },
-      { key: '3', label: 'Denominador (se número misto)', placeholder: '', defaultValue: '' },
+      { key: '1', label: 'Numerator (or whole number if 3 args)', placeholder: '1', defaultValue: '1', required: true },
+      { key: '2', label: 'Denominator (or numerator)', placeholder: '2', defaultValue: '2', required: true },
+      { key: '3', label: 'Denominator (if mixed number)', placeholder: '', defaultValue: '' },
     ],
   },
   {
     id: 'raiz-math',
-    name: 'Raiz',
+    name: 'Sqrt',
     aliases: ['raiz', 'sqrt', 'radic'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata radiciação matemática (`√2`, `∛8`).',
-    exampleSnippet: '{{Raiz|2}}',
+    language: 'en',
+    description: 'Formats mathematical radicals (`√2`, `∛8`).',
+    exampleSnippet: '{{Sqrt|2}}',
     params: [
-      { key: '1', label: 'Radicando', placeholder: '2', defaultValue: '2', required: true },
-      { key: '2', label: 'Índice (opcional, ex: 3)', placeholder: '', defaultValue: '' },
+      { key: '1', label: 'Radicand', placeholder: '2', defaultValue: '2', required: true },
+      { key: '2', label: 'Root index (optional, e.g. 3)', placeholder: '', defaultValue: '' },
     ],
   },
   {
@@ -4640,42 +4640,42 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Math',
     aliases: ['math', 'formula', 'equacao'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Destaca equações e fórmulas matemáticas inline em tipografia serifada.',
+    language: 'en',
+    description: 'Highlights inline mathematical equations and formulas in serif typography.',
     exampleSnippet: '{{Math|E = mc²}}',
-    params: [{ key: '1', label: 'Expressão matemática', placeholder: 'E = mc²', defaultValue: 'a² + b² = c²', required: true }],
+    params: [{ key: '1', label: 'Mathematical expression', placeholder: 'E = mc²', defaultValue: 'a² + b² = c²', required: true }],
   },
   {
     id: 'subscrito',
     name: 'Sub',
     aliases: ['sub', 'subscrito'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata caracteres em subscrito Unicode/HTML para fórmulas químicas e índices (`H₂O`).',
+    language: 'en',
+    description: 'Formats subscript characters for chemical formulas and indices (`H₂O`).',
     exampleSnippet: 'H{{Sub|2}}O',
-    params: [{ key: '1', label: 'Texto subscrito', placeholder: '2', defaultValue: '2', required: true }],
+    params: [{ key: '1', label: 'Subscript text', placeholder: '2', defaultValue: '2', required: true }],
   },
   {
     id: 'sobrescrito',
     name: 'Sup',
     aliases: ['sup', 'sobrescrito'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata caracteres em sobrescrito Unicode/HTML para expoentes e notas (`10⁶`).',
+    language: 'en',
+    description: 'Formats superscript characters for exponents and notes (`10⁶`).',
     exampleSnippet: '10{{Sup|6}}',
-    params: [{ key: '1', label: 'Texto sobrescrito', placeholder: '2', defaultValue: '2', required: true }],
+    params: [{ key: '1', label: 'Superscript text', placeholder: '2', defaultValue: '2', required: true }],
   },
   {
     id: 'sigla',
-    name: 'Sigla',
+    name: 'Abbr',
     aliases: ['sigla', 'abbr', 'abreviacao'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Exibe uma sigla acompanhada da sua forma por extenso na primeira ocorrência.',
-    exampleSnippet: '{{Sigla|ONU|Organização das Nações Unidas}}',
+    language: 'en',
+    description: 'Displays an abbreviation alongside its expanded full form on first occurrence.',
+    exampleSnippet: '{{Abbr|UN|United Nations}}',
     params: [
-      { key: '1', label: 'Sigla', placeholder: 'ONU', defaultValue: 'ONU', required: true },
-      { key: '2', label: 'Significado por extenso', placeholder: 'Organização das Nações Unidas', defaultValue: 'Organização das Nações Unidas' },
+      { key: '1', label: 'Abbreviation', placeholder: 'UN', defaultValue: 'UN', required: true },
+      { key: '2', label: 'Full expansion', placeholder: 'United Nations', defaultValue: 'United Nations' },
     ],
   },
   {
@@ -4683,85 +4683,85 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
     name: 'Nowrap',
     aliases: ['nowrap', 'sem quebra'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Preserva expressões curtas ou unidades unidas sem quebra indesejada.',
-    exampleSnippet: '{{Nowrap|1 773 718 hab.}}',
-    params: [{ key: '1', label: 'Texto sem quebra', placeholder: '100 km/h', defaultValue: '100 km/h', required: true }],
+    language: 'en',
+    description: 'Keeps short expressions or numbers with units together without awkward line breaks.',
+    exampleSnippet: '{{Nowrap|1,773,718 people}}',
+    params: [{ key: '1', label: 'Non-breaking text', placeholder: '100 km/h', defaultValue: '100 km/h', required: true }],
   },
   {
     id: 'espaco-clear',
     name: 'Clear',
     aliases: ['clear', 'espaco', 'separador'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Insere separador de fluxo limpo entre secções ou elementos flutuantes.',
+    language: 'en',
+    description: 'Inserts a clean layout flow separator between sections or floating elements.',
     exampleSnippet: '{{Clear}}',
     params: [],
   },
   {
     id: 'nota-rodape',
-    name: 'Nota de rodapé',
+    name: 'Refn',
     aliases: ['nota de rodape', 'refn', 'observacao'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Insere rapidamente uma nota de rodapé numerada inline dentro de `<ref>`.',
-    exampleSnippet: 'Dado verificado em censo oficial{{Nota de rodapé|Estimativa revisada em 2026.}}.',
-    params: [{ key: '1', label: 'Texto da nota', placeholder: 'Observação...', defaultValue: 'Nota editorial.', required: true }],
+    language: 'en',
+    description: 'Quickly inserts a numbered inline footnote wrapped in `<ref>`.',
+    exampleSnippet: 'Verified in official census{{Refn|Estimate revised in 2026.}}.',
+    params: [{ key: '1', label: 'Footnote text', placeholder: 'Note...', defaultValue: 'Editorial note.', required: true }],
   },
   {
     id: 'n-a',
     name: 'N/A',
     aliases: ['n/a', 'na', 'desconhecido', 'tbd'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Marcador padrão para células de tabelas comparativas sem valor aplicável ou ainda pendente.',
+    language: 'en',
+    description: 'Standard marker for comparison table cells with non-applicable or pending values.',
     exampleSnippet: '{{N/A}}',
-    params: [{ key: '1', label: 'Texto opcional', placeholder: 'N/D', defaultValue: '' }],
+    params: [{ key: '1', label: 'Optional text', placeholder: 'N/A', defaultValue: '' }],
   },
   {
     id: 'avaliacao-estrelas',
-    name: 'Estrelas',
+    name: 'Rating',
     aliases: ['estrelas', 'rating', 'nota estrelas'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Exibe classificação visual em estrelas de 1 a 5 (`★★★★☆ (4/5)`).',
-    exampleSnippet: '{{Estrelas|4|5}}',
+    language: 'en',
+    description: 'Displays a visual 1-to-5 star rating (`★★★★☆ (4/5)`).',
+    exampleSnippet: '{{Rating|4|5}}',
     params: [
-      { key: '1', label: 'Nota obtida', placeholder: '4', defaultValue: '4', required: true },
-      { key: '2', label: 'Nota máxima', placeholder: '5', defaultValue: '5' },
+      { key: '1', label: 'Score', placeholder: '4', defaultValue: '4', required: true },
+      { key: '2', label: 'Max score', placeholder: '5', defaultValue: '5' },
     ],
   },
   {
     id: 'bandeira',
-    name: 'Bandeira',
+    name: 'Flag',
     aliases: ['bandeira', 'flag', 'flagicon', 'pais bandeira'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Exibe o ícone da bandeira nacional acompanhado do nome do país (`🇧🇷 Brasil`).',
-    exampleSnippet: '{{Bandeira|Brasil}} · {{Bandeira|Portugal}}',
-    params: [{ key: '1', label: 'País ou código (BR, PT, US, JP...)', placeholder: 'Brasil', defaultValue: 'Brasil', required: true }],
+    language: 'en',
+    description: 'Displays the national flag icon alongside the country name (`🇺🇸 United States`).',
+    exampleSnippet: '{{Flag|United States}} · {{Flag|Brazil}}',
+    params: [{ key: '1', label: 'Country or code (US, BR, PT, JP...)', placeholder: 'United States', defaultValue: 'United States', required: true }],
   },
   {
     id: 'site-oficial',
-    name: 'Site oficial',
+    name: 'Official website',
     aliases: ['site oficial', 'official website', 'links externos'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Formata ligação destacada para o portal ou sítio eletrônico oficial na secção de ligações externas.',
-    exampleSnippet: '{{Site oficial|https://wazzimagiygg.com|Portal Oficial WazzimaGiygg}}',
+    language: 'en',
+    description: 'Formats a prominent link to the official portal or website in the external links section.',
+    exampleSnippet: '{{Official website|https://wazzimagiygg.com|Official WazzimaGiygg Portal}}',
     params: [
-      { key: '1', label: 'URL oficial', placeholder: 'https://...', defaultValue: 'https://exemplo.org', required: true },
-      { key: '2', label: 'Rótulo (opcional)', placeholder: 'Site oficial', defaultValue: 'Site oficial' },
+      { key: '1', label: 'Official URL', placeholder: 'https://...', defaultValue: 'https://example.org', required: true },
+      { key: '2', label: 'Label (optional)', placeholder: 'Official website', defaultValue: 'Official website' },
     ],
   },
   {
     id: 'controle-autoridade',
-    name: 'Controle de autoridade',
+    name: 'Authority control',
     aliases: ['controle de autoridade', 'authority control', 'viaf'],
     category: 'navigation',
-    language: 'pt',
-    description: 'Caixa enciclopédica de rodapé agrupando identificadores bibliográficos internacionais (VIAF, ORCID, LCCN, GND).',
-    exampleSnippet: '{{Controle de autoridade|viaf=12345678|orcid=0000-0002-1825-0097|gnd=118575147}}',
+    language: 'en',
+    description: 'Encyclopedic footer box grouping international bibliographic identifiers (VIAF, ORCID, LCCN, GND).',
+    exampleSnippet: '{{Authority control|viaf=12345678|orcid=0000-0002-1825-0097|gnd=118575147}}',
     params: [
       { key: 'viaf', label: 'VIAF', placeholder: '12345678', defaultValue: '' },
       { key: 'orcid', label: 'ORCID', placeholder: '0000-0000-0000-0000', defaultValue: '' },
@@ -4769,305 +4769,305 @@ export const WIKI_TEMPLATE_CATALOG: WikiTemplateCatalogItem[] = [
       { key: 'gnd', label: 'GND', placeholder: '118575147', defaultValue: '' },
     ],
   },
-  // --- Mais 20 Infoboxes Especializadas ---
+  // --- 20 Specialized Infoboxes ---
   {
     id: 'info-estado',
-    name: 'Info/Estado',
+    name: 'Infobox state',
     aliases: ['info/estado', 'info/uf', 'info/provincia', 'infobox state'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para estados, províncias, regiões e unidades federativas.',
-    exampleSnippet: '{{Info/Estado|título=Minas Gerais|País=Brasil|Capital=Belo Horizonte|Área=586 513 km²|População=20,5 milhões}}',
+    language: 'en',
+    description: 'Infobox for states, provinces, regions, and federated units.',
+    exampleSnippet: '{{Infobox state|title=Minas Gerais|Country=Brazil|Capital=Belo Horizonte|Area=586,513 km²|Population=20.5 million}}',
     params: [
-      { key: 'título', label: 'Nome do estado', placeholder: 'Minas Gerais', defaultValue: 'Estado Exemplo', required: true },
-      { key: 'País', label: 'País', placeholder: 'Brasil', defaultValue: 'Brasil' },
+      { key: 'title', label: 'State name', placeholder: 'Minas Gerais', defaultValue: 'Sample State', required: true },
+      { key: 'Country', label: 'Country', placeholder: 'Brazil', defaultValue: 'International' },
       { key: 'Capital', label: 'Capital', placeholder: 'Capital', defaultValue: 'Capital' },
-      { key: 'População', label: 'População', placeholder: '10 milhões', defaultValue: '10 milhões' },
+      { key: 'Population', label: 'Population', placeholder: '10 million', defaultValue: '10 million' },
     ],
   },
   {
     id: 'info-rio',
-    name: 'Info/Rio',
+    name: 'Infobox river',
     aliases: ['info/rio', 'info/lago', 'infobox river'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox hidrográfica para rios, bacias, cachoeiras e lagos.',
-    exampleSnippet: '{{Info/Rio|nome=Rio São Francisco|País=Brasil|Extensão=2 830 km|Nascente=Serra da Canastra|Foz=Oceano Atlântico}}',
+    language: 'en',
+    description: 'Hydrographic infobox for rivers, basins, waterfalls, and lakes.',
+    exampleSnippet: '{{Infobox river|name=São Francisco River|Country=Brazil|Length=2,830 km|Source=Serra da Canastra|Mouth=Atlantic Ocean}}',
     params: [
-      { key: 'nome', label: 'Nome do rio/lago', placeholder: 'Rio Amazonas', defaultValue: 'Rio Exemplo', required: true },
-      { key: 'País', label: 'País(es)', placeholder: 'Brasil', defaultValue: 'Brasil' },
-      { key: 'Extensão', label: 'Comprimento', placeholder: '2 830 km', defaultValue: '500 km' },
-      { key: 'Foz', label: 'Desembocadura / Foz', placeholder: 'Oceano Atlântico', defaultValue: 'Oceano' },
+      { key: 'name', label: 'River/lake name', placeholder: 'Amazon River', defaultValue: 'Sample River', required: true },
+      { key: 'Country', label: 'Country/Countries', placeholder: 'Brazil', defaultValue: 'International' },
+      { key: 'Length', label: 'Length', placeholder: '2,830 km', defaultValue: '500 km' },
+      { key: 'Mouth', label: 'Mouth / Outflow', placeholder: 'Atlantic Ocean', defaultValue: 'Ocean' },
     ],
   },
   {
     id: 'info-montanha',
-    name: 'Info/Montanha',
+    name: 'Infobox mountain',
     aliases: ['info/montanha', 'info/vulcao', 'infobox mountain'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox orográfica para picos, montanhas, serras e vulcões.',
-    exampleSnippet: '{{Info/Montanha|nome=Pico da Neblina|Altitude=2 995 m|Cordilheira=Serra do Imeri|País=Brasil}}',
+    language: 'en',
+    description: 'Orographic infobox for peaks, mountains, ranges, and volcanoes.',
+    exampleSnippet: '{{Infobox mountain|name=Pico da Neblina|Elevation=2,995 m|Range=Serra do Imeri|Country=Brazil}}',
     params: [
-      { key: 'nome', label: 'Nome do pico/montanha', placeholder: 'Pico...', defaultValue: 'Montanha Exemplo', required: true },
-      { key: 'Altitude', label: 'Altitude máxima', placeholder: '2 995 m', defaultValue: '2 000 m' },
-      { key: 'Cordilheira', label: 'Cordilheira / Serra', placeholder: 'Andes', defaultValue: 'Serra' },
-      { key: 'País', label: 'Localização', placeholder: 'Brasil', defaultValue: 'Brasil' },
+      { key: 'name', label: 'Peak/mountain name', placeholder: 'Mount...', defaultValue: 'Sample Mountain', required: true },
+      { key: 'Elevation', label: 'Maximum elevation', placeholder: '2,995 m', defaultValue: '2,000 m' },
+      { key: 'Range', label: 'Mountain range', placeholder: 'Andes', defaultValue: 'Range' },
+      { key: 'Country', label: 'Location', placeholder: 'Brazil', defaultValue: 'International' },
     ],
   },
   {
     id: 'info-rodovia',
-    name: 'Info/Rodovia',
+    name: 'Infobox road',
     aliases: ['info/rodovia', 'info/estrada', 'infobox road'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox viária para rodovias, autoestradas e ferrovias.',
-    exampleSnippet: '{{Info/Rodovia|nome=BR-101|Tipo=Rodovia longitudinal|Extensão=4 650 km|Início=Touros (RN)|Fim=São José do Norte (RS)}}',
+    language: 'en',
+    description: 'Transport infobox for highways, motorways, and rail corridors.',
+    exampleSnippet: '{{Infobox road|name=BR-101|Type=Longitudinal highway|Length=4,650 km|Start=Touros (RN)|End=São José do Norte (RS)}}',
     params: [
-      { key: 'nome', label: 'Identificação da via', placeholder: 'BR-101', defaultValue: 'Rodovia Exemplo', required: true },
-      { key: 'Extensão', label: 'Extensão total', placeholder: '1 200 km', defaultValue: '500 km' },
-      { key: 'Início', label: 'Extremidade inicial', placeholder: 'Cidade A', defaultValue: 'Origem' },
-      { key: 'Fim', label: 'Extremidade final', placeholder: 'Cidade B', defaultValue: 'Destino' },
+      { key: 'name', label: 'Route designation', placeholder: 'I-95', defaultValue: 'Sample Highway', required: true },
+      { key: 'Length', label: 'Total length', placeholder: '1,200 km', defaultValue: '500 km' },
+      { key: 'Start', label: 'Start terminus', placeholder: 'City A', defaultValue: 'Origin' },
+      { key: 'End', label: 'End terminus', placeholder: 'City B', defaultValue: 'Destination' },
     ],
   },
   {
     id: 'info-veiculo',
-    name: 'Info/Veículo',
+    name: 'Infobox automobile',
     aliases: ['info/veiculo', 'info/automovel', 'info/aviao', 'infobox automobile'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox técnica para automóveis, aeronaves, embarcações e locomotivas.',
-    exampleSnippet: '{{Info/Veículo|nome=Modelo S|Fabricante=Montadora Exemplo|Produção=2020–presente|Motorização=Elétrico|Comprimento=4,9 m}}',
+    language: 'en',
+    description: 'Technical infobox for automobiles, aircraft, vessels, and locomotives.',
+    exampleSnippet: '{{Infobox automobile|name=Model S|Manufacturer=Sample Motors|Production=2020–present|Powertrain=Electric|Length=4.9 m}}',
     params: [
-      { key: 'nome', label: 'Nome do modelo', placeholder: 'Modelo...', defaultValue: 'Veículo Exemplo', required: true },
-      { key: 'Fabricante', label: 'Fabricante', placeholder: 'Empresa', defaultValue: 'Fabricante' },
-      { key: 'Produção', label: 'Período de produção', placeholder: '2020–2026', defaultValue: '2020–presente' },
-      { key: 'Motorização', label: 'Propulsão / Motor', placeholder: 'Elétrico', defaultValue: 'Híbrido' },
+      { key: 'name', label: 'Model name', placeholder: 'Model...', defaultValue: 'Sample Vehicle', required: true },
+      { key: 'Manufacturer', label: 'Manufacturer', placeholder: 'Company', defaultValue: 'Manufacturer' },
+      { key: 'Production', label: 'Production period', placeholder: '2020–2026', defaultValue: '2020–present' },
+      { key: 'Powertrain', label: 'Propulsion / Engine', placeholder: 'Electric', defaultValue: 'Hybrid' },
     ],
   },
   {
     id: 'info-arma',
-    name: 'Info/Arma',
+    name: 'Infobox weapon',
     aliases: ['info/arma', 'info/equipamento', 'infobox weapon'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox historiográfica para armamentos, espadas históricas e navios/equipamentos de defesa.',
-    exampleSnippet: '{{Info/Arma|nome=Catapulta Medieval|Tipo=Arma de cerco|Origem=Antiguidade Clássica|Período=Antiguidade–Idade Média}}',
+    language: 'en',
+    description: 'Historiographical infobox for historical weapons, armor, and defense systems.',
+    exampleSnippet: '{{Infobox weapon|name=Medieval Catapult|Type=Siege weapon|Origin=Classical Antiquity|Period=Antiquity–Middle Ages}}',
     params: [
-      { key: 'nome', label: 'Nome do equipamento', placeholder: 'Nome histórico', defaultValue: 'Equipamento Exemplo', required: true },
-      { key: 'Tipo', label: 'Classificação', placeholder: 'Cerco / Naval', defaultValue: 'Histórico' },
-      { key: 'Origem', label: 'Origem', placeholder: 'Região', defaultValue: 'Europa' },
-      { key: 'Período', label: 'Período histórico', placeholder: 'Século XV', defaultValue: 'Histórico' },
+      { key: 'name', label: 'Equipment name', placeholder: 'Historical name', defaultValue: 'Sample Equipment', required: true },
+      { key: 'Type', label: 'Classification', placeholder: 'Siege / Naval', defaultValue: 'Historical' },
+      { key: 'Origin', label: 'Origin', placeholder: 'Region', defaultValue: 'Europe' },
+      { key: 'Period', label: 'Historical period', placeholder: '15th century', defaultValue: 'Historical' },
     ],
   },
   {
     id: 'info-mitologia',
-    name: 'Info/Mitologia',
+    name: 'Infobox deity',
     aliases: ['info/mitologia', 'info/divindade', 'infobox deity'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox cultural para divindades, heróis mitológicos e figuras folclóricas.',
-    exampleSnippet: '{{Info/Mitologia|nome=Atena|Panteão=Mitologia grega|Domínio=Sabedoria e estratégia|Símbolos=Coruja, oliveira}}',
+    language: 'en',
+    description: 'Cultural infobox for deities, mythological heroes, and folklore figures.',
+    exampleSnippet: '{{Infobox deity|name=Athena|Pantheon=Greek mythology|Domain=Wisdom and strategy|Symbols=Owl, olive tree}}',
     params: [
-      { key: 'nome', label: 'Nome da figura', placeholder: 'Atena', defaultValue: 'Figura Mitológica', required: true },
-      { key: 'Panteão', label: 'Tradição / Mitologia', placeholder: 'Grega / Nórdica / Tupi', defaultValue: 'Clássica' },
-      { key: 'Domínio', label: 'Atribuições', placeholder: 'Sabedoria, mares...', defaultValue: 'Sabedoria' },
-      { key: 'Símbolos', label: 'Símbolos associados', placeholder: 'Coruja, lança', defaultValue: 'Tradicionais' },
+      { key: 'name', label: 'Figure name', placeholder: 'Athena', defaultValue: 'Mythological Figure', required: true },
+      { key: 'Pantheon', label: 'Tradition / Mythology', placeholder: 'Greek / Norse', defaultValue: 'Classical' },
+      { key: 'Domain', label: 'Attributes', placeholder: 'Wisdom, seas...', defaultValue: 'Wisdom' },
+      { key: 'Symbols', label: 'Associated symbols', placeholder: 'Owl, spear', defaultValue: 'Traditional' },
     ],
   },
   {
     id: 'info-religiao',
-    name: 'Info/Religião',
+    name: 'Infobox religion',
     aliases: ['info/religiao', 'infobox religion'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para religiões, denominações, escolas espirituais e filosofias tradicionais.',
-    exampleSnippet: '{{Info/Religião|nome=Tradição Exemplo|Classificação=Filosofia oriental|Fundação=Século V a.C.|Textos=Cânone clássico}}',
+    language: 'en',
+    description: 'Infobox for religions, denominations, spiritual schools, and traditional philosophies.',
+    exampleSnippet: '{{Infobox religion|name=Sample Tradition|Classification=Eastern philosophy|Founded=5th century BCE|Scriptures=Classical canon}}',
     params: [
-      { key: 'nome', label: 'Nome da tradição', placeholder: 'Tradição...', defaultValue: 'Tradição Exemplo', required: true },
-      { key: 'Classificação', label: 'Classificação', placeholder: 'Monoteísta / Não teísta', defaultValue: 'Tradicional' },
-      { key: 'Fundação', label: 'Origem histórica', placeholder: 'Século...', defaultValue: 'Antiguidade' },
-      { key: 'Textos', label: 'Textos fundamentais', placeholder: 'Escrituras', defaultValue: 'Cânone histórico' },
+      { key: 'name', label: 'Tradition name', placeholder: 'Tradition...', defaultValue: 'Sample Tradition', required: true },
+      { key: 'Classification', label: 'Classification', placeholder: 'Monotheistic / Non-theistic', defaultValue: 'Traditional' },
+      { key: 'Founded', label: 'Historical origin', placeholder: 'Century...', defaultValue: 'Antiquity' },
+      { key: 'Scriptures', label: 'Foundational texts', placeholder: 'Scriptures', defaultValue: 'Historical canon' },
     ],
   },
   {
     id: 'info-filosofo',
-    name: 'Info/Filósofo',
+    name: 'Infobox philosopher',
     aliases: ['info/filosofo', 'infobox philosopher'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox biográfica para filósofos, pensadores políticos e teóricos.',
-    exampleSnippet: '{{Info/Filósofo|nome=Baruch Espinoza|Época=Filosofia moderna|Tradição=Racionalismo|Principais interesses=Ética, metafísica}}',
+    language: 'en',
+    description: 'Biographical infobox for philosophers, political thinkers, and theorists.',
+    exampleSnippet: '{{Infobox philosopher|name=Baruch Spinoza|Era=Modern philosophy|Tradition=Rationalism|Main interests=Ethics, metaphysics}}',
     params: [
-      { key: 'nome', label: 'Nome do pensador', placeholder: 'Nome completo', defaultValue: 'Filósofo Exemplo', required: true },
-      { key: 'Época', label: 'Época / Período', placeholder: 'Filosofia moderna', defaultValue: 'Moderna' },
-      { key: 'Tradição', label: 'Corrente filosófica', placeholder: 'Racionalismo', defaultValue: 'Racionalismo' },
-      { key: 'Principais interesses', label: 'Áreas de estudo', placeholder: 'Ética, epistemologia', defaultValue: 'Ética e lógica' },
+      { key: 'name', label: 'Thinker name', placeholder: 'Full name', defaultValue: 'Sample Philosopher', required: true },
+      { key: 'Era', label: 'Era / Period', placeholder: 'Modern philosophy', defaultValue: 'Modern' },
+      { key: 'Tradition', label: 'Philosophical school', placeholder: 'Rationalism', defaultValue: 'Rationalism' },
+      { key: 'Main interests', label: 'Fields of study', placeholder: 'Ethics, epistemology', defaultValue: 'Ethics and logic' },
     ],
   },
   {
     id: 'info-escritor',
-    name: 'Info/Escritor',
+    name: 'Infobox writer',
     aliases: ['info/escritor', 'infobox writer'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox biográfica para escritores, poetas, romancistas, jornalistas e dramaturgos.',
-    exampleSnippet: '{{Info/Escritor|nome=Clarice Lispector|Ocupação=Escritora e jornalista|Movimento=Terceira geração modernista|Obras notáveis=A Hora da Estrela}}',
+    language: 'en',
+    description: 'Biographical infobox for writers, poets, novelists, journalists, and playwrights.',
+    exampleSnippet: '{{Infobox writer|name=Clarice Lispector|Occupation=Writer and journalist|Movement=Modernism|Notable works=The Hour of the Star}}',
     params: [
-      { key: 'nome', label: 'Nome literário', placeholder: 'Nome', defaultValue: 'Escritor Exemplo', required: true },
-      { key: 'Ocupação', label: 'Ocupação', placeholder: 'Romancista, poeta', defaultValue: 'Escritor(a)' },
-      { key: 'Movimento', label: 'Escola / Movimento', placeholder: 'Realismo / Modernismo', defaultValue: 'Contemporâneo' },
-      { key: 'Obras notáveis', label: 'Obras principais', placeholder: 'Títulos...', defaultValue: 'Obra principal' },
+      { key: 'name', label: 'Pen or full name', placeholder: 'Name', defaultValue: 'Sample Writer', required: true },
+      { key: 'Occupation', label: 'Occupation', placeholder: 'Novelist, poet', defaultValue: 'Writer' },
+      { key: 'Movement', label: 'Literary movement', placeholder: 'Realism / Modernism', defaultValue: 'Contemporary' },
+      { key: 'Notable works', label: 'Notable works', placeholder: 'Titles...', defaultValue: 'Major work' },
     ],
   },
   {
     id: 'info-site',
-    name: 'Info/Site',
+    name: 'Infobox website',
     aliases: ['info/site', 'info/website', 'infobox website'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para portais web, enciclopédias digitais, redes sociais e plataformas online.',
-    exampleSnippet: '{{Info/Site|nome=WikiMaker|Tipo=Plataforma wiki colaborativa|Lançamento=2025|Idiomas=Português, Inglês|Licença=Código aberto}}',
+    language: 'en',
+    description: 'Infobox for web portals, digital encyclopedias, social networks, and online platforms.',
+    exampleSnippet: '{{Infobox website|name=WikiMaker|Type=Collaborative wiki platform|Launched=2025|Languages=English, Portuguese|License=Open source}}',
     params: [
-      { key: 'nome', label: 'Nome do portal/site', placeholder: 'Portal...', defaultValue: 'Site Exemplo', required: true },
-      { key: 'Tipo', label: 'Categoria', placeholder: 'Enciclopédia / Rede social', defaultValue: 'Portal web' },
-      { key: 'Lançamento', label: 'Ano de lançamento', placeholder: '2025', defaultValue: '2025' },
-      { key: 'Licença', label: 'Licença / Acesso', placeholder: 'Gratuito / Aberto', defaultValue: 'Aberto' },
+      { key: 'name', label: 'Portal/site name', placeholder: 'Portal...', defaultValue: 'Sample Website', required: true },
+      { key: 'Type', label: 'Category', placeholder: 'Encyclopedia / Social network', defaultValue: 'Web portal' },
+      { key: 'Launched', label: 'Launch year', placeholder: '2025', defaultValue: '2025' },
+      { key: 'License', label: 'License / Access', placeholder: 'Free / Open', defaultValue: 'Open' },
     ],
   },
   {
     id: 'info-so',
-    name: 'Info/Sistema',
+    name: 'Infobox OS',
     aliases: ['info/so', 'info/sistema', 'infobox os'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox técnica para sistemas operacionais, distribuições Linux e firmwares.',
-    exampleSnippet: '{{Info/Sistema|nome=Debian|Desenvolvedor=Projeto Debian|Núcleo=Linux|Lançamento=1993|Licença=Software livre (DFSG)}}',
+    language: 'en',
+    description: 'Technical infobox for operating systems, Linux distributions, and firmware.',
+    exampleSnippet: '{{Infobox OS|name=Debian|Developer=Debian Project|Kernel type=Linux|Initial release=1993|License=Free software (DFSG)}}',
     params: [
-      { key: 'nome', label: 'Sistema operacional', placeholder: 'Linux / Debian', defaultValue: 'Sistema Exemplo', required: true },
-      { key: 'Desenvolvedor', label: 'Desenvolvedor', placeholder: 'Comunidade / Empresa', defaultValue: 'Comunidade' },
-      { key: 'Núcleo', label: 'Kernel / Núcleo', placeholder: 'Linux / Híbrido', defaultValue: 'Monolítico' },
-      { key: 'Licença', label: 'Licença', placeholder: 'GPLv2', defaultValue: 'GPL' },
+      { key: 'name', label: 'Operating system', placeholder: 'Linux / Debian', defaultValue: 'Sample OS', required: true },
+      { key: 'Developer', label: 'Developer', placeholder: 'Community / Company', defaultValue: 'Community' },
+      { key: 'Kernel type', label: 'Kernel type', placeholder: 'Linux / Hybrid', defaultValue: 'Monolithic' },
+      { key: 'License', label: 'License', placeholder: 'GPLv2', defaultValue: 'GPL' },
     ],
   },
   {
     id: 'info-hardware',
-    name: 'Info/Hardware',
+    name: 'Infobox CPU',
     aliases: ['info/hardware', 'info/processador', 'info/console', 'infobox cpu'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para consoles de videogame, processadores, microcomputadores e eletrônicos.',
-    exampleSnippet: '{{Info/Hardware|nome=Super Console|Fabricante=Estúdio Hardware|Lançamento=1990|CPU=16-bit RISC|Mídia=Cartucho}}',
+    language: 'en',
+    description: 'Infobox for video game consoles, processors, microcomputers, and electronics.',
+    exampleSnippet: '{{Infobox CPU|name=Super Console|Manufacturer=Hardware Studio|Released=1990|CPU=16-bit RISC|Media=Cartridge}}',
     params: [
-      { key: 'nome', label: 'Nome do dispositivo', placeholder: 'Console / CPU', defaultValue: 'Hardware Exemplo', required: true },
-      { key: 'Fabricante', label: 'Fabricante', placeholder: 'Empresa', defaultValue: 'Fabricante' },
-      { key: 'Lançamento', label: 'Lançamento', placeholder: '2020', defaultValue: '2020' },
-      { key: 'CPU', label: 'Processador / Arquitetura', placeholder: 'ARM / x86', defaultValue: '64-bit' },
+      { key: 'name', label: 'Device name', placeholder: 'Console / CPU', defaultValue: 'Sample Hardware', required: true },
+      { key: 'Manufacturer', label: 'Manufacturer', placeholder: 'Company', defaultValue: 'Manufacturer' },
+      { key: 'Released', label: 'Released', placeholder: '2020', defaultValue: '2020' },
+      { key: 'CPU', label: 'Processor / Architecture', placeholder: 'ARM / x86', defaultValue: '64-bit' },
     ],
   },
   {
     id: 'info-moeda',
-    name: 'Info/Moeda',
+    name: 'Infobox currency',
     aliases: ['info/moeda', 'infobox currency'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox econômica para moedas fiduciárias nacionais, históricas e unidades monetárias.',
-    exampleSnippet: '{{Info/Moeda|nome=Real brasileiro|Código ISO=BRL|Símbolo=R$|País=Brasil|Banco central=Banco Central do Brasil}}',
+    language: 'en',
+    description: 'Economic infobox for national fiat currencies, historical currencies, and monetary units.',
+    exampleSnippet: '{{Infobox currency|name=US Dollar|ISO code=USD|Symbol=$|Country=United States|Central bank=Federal Reserve}}',
     params: [
-      { key: 'nome', label: 'Nome da moeda', placeholder: 'Real', defaultValue: 'Moeda Exemplo', required: true },
-      { key: 'Código ISO', label: 'Código ISO 4217', placeholder: 'BRL', defaultValue: 'XXX' },
-      { key: 'Símbolo', label: 'Símbolo', placeholder: 'R$', defaultValue: '$' },
-      { key: 'Banco central', label: 'Emissor', placeholder: 'Banco Central', defaultValue: 'Banco Central' },
+      { key: 'name', label: 'Currency name', placeholder: 'Dollar', defaultValue: 'Sample Currency', required: true },
+      { key: 'ISO code', label: 'ISO 4217 code', placeholder: 'USD', defaultValue: 'XXX' },
+      { key: 'Symbol', label: 'Symbol', placeholder: '$', defaultValue: '$' },
+      { key: 'Central bank', label: 'Issuing authority', placeholder: 'Central Bank', defaultValue: 'Central Bank' },
     ],
   },
   {
     id: 'info-ong',
-    name: 'Info/Organização',
+    name: 'Infobox organization',
     aliases: ['info/ong', 'info/organizacao', 'infobox organization'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para ONGs, associações sem fins lucrativos, agências da ONU e institutos.',
-    exampleSnippet: '{{Info/Organização|nome=Cruz Vermelha Internacional|Tipo=Organização humanitária|Fundação=1863|Sede=Genebra, Suíça}}',
+    language: 'en',
+    description: 'Infobox for NGOs, nonprofits, UN agencies, and research institutes.',
+    exampleSnippet: '{{Infobox organization|name=International Red Cross|Type=Humanitarian organization|Founded=1863|Headquarters=Geneva, Switzerland}}',
     params: [
-      { key: 'nome', label: 'Nome da organização', placeholder: 'Organização...', defaultValue: 'Organização Exemplo', required: true },
-      { key: 'Tipo', label: 'Natureza', placeholder: 'ONG / Intergovernamental', defaultValue: 'Sem fins lucrativos' },
-      { key: 'Fundação', label: 'Fundação', placeholder: '1945', defaultValue: '2000' },
-      { key: 'Sede', label: 'Sede', placeholder: 'Cidade, País', defaultValue: 'Brasil' },
+      { key: 'name', label: 'Organization name', placeholder: 'Organization...', defaultValue: 'Sample Organization', required: true },
+      { key: 'Type', label: 'Type', placeholder: 'NGO / Intergovernmental', defaultValue: 'Nonprofit' },
+      { key: 'Founded', label: 'Founded', placeholder: '1945', defaultValue: '2000' },
+      { key: 'Headquarters', label: 'Headquarters', placeholder: 'City, Country', defaultValue: 'International' },
     ],
   },
   {
     id: 'info-museu',
-    name: 'Info/Museu',
+    name: 'Infobox museum',
     aliases: ['info/museu', 'info/biblioteca', 'infobox museum'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox para museus, pinacotecas, bibliotecas nacionais e centros culturais.',
-    exampleSnippet: '{{Info/Museu|nome=Museu Nacional de Arte|Tipo=Museu de belas-artes|Fundação=1937|Localização=Rio de Janeiro|Acervo=70 000 peças}}',
+    language: 'en',
+    description: 'Infobox for museums, galleries, national libraries, and cultural centers.',
+    exampleSnippet: '{{Infobox museum|name=National Art Museum|Type=Fine arts museum|Established=1937|Location=Rio de Janeiro|Collection=70,000 works}}',
     params: [
-      { key: 'nome', label: 'Nome do museu/biblioteca', placeholder: 'Museu...', defaultValue: 'Museu Exemplo', required: true },
-      { key: 'Tipo', label: 'Tipo de acervo', placeholder: 'Arte / Ciência / História', defaultValue: 'História e Arte' },
-      { key: 'Fundação', label: 'Fundação', placeholder: '1937', defaultValue: '1950' },
-      { key: 'Localização', label: 'Cidade / País', placeholder: 'Rio de Janeiro', defaultValue: 'Brasil' },
+      { key: 'name', label: 'Museum/library name', placeholder: 'Museum...', defaultValue: 'Sample Museum', required: true },
+      { key: 'Type', label: 'Collection type', placeholder: 'Art / Science / History', defaultValue: 'History and Art' },
+      { key: 'Established', label: 'Established', placeholder: '1937', defaultValue: '1950' },
+      { key: 'Location', label: 'City / Country', placeholder: 'City, Country', defaultValue: 'International' },
     ],
   },
   {
     id: 'info-parque',
-    name: 'Info/Parque',
+    name: 'Infobox protected area',
     aliases: ['info/parque', 'info/reserva', 'infobox protected area'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox ambiental para parques nacionais, reservas ecológicas e patrimônios naturais.',
-    exampleSnippet: '{{Info/Parque|nome=Parque Nacional do Iguaçu|País=Brasil|Área=185 262 ha|Criação=1939|Categoria=Patrimônio Mundial}}',
+    language: 'en',
+    description: 'Environmental infobox for national parks, ecological reserves, and natural heritage sites.',
+    exampleSnippet: '{{Infobox protected area|name=Iguaçu National Park|Country=Brazil|Area=185,262 ha|Established=1939|Category=World Heritage Site}}',
     params: [
-      { key: 'nome', label: 'Nome da unidade de conservação', placeholder: 'Parque Nacional...', defaultValue: 'Parque Exemplo', required: true },
-      { key: 'País', label: 'País / Estado', placeholder: 'Brasil', defaultValue: 'Brasil' },
-      { key: 'Área', label: 'Área protegida', placeholder: '100 000 ha', defaultValue: '50 000 ha' },
-      { key: 'Criação', label: 'Ano de criação', placeholder: '1939', defaultValue: '1980' },
+      { key: 'name', label: 'Protected area name', placeholder: 'National Park...', defaultValue: 'Sample Park', required: true },
+      { key: 'Country', label: 'Country / State', placeholder: 'Brazil', defaultValue: 'International' },
+      { key: 'Area', label: 'Protected area', placeholder: '100,000 ha', defaultValue: '50,000 ha' },
+      { key: 'Established', label: 'Year established', placeholder: '1939', defaultValue: '1980' },
     ],
   },
   {
     id: 'info-campeonato',
-    name: 'Info/Campeonato',
+    name: 'Infobox football league',
     aliases: ['info/campeonato', 'info/torneio', 'info/liga', 'infobox football league'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox esportiva para campeonatos, copas, ligas e torneios internacionais.',
-    exampleSnippet: '{{Info/Campeonato|nome=Copa Aberta 2026|Esporte=Futebol|Participantes=32 equipes|Sede=América do Sul|Atual campeão=Atlético Modelo}}',
+    language: 'en',
+    description: 'Sports infobox for championships, cups, leagues, and international tournaments.',
+    exampleSnippet: '{{Infobox football league|name=Open Cup 2026|Sport=Football|Teams=32 teams|Host=South America|Champions=Athletic Model}}',
     params: [
-      { key: 'nome', label: 'Nome da competição', placeholder: 'Campeonato...', defaultValue: 'Torneio Exemplo', required: true },
-      { key: 'Esporte', label: 'Modalidade', placeholder: 'Futebol / Basquete', defaultValue: 'Futebol' },
-      { key: 'Participantes', label: 'Nº de participantes', placeholder: '20 equipes', defaultValue: '16 equipes' },
-      { key: 'Sede', label: 'Local / Abrangência', placeholder: 'Nacional', defaultValue: 'Nacional' },
+      { key: 'name', label: 'Competition name', placeholder: 'Championship...', defaultValue: 'Sample Tournament', required: true },
+      { key: 'Sport', label: 'Sport', placeholder: 'Football / Basketball', defaultValue: 'Football' },
+      { key: 'Teams', label: 'Number of participants', placeholder: '20 teams', defaultValue: '16 teams' },
+      { key: 'Host', label: 'Host / Scope', placeholder: 'National', defaultValue: 'National' },
     ],
   },
   {
     id: 'info-alimento',
-    name: 'Info/Alimento',
+    name: 'Infobox food',
     aliases: ['info/alimento', 'info/prato', 'info/bebida', 'infobox food'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox gastronômica para pratos típicos, ingredientes, queijos, pães e bebidas.',
-    exampleSnippet: '{{Info/Alimento|nome=Pão de Queijo|Origem=Minas Gerais, Brasil|Tipo=Quitanda assada|Ingredientes=Polvilho, queijo, ovos, leite}}',
+    language: 'en',
+    description: 'Culinary infobox for traditional dishes, ingredients, cheeses, breads, and beverages.',
+    exampleSnippet: '{{Infobox food|name=Pão de Queijo|Origin=Minas Gerais, Brazil|Type=Baked cheese bread|Main ingredients=Cassava starch, cheese, eggs, milk}}',
     params: [
-      { key: 'nome', label: 'Nome do prato/alimento', placeholder: 'Prato típico', defaultValue: 'Alimento Exemplo', required: true },
-      { key: 'Origem', label: 'Origem / Culinária', placeholder: 'Brasil', defaultValue: 'Regional' },
-      { key: 'Tipo', label: 'Categoria', placeholder: 'Prato principal / Sobremesa', defaultValue: 'Prato típico' },
-      { key: 'Ingredientes', label: 'Ingredientes principais', placeholder: 'Farinha, queijo...', defaultValue: 'Tradicionais' },
+      { key: 'name', label: 'Dish/food name', placeholder: 'Traditional dish', defaultValue: 'Sample Dish', required: true },
+      { key: 'Origin', label: 'Origin / Cuisine', placeholder: 'Brazil', defaultValue: 'Regional' },
+      { key: 'Type', label: 'Category', placeholder: 'Main course / Dessert', defaultValue: 'Traditional dish' },
+      { key: 'Main ingredients', label: 'Main ingredients', placeholder: 'Flour, cheese...', defaultValue: 'Traditional' },
     ],
   },
   {
     id: 'info-hq',
-    name: 'Info/HQ',
+    name: 'Infobox comic',
     aliases: ['info/hq', 'info/manga', 'info/comics', 'infobox comic'],
     category: 'infobox',
-    language: 'pt',
-    description: 'Infobox editorial para histórias em quadrinhos, mangás, tiras e graphic novels.',
-    exampleSnippet: '{{Info/HQ|título=Crônicas Ilustradas|Roteiro=M. Costa|Arte=A. Ribeiro|Editora=Editora Sul|Lançamento=2024|Volumes=4}}',
+    language: 'en',
+    description: 'Editorial infobox for comics, manga, comic strips, and graphic novels.',
+    exampleSnippet: '{{Infobox comic|title=Illustrated Chronicles|Writer=M. Costa|Artist=A. Ribeiro|Publisher=South Press|Published=2024|Volumes=4}}',
     params: [
-      { key: 'título', label: 'Título da obra', placeholder: 'Nome da HQ/Mangá', defaultValue: 'HQ Exemplo', required: true },
-      { key: 'Roteiro', label: 'Roteirista(s)', placeholder: 'Autor', defaultValue: 'Autor' },
-      { key: 'Arte', label: 'Ilustrador(a)', placeholder: 'Desenhista', defaultValue: 'Ilustrador' },
-      { key: 'Editora', label: 'Editora / Publicação', placeholder: 'Editora', defaultValue: 'Editora' },
+      { key: 'title', label: 'Title', placeholder: 'Comic/Manga name', defaultValue: 'Sample Comic', required: true },
+      { key: 'Writer', label: 'Writer(s)', placeholder: 'Author', defaultValue: 'Author' },
+      { key: 'Artist', label: 'Illustrator', placeholder: 'Artist', defaultValue: 'Illustrator' },
+      { key: 'Publisher', label: 'Publisher', placeholder: 'Publisher', defaultValue: 'Publisher' },
     ],
   },
 ];
@@ -5254,7 +5254,7 @@ export function serializePredefinicaoBlock(opts: {
   meta?: string;
 }): string {
   const lines: string[] = [`:::predefinicao ${opts.variant}`];
-  lines.push(`kicker: ${sanitizePredefLine(opts.kicker) || 'Predefinição'}`);
+  lines.push(`kicker: ${sanitizePredefLine(opts.kicker) || 'Template'}`);
   if (opts.title?.trim()) {
     lines.push(`title: ${sanitizePredefLine(opts.title)}`);
   }
@@ -5359,20 +5359,17 @@ function resolveBuiltinTemplate(
   if (key === 'boas vindas' || key === 'boas-vindas' || key === 'welcome') {
     const collaborator = pickParam(
       call,
-      ['colaborador', 'contributor', 'nome', 'user', '1'],
-      'Colaborador'
+      ['contributor', 'colaborador', 'nome', 'name', 'user', '1'],
+      'Collaborator'
     );
-    const topic = pickParam(call, ['tema', 'topic', '2'], 'WazzimaGiygg Maker');
-    const dateVal = pickParam(call, ['data', 'date', 'meta']);
-    const isEnglish = key === 'welcome';
+    const topic = pickParam(call, ['topic', 'tema', '2'], 'WazzimaGiygg Maker');
+    const dateVal = pickParam(call, ['date', 'data', 'meta']);
 
     return serializePredefinicaoBlock({
       variant: 'success',
-      kicker: isEnglish ? 'Template · Welcome' : 'Predefinição · Boas-vindas',
-      title: isEnglish ? `Welcome, ${collaborator}!` : `Boas-vindas, ${collaborator}!`,
-      body: isEnglish
-        ? `Thank you for contributing to ${topic}. Before creating or editing pages, please review the [WikiMaker Usage Rules & Terms](#/terms), check the [[markdown-guide|Markdown & Templates Guide]], or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].`
-        : `Olá, ${collaborator}! Obrigado por contribuir com ${topic}. Antes de criar ou editar artigos, consulte as [Regras de Uso do WikiMaker](#/terms), confira o [[markdown-guide|Guia de Markdown e Predefinições]] ou explore os [[ecossistema-wazzimagiygg|Produtos do Ecossistema WazzimaGiygg]].`,
+      kicker: 'Template · Welcome',
+      title: `Welcome, ${collaborator}!`,
+      body: `Thank you for contributing to ${topic}. Before creating or editing pages, please review the [WikiMaker Usage Rules & Terms](#/terms), check the [[markdown-guide|Markdown & Templates Guide]], or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].`,
       meta: dateVal || undefined,
     });
   }
@@ -5444,7 +5441,7 @@ function resolveBuiltinTemplate(
 
   // 6. {{Spoiler}} / {{Aviso spoiler}}
   if (key === 'spoiler' || key === 'aviso spoiler') {
-    const work = pickParam(call, ['obra', '1']);
+    const work = pickParam(call, ['work', 'obra', '1']);
     return serializePredefinicaoBlock({
       variant: 'warning',
       kicker: 'Template · Content Notice',
@@ -5457,24 +5454,24 @@ function resolveBuiltinTemplate(
   if (isSpeedyDeletionKey(key)) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'justificativa', 'texto', 'text', '1'],
-      'Este artigo foi proposto para eliminação rápida por não atender aos critérios mínimos da wiki.'
+      ['reason', 'motivo', 'justificativa', 'text', 'texto', '1'],
+      'This article has been nominated for speedy deletion for failing to meet minimum wiki criteria.'
     );
-    const rule = pickParam(call, ['regra', 'rule', 'criterio', 'critério', '2']);
-    const proponent = pickParam(call, ['proponente', 'editor', 'usuario', 'usuário', 'by']);
-    const dateVal = pickParam(call, ['data', 'date']);
+    const rule = pickParam(call, ['rule', 'regra', 'criterion', 'criterio', 'critério', '2']);
+    const proponent = pickParam(call, ['proponent', 'proponente', 'editor', 'user', 'usuario', 'usuário', 'by']);
+    const dateVal = pickParam(call, ['date', 'data']);
     const metaParts = [
-      proponent ? `Proponente: ${proponent}` : '',
-      dateVal ? `Data: ${dateVal}` : '',
+      proponent ? `Proponent: ${proponent}` : '',
+      dateVal ? `Date: ${dateVal}` : '',
     ].filter(Boolean);
 
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Eliminação rápida',
+      kicker: 'Template · Speedy Deletion',
       title: rule
-        ? `Página proposta para eliminação rápida (${rule})`
-        : 'Página proposta para eliminação rápida',
-      body: `Motivo: ${reason} — Um alerta automático é enviado à página de discussão do autor ao inserir esta marcação. Consulte as [Regras de Uso do WikiMaker](#/terms) antes de remover este aviso.`,
+        ? `Page nominated for speedy deletion (${rule})`
+        : 'Page nominated for speedy deletion',
+      body: `Reason: ${reason} — An automatic alert is posted to the author's talk page when this tag is added. Review the [WikiMaker Usage Rules](#/terms) before removing this notice.`,
       meta: metaParts.length > 0 ? metaParts.join(' · ') : undefined,
     });
   }
@@ -5489,24 +5486,24 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'texto', 'text', '1'],
-      'Violação das políticas editoriais ou de conduta da wiki.'
+      ['reason', 'motivo', 'text', 'texto', '1'],
+      'Violation of wiki editorial or conduct policies.'
     );
-    const admin = pickParam(call, ['administrador', 'admin', 'by', 'moderador', '2']);
-    const duration = pickParam(call, ['duracao', 'duration', 'prazo', '3'], 'Indeterminado');
-    const dateVal = pickParam(call, ['data', 'date', '4']);
+    const admin = pickParam(call, ['admin', 'administrador', 'by', 'moderator', 'moderador', '2']);
+    const duration = pickParam(call, ['duration', 'duracao', 'prazo', '3'], 'Indefinite');
+    const dateVal = pickParam(call, ['date', 'data', '4']);
     const metaParts = [
-      admin ? `Responsável: ${admin}` : '',
-      dateVal ? `Aplicado em: ${dateVal}` : '',
+      admin ? `Issued by: ${admin}` : '',
+      dateVal ? `Applied on: ${dateVal}` : '',
     ].filter(Boolean);
 
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Bloqueio de Conta',
-      title: 'Esta conta está bloqueada para edições',
-      body: `Motivo do bloqueio: ${reason}. Duração: ${duration}.${
-        admin ? ` Aplicado por: ${admin}.` : ''
-      } Consulte a página de discussão para mais detalhes e leia as [Regras de Uso do WikiMaker](#/terms).`,
+      kicker: 'Template · Account Block',
+      title: 'This account is currently blocked from editing',
+      body: `Block reason: ${reason}. Duration: ${duration}.${
+        admin ? ` Applied by: ${admin}.` : ''
+      } Check the talk page for details and review the [WikiMaker Usage Rules](#/terms).`,
       meta: metaParts.length > 0 ? metaParts.join(' · ') : undefined,
     });
   }
@@ -5828,26 +5825,19 @@ function resolveBuiltinTemplate(
     key === 'refimprove' ||
     key === 'more citations needed'
   ) {
-    const isEnglish =
-      key === 'unreferenced' || key === 'refimprove' || key === 'more citations needed';
-    const scope = pickParam(call, ['secao', 'seção', 'section', '1']);
-    const dateVal = pickParam(call, ['data', 'date']);
-    const title = isEnglish
-      ? scope
-        ? `Section "${scope}" needs additional citations for verification`
-        : 'This article needs additional citations for verification'
-      : scope
-      ? `A secção "${scope}" carece de fontes fiáveis e independentes`
-      : 'Este artigo ou secção não cita fontes confiáveis';
-    const body = isEnglish
-      ? 'Please help improve this article by adding citations to reliable sources (`{{Cite web}}` or `<ref>...</ref>`). Unsourced material may be challenged and removed.'
-      : 'Ajude a melhorar este verbete inserindo referências para fontes verificáveis (`{{Citar web}}` ou `<ref>...</ref>`). Material sem fontes pode ser contestado ou removido.';
+    const scope = pickParam(call, ['section', 'secao', 'seção', '1']);
+    const dateVal = pickParam(call, ['date', 'data']);
+    const title = scope
+      ? `Section "${scope}" needs additional citations for verification`
+      : 'This article needs additional citations for verification';
+    const body =
+      'Please help improve this article by adding citations to reliable sources (`{{Cite web}}` or `<ref>...</ref>`). Unsourced material may be challenged and removed.';
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: isEnglish ? 'Template · Unreferenced' : 'Predefinição · Sem referências',
+      kicker: 'Template · Unreferenced',
       title,
       body,
-      meta: dateVal ? (isEnglish ? `Tagged: ${dateVal}` : `Marcado em: ${dateVal}`) : undefined,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -5862,23 +5852,23 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'texto', 'text', '1'],
-      'Esta página precisa ser reciclada e formatada de acordo com o livro de estilo editorial da wiki.'
+      ['reason', 'motivo', 'text', 'texto', '1'],
+      'This page needs cleanup and formatting to meet the wiki editorial style guide.'
     );
-    const dateVal = pickParam(call, ['data', 'date']);
+    const dateVal = pickParam(call, ['date', 'data']);
     const titleMap: Record<string, string> = {
-      contextualizar: 'Este artigo precisa ser contextualizado',
-      wikificacao: 'Este artigo precisa de wikificação e formatação',
-      wikificar: 'Este artigo precisa de wikificação e formatação',
-      revisao: 'Este artigo necessita de revisão gramatical e estrutural',
+      contextualizar: 'This article needs additional context',
+      wikificacao: 'This article needs wikification and formatting',
+      wikificar: 'This article needs wikification and formatting',
+      revisao: 'This article requires grammar and structural proofreading',
       copyedit: 'This article may require copy editing for grammar and style',
     };
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Reciclagem & Estilo',
-      title: titleMap[key] ?? 'Esta página precisa ser reciclada',
+      kicker: 'Template · Cleanup & Style',
+      title: titleMap[key] ?? 'This page needs cleanup',
       body: reason,
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -5891,19 +5881,19 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'texto', 'text', '1'],
-      'A neutralidade deste artigo ou secção está contestada. Consulte os argumentos na página de discussão.'
+      ['reason', 'motivo', 'text', 'texto', '1'],
+      'The neutrality of this article or section is disputed. Relevant discussion may be found on the talk page.'
     );
-    const section = pickParam(call, ['secao', 'seção', 'section']);
-    const dateVal = pickParam(call, ['data', 'date']);
+    const section = pickParam(call, ['section', 'secao', 'seção']);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Neutralidade em Disputa',
+      kicker: 'Template · Disputed Neutrality',
       title: section
-        ? `A imparcialidade da secção "${section}" é disputada`
-        : 'A imparcialidade deste artigo é disputada',
+        ? `The neutrality of "${section}" is disputed`
+        : 'The neutrality of this article is disputed',
       body: reason,
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -5911,16 +5901,16 @@ function resolveBuiltinTemplate(
   if (key === 'desatualizado' || key === 'desatualizada' || key === 'atualizar') {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'texto', 'text', '1'],
-      'Partes deste artigo podem conter informações desatualizadas que requerem revisão recente.'
+      ['reason', 'motivo', 'text', 'texto', '1'],
+      'Parts of this article may contain outdated information requiring recent updates.'
     );
-    const dateVal = pickParam(call, ['data', 'date']);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Desatualizado',
-      title: 'Este artigo contém informações desatualizadas',
+      kicker: 'Template · Outdated',
+      title: 'This article contains outdated information',
       body: reason,
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -5932,26 +5922,23 @@ function resolveBuiltinTemplate(
     key === 'merge to' ||
     key === 'merge from'
   ) {
-    const targetRaw = pickParam(call, ['1', 'alvo', 'target', 'artigo', 'page']);
-    const targetLabel = pickParam(call, ['2', 'titulo', 'título', 'label']);
+    const targetRaw = pickParam(call, ['1', 'target', 'alvo', 'article', 'artigo', 'page']);
+    const targetLabel = pickParam(call, ['2', 'title', 'titulo', 'título', 'label']);
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'texto'],
-      'Os tópicos possuem forte sobreposição editorial e podem ser consolidados em um único artigo.'
+      ['reason', 'motivo', 'text', 'texto'],
+      'These topics share significant editorial overlap and could be consolidated into a single article.'
     );
     const targetLink = targetRaw
       ? targetLabel
         ? `[[${toWikiSlug(targetRaw)}|${targetLabel}]]`
         : `[[${toWikiSlug(targetRaw)}]]`
-      : '[[start|outro artigo relacionado]]';
-    const isEnglish = key === 'merge' || key === 'merge to' || key === 'merge from';
+      : '[[start|another related article]]';
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: isEnglish ? 'Template · Merge Proposal' : 'Predefinição · Proposta de Fusão',
-      title: isEnglish ? 'Proposed article merge' : 'Fusão de artigos proposta',
-      body: isEnglish
-        ? `It has been suggested that this page be merged with ${targetLink}. ${reason}`
-        : `Foi proposto que este artigo seja fundido com ${targetLink}. ${reason}`,
+      kicker: 'Template · Merge Proposal',
+      title: 'Proposed article merge',
+      body: `It has been suggested that this page be merged with ${targetLink}. ${reason}`,
     });
   }
 
@@ -5963,16 +5950,16 @@ function resolveBuiltinTemplate(
     key === 'translated page' ||
     key === 'expand language'
   ) {
-    const lang = pickParam(call, ['idioma', 'lingua', 'lang', 'language', '1'], 'outro idioma');
-    const sourceArticle = pickParam(call, ['artigo', 'article', 'source', '2']);
-    const progress = pickParam(call, ['progresso', 'status'], 'Em andamento');
+    const lang = pickParam(call, ['language', 'lang', 'idioma', 'lingua', '1'], 'another language');
+    const sourceArticle = pickParam(call, ['article', 'artigo', 'source', '2']);
+    const progress = pickParam(call, ['status', 'progresso'], 'In progress');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Tradução',
-      title: `Artigo em tradução (${lang})`,
+      kicker: 'Template · Translation',
+      title: `Article under translation (${lang})`,
       body: sourceArticle
-        ? `Este conteúdo está sendo traduzido ou adaptado a partir do artigo "${sourceArticle}" em ${lang}.`
-        : `Este conteúdo está sendo traduzido ou adaptado a partir de uma versão publicada em ${lang}.`,
+        ? `This content is being translated or adapted from the article "${sourceArticle}" in ${lang}.`
+        : `This content is being translated or adapted from an edition published in ${lang}.`,
       meta: `Status: ${progress}`,
     });
   }
@@ -5987,13 +5974,13 @@ function resolveBuiltinTemplate(
   ) {
     const note = pickParam(
       call,
-      ['1', 'texto', 'text', 'motivo'],
-      'As informações podem mudar rapidamente conforme o acontecimento se desenvolve e novas fontes fiáveis são publicadas.'
+      ['1', 'text', 'texto', 'reason', 'motivo'],
+      'Information may change rapidly as the event progresses and new reliable sources are published.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Evento Atual',
-      title: 'Este artigo documenta um evento em curso',
+      kicker: 'Template · Current Event',
+      title: 'This article documents a current event',
       body: note,
     });
   }
@@ -6007,13 +5994,13 @@ function resolveBuiltinTemplate(
   ) {
     const note = pickParam(
       call,
-      ['1', 'texto', 'text', 'motivo'],
-      'Este verbete trata de um projeto, produto ou evento planejado; detalhes divulgados estão sujeitos a alteração.'
+      ['1', 'text', 'texto', 'reason', 'motivo'],
+      'This article concerns a planned project, product, or event; disclosed details are subject to change.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Evento Futuro',
-      title: 'Evento ou lançamento futuro',
+      kicker: 'Template · Future Event',
+      title: 'Future event or upcoming release',
       body: note,
     });
   }
@@ -6028,16 +6015,16 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1', 'texto'],
-      'A relevância enciclopédica e as fontes deste artigo estão em avaliação comunitária para eliminação por consenso.'
+      ['reason', 'motivo', '1', 'text', 'texto'],
+      'The encyclopedic notability and sources of this article are under community review for deletion by consensus.'
     );
-    const dateVal = pickParam(call, ['data', 'date']);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Eliminação por Consenso',
-      title: 'Página proposta para eliminação por consenso',
-      body: `${reason} Participe da discussão antes da remoção deste aviso e consulte as [Regras de Uso do WikiMaker](#/terms).`,
-      meta: dateVal ? `Proposto em: ${dateVal}` : undefined,
+      kicker: 'Template · Deletion Discussion',
+      title: 'Page nominated for deletion by consensus',
+      body: `${reason} Participate in the discussion before removing this notice and review the [WikiMaker Usage Rules](#/terms).`,
+      meta: dateVal ? `Nominated on: ${dateVal}` : undefined,
     });
   }
 
@@ -6051,18 +6038,18 @@ function resolveBuiltinTemplate(
   ) {
     const level = pickParam(
       call,
-      ['nivel', 'level', 'tipo', '1'],
-      key === 'semiprotegida' ? 'Semiprotegida' : 'Protegida'
+      ['level', 'nivel', 'type', 'tipo', '1'],
+      key === 'semiprotegida' ? 'Semi-protected' : 'Protected'
     );
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'texto', '2'],
-      'A edição desta página encontra-se restrita temporariamente para preservar a integridade editorial do conteúdo.'
+      ['reason', 'motivo', 'text', 'texto', '2'],
+      'Editing on this page is temporarily restricted to preserve editorial content integrity.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Proteção de Página',
-      title: `Página ${level}`,
+      kicker: 'Template · Page Protection',
+      title: `${level} page`,
       body: reason,
     });
   }
@@ -6072,15 +6059,15 @@ function resolveBuiltinTemplate(
     const issues = call.positional.filter(Boolean);
     const body =
       issues.length > 0
-        ? `Pendências registradas: ${issues.map((item) => `• ${item}`).join(' · ')}`
-        : 'Este artigo possui múltiplas pendências de fontes, estilo ou atualização. Colabore editando o verbete.';
-    const dateVal = pickParam(call, ['data', 'date']);
+        ? `Recorded issues: ${issues.map((item) => `• ${item}`).join(' · ')}`
+        : 'This article has multiple sourcing, formatting, or currency issues. Help improve it by editing.';
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Múltiplos Problemas',
-      title: 'Este artigo apresenta múltiplos problemas editoriais',
+      kicker: 'Template · Multiple Issues',
+      title: 'This article has multiple editorial issues',
       body,
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -6093,15 +6080,15 @@ function resolveBuiltinTemplate(
     key === 'good article'
   ) {
     const defaultLevel =
-      key === 'artigo bom' || key === 'good article' ? 'Artigo Bom' : 'Artigo Destacado';
-    const level = pickParam(call, ['nivel', 'level', '1'], defaultLevel);
-    const dateVal = pickParam(call, ['data', 'date']);
+      key === 'artigo bom' || key === 'good article' ? 'Good Article' : 'Featured Article';
+    const level = pickParam(call, ['level', 'nivel', '1'], defaultLevel);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'success',
-      kicker: 'Predefinição · Qualidade Editorial',
-      title: `Reconhecido como ${level}`,
-      body: 'Este verbete segue os critérios de clareza, estrutura enciclopédica, imparcialidade e verificabilidade de fontes.',
-      meta: dateVal ? `Reconhecido em: ${dateVal}` : undefined,
+      kicker: 'Template · Editorial Quality',
+      title: `Recognized as ${level}`,
+      body: 'This entry meets the wiki standards for clarity, encyclopedic structure, neutrality, and source verifiability.',
+      meta: dateVal ? `Recognized on: ${dateVal}` : undefined,
     });
   }
 
@@ -6121,78 +6108,75 @@ function resolveBuiltinTemplate(
     key === 'onde' ||
     key === 'onde?'
   ) {
-    const reason = pickParam(call, ['motivo', 'reason', 'texto', '1']);
+    const reason = pickParam(call, ['reason', 'motivo', 'text', 'texto', '1']);
     const cleanKey = key.replace(/\?$/, '');
     const inlineLabelMap: Record<string, string> = {
-      quem: 'quem?',
+      quem: 'who?',
       who: 'who?',
-      quando: 'quando?',
+      quando: 'when?',
       when: 'when?',
-      onde: 'onde?',
+      onde: 'where?',
       clarify: 'clarification needed',
     };
     if (!isStandaloneLine || !reason) {
-      const label = inlineLabelMap[cleanKey] ?? 'carece de esclarecimento';
+      const label = inlineLabelMap[cleanKey] ?? 'clarification needed';
       return `[[markdown-guide|^[${label}]^]]`;
     }
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Esclarecimento Necessário',
-      title: 'Este trecho carece de esclarecimento',
+      kicker: 'Template · Clarification Needed',
+      title: 'This passage needs clarification',
       body: reason,
     });
   }
 
   // 9aa. {{Sobre}} / {{About}} / {{Outros significados}} / {{For}}
   if (key === 'sobre' || key === 'about' || key === 'outros significados' || key === 'for') {
-    const topic = pickParam(call, ['1', 'contexto', 'sobre'], 'outros significados');
-    const targetRaw = pickParam(call, ['2', 'pagina', 'slug', 'page']);
-    const targetLabel = pickParam(call, ['3', 'titulo', 'título', 'label']);
+    const topic = pickParam(call, ['1', 'context', 'contexto', 'about', 'sobre'], 'other uses');
+    const targetRaw = pickParam(call, ['2', 'page', 'pagina', 'slug']);
+    const targetLabel = pickParam(call, ['3', 'title', 'titulo', 'título', 'label']);
     const targetLink = targetRaw
       ? targetLabel
         ? `[[${toWikiSlug(targetRaw)}|${targetLabel}]]`
         : `[[${toWikiSlug(targetRaw)}]]`
-      : '[[start|Página Inicial]]';
-    const isEnglish = key === 'about' || key === 'for';
+      : '[[start|Home]]';
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: isEnglish ? 'Hatnote · About' : 'Nota de topo · Sobre',
-      body: isEnglish
-        ? `For ${topic}, see ${targetLink}.`
-        : `Para ${topic}, veja ${targetLink}.`,
+      kicker: 'Hatnote · About',
+      body: `For ${topic}, see ${targetLink}.`,
     });
   }
 
   // 9ab. {{Não confundir}} / {{Não confundir com}}
   if (key === 'nao confundir' || key === 'nao confundir com') {
-    const slugRaw = pickParam(call, ['1', 'pagina', 'slug']);
-    const label = pickParam(call, ['2', 'titulo', 'título', 'label']);
+    const slugRaw = pickParam(call, ['1', 'page', 'pagina', 'slug']);
+    const label = pickParam(call, ['2', 'title', 'titulo', 'título', 'label']);
     const targetLink = slugRaw
       ? label
         ? `[[${toWikiSlug(slugRaw)}|${label}]]`
         : `[[${toWikiSlug(slugRaw)}]]`
-      : '[[start|Página Inicial]]';
+      : '[[start|Home]]';
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Nota de topo · Não confundir',
-      body: `Não confundir com ${targetLink}.`,
+      kicker: 'Hatnote · Distinguish',
+      body: `Not to be confused with ${targetLink}.`,
     });
   }
 
   // 9ac. {{Redirecionamento}} / {{Redireciona}} / {{Redireciona aqui}}
   if (key === 'redirecionamento' || key === 'redireciona' || key === 'redireciona aqui') {
-    const term = pickParam(call, ['1', 'termo'], options?.currentTitle || 'Este termo');
-    const targetRaw = pickParam(call, ['2', 'alvo', 'pagina', 'slug']);
-    const targetLabel = pickParam(call, ['3', 'titulo', 'título', 'label']);
+    const term = pickParam(call, ['1', 'term', 'termo'], options?.currentTitle || 'This term');
+    const targetRaw = pickParam(call, ['2', 'target', 'alvo', 'page', 'pagina', 'slug']);
+    const targetLabel = pickParam(call, ['3', 'title', 'titulo', 'título', 'label']);
     const targetLink = targetRaw
       ? targetLabel
         ? `[[${toWikiSlug(targetRaw)}|${targetLabel}]]`
         : `[[${toWikiSlug(targetRaw)}]]`
-      : '[[start|o índice principal de artigos]]';
+      : '[[start|the main article index]]';
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Nota de topo · Redirecionamento',
-      body: `"${term}" redireciona para este artigo. Para outros significados, veja ${targetLink}.`,
+      kicker: 'Hatnote · Redirect',
+      body: `"${term}" redirects here. For other uses, see ${targetLink}.`,
     });
   }
 
@@ -6203,18 +6187,13 @@ function resolveBuiltinTemplate(
     key === 'blp' ||
     key === 'blp sources'
   ) {
-    const dateVal = pickParam(call, ['data', 'date']);
-    const isEnglish = key === 'blp' || key === 'blp sources';
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: isEnglish ? 'Template · BLP Policy' : 'Predefinição · Biografia de Pessoa Viva',
-      title: isEnglish
-        ? 'Biography of a living person — strict sourcing required'
-        : 'Biografia de pessoa viva — rigor documental obrigatório',
-      body: isEnglish
-        ? 'Contentious material about living persons that is unsourced or poorly sourced must be removed immediately.'
-        : 'Afirmações controversas sobre pessoas vivas sem fontes independentes e fiáveis devem ser removidas imediatamente.',
-      meta: dateVal ? (isEnglish ? `Tagged: ${dateVal}` : `Marcado em: ${dateVal}`) : undefined,
+      kicker: 'Template · BLP Policy',
+      title: 'Biography of a living person — strict sourcing required',
+      body: 'Contentious material about living persons that is unsourced or poorly sourced must be removed immediately.',
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -6227,16 +6206,16 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Este artigo depende excessivamente de fontes primárias ou autopublicadas; adicione fontes secundárias independentes.'
+      ['reason', 'motivo', '1'],
+      'This article relies too heavily on primary or self-published sources; please add independent secondary sources.'
     );
-    const dateVal = pickParam(call, ['data', 'date']);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Fontes Primárias',
-      title: 'Carece de fontes secundárias independentes',
+      kicker: 'Template · Primary Sources',
+      title: 'Needs independent secondary sources',
       body: reason,
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -6248,17 +6227,17 @@ function resolveBuiltinTemplate(
     key === 'copyright' ||
     key === 'violacao de direitos'
   ) {
-    const source = pickParam(call, ['fonte', 'source', 'url', '1']);
+    const source = pickParam(call, ['source', 'fonte', 'url', '1']);
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '2'],
-      'Trechos desta página estão sob verificação por possível reprodução sem autorização de obra protegida.'
+      ['reason', 'motivo', '2'],
+      'Sections of this page are under review for potential unauthorized reproduction of copyrighted material.'
     );
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Direitos Autorais (VDA)',
-      title: 'Suspeita de violação de direitos autorais',
-      body: `${reason}${source ? ` Fonte apontada: ${source}` : ''}`,
+      kicker: 'Template · Copyright Review',
+      title: 'Suspected copyright violation',
+      body: `${reason}${source ? ` Reported source: ${source}` : ''}`,
     });
   }
 
@@ -6272,7 +6251,7 @@ function resolveBuiltinTemplate(
     key === 'sem saida' ||
     key === 'beco sem saida'
   ) {
-    const dateVal = pickParam(call, ['data', 'date']);
+    const dateVal = pickParam(call, ['date', 'data']);
     const isDeadEnd =
       key === 'dead end' ||
       key === 'sem ligacoes' ||
@@ -6280,12 +6259,12 @@ function resolveBuiltinTemplate(
       key === 'beco sem saida';
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: isDeadEnd ? 'Predefinição · Sem Saída' : 'Predefinição · Artigo Órfão',
-      title: isDeadEnd ? 'Este artigo possui poucas ligações internas' : 'Este artigo é órfão',
+      kicker: isDeadEnd ? 'Template · Dead End' : 'Template · Orphan Article',
+      title: isDeadEnd ? 'This article has few internal links' : 'This article is an orphan',
       body: isDeadEnd
-        ? 'Adicione ligações internas (`[[slug|Título]]`) conectando este verbete a tópicos relacionados da wiki.'
-        : 'Poucos ou nenhum outro artigo apontam para esta página. Ajude criando links em verbetes relacionados.',
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+        ? 'Add internal links (`[[slug|Title]]`) connecting this entry to related topics across the wiki.'
+        : 'Few or no other articles link to this page. Help by adding links from related entries.',
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -6298,14 +6277,14 @@ function resolveBuiltinTemplate(
   ) {
     const note = pickParam(
       call,
-      ['1', 'motivo', 'texto'],
-      'A introdução deve sintetizar os pontos centrais do verbete de forma clara e proporcional antes da primeira secção.'
+      ['1', 'reason', 'motivo', 'text', 'texto'],
+      'The lead section should clearly and proportionally summarize the main points of the article before the first heading.'
     );
     const isMissing = key === 'lead missing' || key === 'sem introducao';
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Estrutura Introdutória',
-      title: isMissing ? 'Este artigo precisa de uma secção introdutória' : 'A introdução pode ser condensada',
+      kicker: 'Template · Lead Structure',
+      title: isMissing ? 'This article needs an introductory lead section' : 'The lead section may be too long',
       body: note,
     });
   }
@@ -6320,16 +6299,16 @@ function resolveBuiltinTemplate(
     key === 'secao vazia' ||
     key === 'seccao vazia'
   ) {
-    const section = pickParam(call, ['secao', 'seção', 'section', '1']);
+    const section = pickParam(call, ['section', 'secao', 'seção', '1']);
     const reason = pickParam(
       call,
-      ['motivo', 'reason', 'texto', '2'],
-      'Esta secção está vazia ou muito breve. Você pode ajudar expandindo-a com informações verificáveis.'
+      ['reason', 'motivo', 'text', 'texto', '2'],
+      'This section is empty or very short. You can help by expanding it with verifiable information.'
     );
     return serializePredefinicaoBlock({
       variant: 'stub',
-      kicker: 'Predefinição · Expandir Secção',
-      title: section ? `A secção "${section}" precisa ser expandida` : 'Esta secção precisa ser expandida',
+      kicker: 'Template · Expand Section',
+      title: section ? `The "${section}" section needs expansion` : 'This section needs expansion',
       body: reason,
     });
   }
@@ -6341,28 +6320,28 @@ function resolveBuiltinTemplate(
     key === 'prose' ||
     key === 'list to prose'
   ) {
-    const section = pickParam(call, ['secao', 'seção', 'section', '1']);
+    const section = pickParam(call, ['section', 'secao', 'seção', '1']);
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Formato Enciclopédico',
-      title: section ? `Converter "${section}" em prosa contínua` : 'Secção em formato de lista',
-      body: 'Este trecho está escrito predominantemente em tópicos; considere convertê-lo em parágrafos de prosa fluida.',
+      kicker: 'Template · Encyclopedic Format',
+      title: section ? `Convert "${section}" into continuous prose` : 'Section written in list format',
+      body: 'This passage is written primarily as bullet points; consider converting it into flowing encyclopedic paragraphs.',
     });
   }
 
   // 9ak. {{Divisão}} / {{Dividir}} / {{Split}} / {{Split section}}
   if (key === 'divisao' || key === 'dividir' || key === 'split' || key === 'split section') {
-    const suggestion = pickParam(call, ['sugestao', 'sugestão', 'alvo', '1']);
+    const suggestion = pickParam(call, ['suggestion', 'sugestao', 'sugestão', 'target', 'alvo', '1']);
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '2'],
-      'Foi proposto dividir parte deste conteúdo em um novo verbete independente.'
+      ['reason', 'motivo', '2'],
+      'It has been proposed to split part of this content into a separate standalone article.'
     );
-    const linkPart = suggestion ? ` Sugestão de destino: [[${toWikiSlug(suggestion)}]].` : '';
+    const linkPart = suggestion ? ` Suggested target: [[${toWikiSlug(suggestion)}]].` : '';
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Proposta de Divisão',
-      title: 'Divisão de artigo proposta',
+      kicker: 'Template · Split Proposal',
+      title: 'Proposed article split',
       body: `${reason}${linkPart}`,
     });
   }
@@ -6378,13 +6357,13 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Este texto parece redigido em tom promocional ou publicitário; reescreva com neutralidade enciclopédica e fontes terceiras.'
+      ['reason', 'motivo', '1'],
+      'This text appears to be written in a promotional or advertising tone; rewrite with encyclopedic neutrality and third-party sources.'
     );
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Tom Promocional',
-      title: 'Conteúdo com características publicitárias',
+      kicker: 'Template · Promotional Tone',
+      title: 'Content appears to have promotional phrasing',
       body: reason,
     });
   }
@@ -6398,13 +6377,13 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'O tema deste artigo pode não satisfazer os critérios de notoriedade enciclopédica sem fontes secundárias independentes.'
+      ['reason', 'motivo', '1'],
+      'The subject of this article may not meet encyclopedic notability guidelines without independent secondary sources.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Notoriedade',
-      title: 'A notoriedade do tema é questionada',
+      kicker: 'Template · Notability',
+      title: 'The notability of this topic is questioned',
       body: reason,
     });
   }
@@ -6416,28 +6395,28 @@ function resolveBuiltinTemplate(
     key === 'visao regional' ||
     key === 'globalize'
   ) {
-    const region = pickParam(call, ['regiao', 'região', 'region', '1'], 'uma única região');
+    const region = pickParam(call, ['region', 'regiao', 'região', '1'], 'a single region');
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '2'],
-      `Os exemplos e a abordagem refletem principalmente a realidade de ${region}, não representando uma visão global.`
+      ['reason', 'motivo', '2'],
+      `The examples and perspective primarily reflect ${region} and do not represent a worldwide view.`
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Escopo Geográfico',
-      title: 'Necessita perspectiva global',
+      kicker: 'Template · Geographic Scope',
+      title: 'Needs a global perspective',
       body: reason,
     });
   }
 
   // 9ao. {{Ficção}} / {{Enredo}} / {{In-universe}} / {{Plot}}
   if (key === 'ficcao' || key === 'enredo' || key === 'in universe' || key === 'plot') {
-    const work = pickParam(call, ['obra', 'work', '1']);
+    const work = pickParam(call, ['work', 'obra', '1']);
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Perspectiva Ficcional',
-      title: work ? `Contexto de mundo real necessário (${work})` : 'Escrito na perspectiva interna da obra',
-      body: 'Descreva obras e personagens a partir da perspectiva do mundo real (criação, autores, recepção), e não apenas como fatos internos da ficção.',
+      kicker: 'Template · Fictional Perspective',
+      title: work ? `Real-world context needed (${work})` : 'Written from an in-universe perspective',
+      body: 'Describe fictional works and characters from a real-world perspective (creation, authors, reception) rather than solely as in-universe facts.',
     });
   }
 
@@ -6448,16 +6427,16 @@ function resolveBuiltinTemplate(
     key === 'or' ||
     key === 'sintese'
   ) {
-    const section = pickParam(call, ['secao', 'seção', 'section', '1']);
-    const dateVal = pickParam(call, ['data', 'date']);
+    const section = pickParam(call, ['section', 'secao', 'seção', '1']);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Pesquisa Inédita',
+      kicker: 'Template · Original Research',
       title: section
-        ? `Possível pesquisa inédita na secção "${section}"`
-        : 'Pode conter pesquisa inédita ou síntese não publicada',
-      body: 'As análises e conclusões presentes em uma enciclopédia devem estar respaldadas por fontes independentes já publicadas.',
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+        ? `Possible original research in "${section}"`
+        : 'May contain original research or unpublished synthesis',
+      body: 'Claims and conclusions in an encyclopedia entry must be backed by already-published independent sources.',
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -6465,13 +6444,13 @@ function resolveBuiltinTemplate(
   if (key === 'curiosidades' || key === 'trivia') {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Evite seções isoladas de curiosidades; integre informações relevantes às secções principais do artigo.'
+      ['reason', 'motivo', '1'],
+      'Avoid isolated trivia sections; integrate relevant facts into the main body sections of the article.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Organização',
-      title: 'Secção de curiosidades desencorajada',
+      kicker: 'Template · Organization',
+      title: 'Trivia section is discouraged',
       body: reason,
     });
   }
@@ -6483,15 +6462,15 @@ function resolveBuiltinTemplate(
     key === 'aviso legal' ||
     key === 'legal disclaimer'
   ) {
-    const rawKind = normalizeTemplateKey(pickParam(call, ['tipo', 'type', '1'], key));
+    const rawKind = normalizeTemplateKey(pickParam(call, ['type', 'tipo', '1'], key));
     const isLegal = rawKind.includes('legal');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: isLegal ? 'Predefinição · Aviso Legal' : 'Predefinição · Aviso Médico',
-      title: isLegal ? 'Conteúdo meramente informativo (não constitui parecer jurídico)' : 'Aviso médico — conteúdo exclusivamente informativo',
+      kicker: isLegal ? 'Template · Legal Disclaimer' : 'Template · Medical Disclaimer',
+      title: isLegal ? 'Informational content only (not legal advice)' : 'Medical disclaimer — informational content only',
       body: isLegal
-        ? 'As informações desta página têm caráter educativo/documental e não substituem aconselhamento jurídico profissional.'
-        : 'Esta página tem caráter informativo e enciclopédico; nunca substitui diagnóstico ou orientação de profissionais de saúde qualificados.',
+        ? 'The information on this page is for educational/documentary purposes and does not substitute for professional legal counsel.'
+        : 'This page is for encyclopedic informational purposes only and never replaces diagnosis or advice from qualified healthcare professionals.',
     });
   }
 
@@ -6499,13 +6478,13 @@ function resolveBuiltinTemplate(
   if (key === 'humor' || key === 'piada' || key === 'satira' || key === 'humour') {
     const note = pickParam(
       call,
-      ['1', 'texto'],
-      'Esta página possui caráter humorístico ou satírico e não constitui diretriz normativa oficial da wiki.'
+      ['1', 'text', 'texto'],
+      'This page is intended as humor or satire and does not represent an official wiki policy or guideline.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Humor Comunitário',
-      title: 'Ensaio humorístico',
+      kicker: 'Template · Community Humor',
+      title: 'Humorous essay',
       body: note,
     });
   }
@@ -6517,12 +6496,12 @@ function resolveBuiltinTemplate(
     key === 'historico preservado' ||
     key === 'archive'
   ) {
-    const period = pickParam(call, ['periodo', 'período', '1'], 'Ciclo anterior');
+    const period = pickParam(call, ['period', 'periodo', 'período', '1'], 'Previous cycle');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Arquivo',
-      title: `Arquivo histórico (${period})`,
-      body: 'Esta página preserva discussões ou registros históricos encerrados. Evite editar o arquivo; inicie novos tópicos na página atual.',
+      kicker: 'Template · Archive',
+      title: `Historical archive (${period})`,
+      body: 'This page preserves closed discussions or historical logs. Avoid editing this archive; start new topics on the current page.',
     });
   }
 
@@ -6530,19 +6509,19 @@ function resolveBuiltinTemplate(
   if (key === 'fim de spoiler' || key === 'end spoiler' || key === 'spoiler end') {
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Fim de Spoiler',
-      body: 'Fim da secção com revelações de enredo.',
+      kicker: 'End of Spoilers',
+      body: 'End of the section containing plot spoilers.',
     });
   }
 
   // 9av. {{Userbox}} / {{Caixa de usuário}} / {{Babel}}
   if (key === 'userbox' || key === 'caixa de usuario' || key === 'babel') {
-    const code = pickParam(call, ['sigla', 'codigo', 'código', '1'], 'WIKI');
-    const label = pickParam(call, ['titulo', 'título', 'categoria'], 'Perfil de Colaborador');
+    const code = pickParam(call, ['code', 'sigla', 'codigo', 'código', '1'], 'WIKI');
+    const label = pickParam(call, ['title', 'titulo', 'título', 'category', 'categoria'], 'Contributor Profile');
     const text = pickParam(
       call,
-      ['texto', 'text', '2'],
-      'Este colaborador participa ativamente da construção da enciclopédia.'
+      ['text', 'texto', '2'],
+      'This contributor actively participates in building the encyclopedia.'
     );
     return serializePredefinicaoBlock({
       variant: 'success',
@@ -6554,8 +6533,8 @@ function resolveBuiltinTemplate(
 
   // 9aw. {{Navbox}} / {{Caixa de navegação}} / {{Navegação}}
   if (key === 'navbox' || key === 'caixa de navegacao' || key === 'navegacao') {
-    const title = pickParam(call, ['titulo', 'título', 'title', 'nome'], 'Artigos relacionados');
-    const explicitList = pickParam(call, ['lista', 'itens', 'links', 'conteudo', 'conteúdo']);
+    const title = pickParam(call, ['title', 'titulo', 'título', 'name', 'nome'], 'Related Articles');
+    const explicitList = pickParam(call, ['list', 'lista', 'items', 'itens', 'links', 'content', 'conteudo', 'conteúdo']);
     const rawItems =
       call.positional.filter(Boolean).length > 0
         ? call.positional.filter(Boolean)
@@ -6564,10 +6543,10 @@ function resolveBuiltinTemplate(
           : [];
     const items = rawItems.map((item) => `[[${toWikiSlug(item)}|${item.trim()}]]`);
     const body =
-      items.length > 0 ? items.join(' · ') : '[[start|Página Inicial]] · [[markdown-guide|Guia de Markdown]]';
+      items.length > 0 ? items.join(' · ') : '[[start|Home]] · [[markdown-guide|Markdown Guide]]';
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Navbox · Navegação Temática',
+      kicker: 'Navbox · Topic Navigation',
       title,
       body,
     });
@@ -6575,30 +6554,30 @@ function resolveBuiltinTemplate(
 
   // 9ax. {{Artigo em série}} / {{Série}} / {{Part of a series}}
   if (key === 'artigo em serie' || key === 'serie' || key === 'part of a series') {
-    const serie = pickParam(call, ['serie', 'série', 'series', 'titulo', 'título', 'title', '1'], 'Série Editorial');
-    const idx = pickParam(call, ['indice', 'índice', 'index']);
-    const prev = pickParam(call, ['anterior', 'prev']);
-    const next = pickParam(call, ['proximo', 'próximo', 'next']);
+    const serie = pickParam(call, ['series', 'serie', 'série', 'title', 'titulo', 'título', '1'], 'Editorial Series');
+    const idx = pickParam(call, ['index', 'indice', 'índice']);
+    const prev = pickParam(call, ['previous', 'prev', 'anterior']);
+    const next = pickParam(call, ['next', 'proximo', 'próximo']);
     const links: string[] = [];
-    if (prev) links.push(`← Anterior: [[${toWikiSlug(prev)}]]`);
-    if (idx) links.push(`Índice: [[${toWikiSlug(idx)}|${serie}]]`);
-    if (next) links.push(`Próximo: [[${toWikiSlug(next)}]] →`);
+    if (prev) links.push(`← Previous: [[${toWikiSlug(prev)}]]`);
+    if (idx) links.push(`Index: [[${toWikiSlug(idx)}|${serie}]]`);
+    if (next) links.push(`Next: [[${toWikiSlug(next)}]] →`);
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Série de Artigos',
-      title: `Parte da série: ${serie}`,
-      body: links.length > 0 ? links.join(' · ') : '[[start|Explorar índice da wiki]]',
+      kicker: 'Article Series',
+      title: `Part of a series on: ${serie}`,
+      body: links.length > 0 ? links.join(' · ') : '[[start|Browse wiki index]]',
     });
   }
 
   // 9ay. {{Lista dinâmica}} / {{Dynamic list}} / {{Lista incompleta}}
   if (key === 'lista dinamica' || key === 'dynamic list' || key === 'lista incompleta') {
-    const tema = pickParam(call, ['tema', '1'], 'entradas documentadas');
+    const tema = pickParam(call, ['topic', 'tema', '1'], 'documented entries');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Lista Dinâmica',
-      title: 'Esta é uma lista dinâmica',
-      body: `Esta lista de ${tema} pode nunca estar completa; contribua adicionando itens verificáveis e referenciados.`,
+      kicker: 'Template · Dynamic List',
+      title: 'This is a dynamic list',
+      body: `This list of ${tema} may never be able to satisfy particular standards for completeness; help by adding verifiable, sourced items.`,
     });
   }
 
@@ -6606,13 +6585,13 @@ function resolveBuiltinTemplate(
   if (key === 'documentacao' || key === 'documentation' || key === 'doc') {
     const text = pickParam(
       call,
-      ['texto', 'text', '1'],
-      'Documentação técnica de parâmetros, aliases e exemplos de uso desta predefinição.'
+      ['text', 'texto', '1'],
+      'Technical documentation of parameters, aliases, and usage examples for this template.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Documentação',
-      title: 'Documentação da predefinição',
+      kicker: 'Template · Documentation',
+      title: 'Template documentation',
       body: text,
     });
   }
@@ -6621,19 +6600,19 @@ function resolveBuiltinTemplate(
   if (key === 'indice' || key === 'compact toc' || key === 'tocright' || key === 'toc') {
     const note = pickParam(
       call,
-      ['1', 'texto'],
-      'Utilize o índice lateral automático da página para navegar entre todas as secções.'
+      ['1', 'text', 'texto'],
+      'Use the automatic sidebar table of contents on this page to jump between sections.'
     );
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Navegação · Índice',
+      kicker: 'Navigation · Table of Contents',
       body: note,
     });
   }
 
   // 9bb. {{Âncora}} / {{Anchor}}
   if (key === 'ancora' || key === 'anchor') {
-    const anchorId = toWikiSlug(pickParam(call, ['1', 'id', 'nome'], 'ancora'));
+    const anchorId = toWikiSlug(pickParam(call, ['1', 'id', 'name', 'nome'], 'anchor'));
     return `<span id="${anchorId}"></span>`;
   }
 
@@ -6644,11 +6623,11 @@ function resolveBuiltinTemplate(
     key === 'citar tese' ||
     key === 'cite thesis'
   ) {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Academic Article');
-    const author = pickParam(call, ['autor', 'author', 'last']);
-    const journal = pickParam(call, ['revista', 'periodico', 'periódico', 'journal', 'instituicao', 'university']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Academic Article');
+    const author = pickParam(call, ['author', 'autor', 'last']);
+    const journal = pickParam(call, ['journal', 'revista', 'periodico', 'periódico', 'institution', 'instituicao', 'university']);
     const volume = pickParam(call, ['volume', 'vol']);
-    const year = pickParam(call, ['ano', 'year', 'data', 'date']);
+    const year = pickParam(call, ['year', 'ano', 'date', 'data']);
     const doi = pickParam(call, ['doi']);
     const refName = pickParam(call, ['name', 'nome']).replace(/["<>]/g, '').trim();
 
@@ -6671,9 +6650,9 @@ function resolveBuiltinTemplate(
     key === 'cite av media' ||
     key === 'cite video'
   ) {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Video Reference');
-    const author = pickParam(call, ['autor', 'author', 'canal', 'people']);
-    const year = pickParam(call, ['ano', 'year', 'data', 'date']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Video Reference');
+    const author = pickParam(call, ['author', 'autor', 'channel', 'canal', 'people']);
+    const year = pickParam(call, ['year', 'ano', 'date', 'data']);
     const url = pickParam(call, ['url', 'link']);
     const refName = pickParam(call, ['name', 'nome']).replace(/["<>]/g, '').trim();
 
@@ -6683,7 +6662,7 @@ function resolveBuiltinTemplate(
         : `"${title}"`;
     const segments: string[] = [];
     if (author) segments.push(`${author}.`);
-    segments.push(`${formattedTitle} (Vídeo)`);
+    segments.push(`${formattedTitle} (Video)`);
     if (year) segments.push(`— (${year})`);
 
     const body = segments.join(' ').trim();
@@ -6692,10 +6671,10 @@ function resolveBuiltinTemplate(
 
   // 9be. {{Citar enciclopédia}} / {{Cite encyclopedia}}
   if (key === 'citar enciclopedia' || key === 'cite encyclopedia') {
-    const entry = pickParam(call, ['verbete', 'title', 'título', 'titulo', '1'], 'Verbete');
-    const work = pickParam(call, ['obra', 'encyclopedia', 'enciclopedia'], 'Enciclopédia');
-    const publisher = pickParam(call, ['editora', 'publisher']);
-    const year = pickParam(call, ['ano', 'year']);
+    const entry = pickParam(call, ['entry', 'verbete', 'title', 'título', 'titulo', '1'], 'Entry');
+    const work = pickParam(call, ['encyclopedia', 'obra', 'enciclopedia'], 'Encyclopedia');
+    const publisher = pickParam(call, ['publisher', 'editora']);
+    const year = pickParam(call, ['year', 'ano']);
     const refName = pickParam(call, ['name', 'nome']).replace(/["<>]/g, '').trim();
 
     const segments: string[] = [`"${entry}". In: *${work}*`];
@@ -6708,12 +6687,12 @@ function resolveBuiltinTemplate(
 
   // 9bf. {{Citações}} / {{Wikiquote}} / {{Quote box}}
   if (key === 'citacoes' || key === 'wikiquote' || key === 'quote box') {
-    const title = pickParam(call, ['titulo', 'título', 'title']);
-    const text = pickParam(call, ['texto', 'text', 'quote', 'citacao', 'citação', '1'], 'Conhecimento livre e documentado.');
-    const author = pickParam(call, ['autor', 'author', 'source', '2']);
+    const title = pickParam(call, ['title', 'titulo', 'título']);
+    const text = pickParam(call, ['text', 'texto', 'quote', 'citacao', 'citação', '1'], 'Open and documented knowledge.');
+    const author = pickParam(call, ['author', 'autor', 'source', '2']);
     return serializePredefinicaoBlock({
       variant: 'quote',
-      kicker: title || 'Citação em Destaque',
+      kicker: title || 'Featured Quote',
       body: text,
       author: author || undefined,
     });
@@ -6721,7 +6700,7 @@ function resolveBuiltinTemplate(
 
   // 9bg. {{Tl}} / {{Etiqueta}} / {{Predef}}
   if (key === 'tl' || key === 'etiqueta' || key === 'predef') {
-    const name = pickParam(call, ['1', 'nome', 'name'], 'Aviso');
+    const name = pickParam(call, ['1', 'name', 'nome'], 'Notice');
     const extra = call.orderedEntries
       .slice(1)
       .map((entry) => (entry.isNamed ? `${entry.key}=${entry.value}` : entry.value))
@@ -6771,10 +6750,10 @@ function resolveBuiltinTemplate(
     key === 'eur' ||
     key === 'currency'
   ) {
-    const val = pickParam(call, ['1', 'valor', 'amount'], '0');
+    const val = pickParam(call, ['1', 'amount', 'valor'], '0');
     const code = (
-      pickParam(call, ['2', 'codigo', 'código', 'currency']) ||
-      (key === 'brl' || key === 'usd' || key === 'eur' ? key : 'BRL')
+      pickParam(call, ['2', 'currency', 'codigo', 'código']) ||
+      (key === 'brl' || key === 'usd' || key === 'eur' ? key : 'USD')
     ).toUpperCase();
     const symbolMap: Record<string, string> = {
       BRL: 'R$',
@@ -6801,11 +6780,11 @@ function resolveBuiltinTemplate(
     key === 'data de nascimento' ||
     key === 'birth date and age'
   ) {
-    const y = Number.parseInt(pickParam(call, ['1', 'ano', 'year'], '2000'), 10);
-    const m = Number.parseInt(pickParam(call, ['2', 'mes', 'mês', 'month'], '1'), 10);
-    const d = Number.parseInt(pickParam(call, ['3', 'dia', 'day'], '1'), 10);
+    const y = Number.parseInt(pickParam(call, ['1', 'year', 'ano'], '2000'), 10);
+    const m = Number.parseInt(pickParam(call, ['2', 'month', 'mes', 'mês'], '1'), 10);
+    const d = Number.parseInt(pickParam(call, ['3', 'day', 'dia'], '1'), 10);
     if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
-      return 'Data inválida';
+      return 'Invalid date';
     }
     const today = new Date();
     let age = today.getFullYear() - y;
@@ -6815,20 +6794,20 @@ function resolveBuiltinTemplate(
     }
     const dd = String(d).padStart(2, '0');
     const mm = String(m).padStart(2, '0');
-    return `${dd}/${mm}/${y} (${Math.max(0, age)} anos)`;
+    return `${y}-${mm}-${dd} (${Math.max(0, age)} years old)`;
   }
 
   // 9bm. {{Cor}} / {{Color sample}} / {{Swatch}}
   if (key === 'cor' || key === 'color sample' || key === 'swatch') {
-    const hex = pickParam(call, ['1', 'hex', 'codigo'], '#2563EB');
-    const label = pickParam(call, ['2', 'nome', 'label']);
+    const hex = pickParam(call, ['1', 'hex', 'code', 'codigo'], '#2563EB');
+    const label = pickParam(call, ['2', 'label', 'name', 'nome']);
     return label ? `\`${hex}\` (${label})` : `\`${hex}\``;
   }
 
   // 9bn. {{ISBN}} / {{DOI}} / {{ISSN}} / {{arXiv}}
   if (key === 'isbn' || key === 'doi' || key === 'issn' || key === 'arxiv') {
-    const rawKind = pickParam(call, ['tipo', 'type'], key).toUpperCase();
-    const id = pickParam(call, ['1', 'id', 'codigo', 'código'], '');
+    const rawKind = pickParam(call, ['type', 'tipo'], key).toUpperCase();
+    const id = pickParam(call, ['1', 'id', 'code', 'codigo', 'código'], '');
     if (!id) return `\`${rawKind}\``;
     if (rawKind === 'DOI') {
       return `[doi:${id}](https://doi.org/${encodeURIComponent(id)})`;
@@ -6850,14 +6829,14 @@ function resolveBuiltinTemplate(
     key === 'check' ||
     key === 'cross'
   ) {
-    const customLabel = pickParam(call, ['1', 'texto', 'label']);
+    const customLabel = pickParam(call, ['1', 'text', 'texto', 'label']);
     if (key === 'sim' || key === 'yes' || key === 'check') {
-      return `✅ ${customLabel || (key === 'yes' ? 'Yes' : 'Sim')}`;
+      return `✅ ${customLabel || 'Yes'}`;
     }
     if (key === 'nao' || key === 'no' || key === 'cross') {
-      return `❌ ${customLabel || (key === 'no' ? 'No' : 'Não')}`;
+      return `❌ ${customLabel || 'No'}`;
     }
-    return `⚠️ ${customLabel || (key === 'maybe' ? 'Partial' : 'Parcial')}`;
+    return `⚠️ ${customLabel || 'Partial'}`;
   }
 
   // 9bp. {{Mais fontes}} / {{More citations needed}} / {{Refimprove}}
@@ -6867,16 +6846,16 @@ function resolveBuiltinTemplate(
     key === 'refimprove' ||
     key === 'fontes insuficientes'
   ) {
-    const section = pickParam(call, ['secao', 'seção', 'section', '1']);
-    const dateVal = pickParam(call, ['data', 'date']);
+    const section = pickParam(call, ['section', 'secao', 'seção', '1']);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Mais Fontes',
+      kicker: 'Template · More Citations Needed',
       title: section
-        ? `A secção "${section}" necessita de fontes adicionais`
-        : 'Este artigo necessita de fontes adicionais',
-      body: 'Embora já contenha algumas referências, há trechos que ainda dependem de fontes independentes verificáveis.',
-      meta: dateVal ? `Marcado em: ${dateVal}` : undefined,
+        ? `The "${section}" section needs additional citations`
+        : 'This article needs additional citations',
+      body: 'Although this entry already contains some references, certain claims still require verifiable independent sources.',
+      meta: dateVal ? `Tagged: ${dateVal}` : undefined,
     });
   }
 
@@ -6889,13 +6868,13 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Este verbete lista bibliografia geral ao final, mas carece de notas inline (`<ref>`) vinculando afirmações específicas às fontes.'
+      ['reason', 'motivo', '1'],
+      'This article lists a general bibliography at the end, but lacks inline citations (`<ref>`) linking specific statements to sources.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Notas de Rodapé',
-      title: 'Carência de citações no corpo do texto',
+      kicker: 'Template · Inline Footnotes',
+      title: 'Lacks inline citations',
       body: reason,
     });
   }
@@ -6908,13 +6887,13 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Algumas referências citadas são blogs, fóruns ou fontes sem controle editorial; substitua por fontes fiáveis.'
+      ['reason', 'motivo', '1'],
+      'Some cited references are blogs, forums, or sources lacking editorial oversight; replace them with reliable sources.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Fiabilidade de Fontes',
-      title: 'Possível uso de fonte não confiável',
+      kicker: 'Template · Source Reliability',
+      title: 'Possible use of unreliable sources',
       body: reason,
     });
   }
@@ -6928,13 +6907,13 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Um colaborador com vínculo pessoal ou institucional com o tema pode ter contribuído para este verbete. Revise a neutralidade.'
+      ['reason', 'motivo', '1'],
+      'A contributor with a personal or institutional connection to the subject may have edited this page. Please review neutrality.'
     );
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: 'Predefinição · Conflito de Interesses',
-      title: 'Possível conflito de interesses editorial',
+      kicker: 'Template · Conflict of Interest',
+      title: 'Possible editorial conflict of interest',
       body: reason,
     });
   }
@@ -6943,29 +6922,29 @@ function resolveBuiltinTemplate(
   if (key === 'contraditorio' || key === 'contradict' || key === 'inconsistente') {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Este artigo apresenta dados ou afirmações contraditórias entre suas secções que precisam ser reconciliadas.'
+      ['reason', 'motivo', '1'],
+      'This article contains conflicting data or claims across sections that need to be reconciled.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Consistência Factual',
-      title: 'Informações potencialmente contraditórias',
+      kicker: 'Template · Factual Consistency',
+      title: 'Potentially contradictory information',
       body: reason,
     });
   }
 
   // 9bu. {{Confuso}} / {{Confusing}} / {{Incompreensível}}
   if (key === 'confuso' || key === 'confusing' || key === 'incompreensivel') {
-    const section = pickParam(call, ['secao', 'seção', 'section']);
+    const section = pickParam(call, ['section', 'secao', 'seção']);
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'A redação atual pode estar pouco clara para leitores não especialistas; reescreva com mais clareza e coesão.'
+      ['reason', 'motivo', '1'],
+      'The current wording may be unclear to general readers; please rewrite for clarity and cohesion.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Clareza Editorial',
-      title: section ? `Redação confusa na secção "${section}"` : 'Este artigo pode estar confuso ou pouco claro',
+      kicker: 'Template · Editorial Clarity',
+      title: section ? `Unclear phrasing in "${section}"` : 'This article may be confusing or unclear',
       body: reason,
     });
   }
@@ -6979,13 +6958,13 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'O texto adota estilo de ensaio pessoal ou opinativo. Reescreva em tom enciclopédico neutro e baseado em fontes.'
+      ['reason', 'motivo', '1'],
+      'The text reads like a personal essay or opinion piece. Rewrite in a neutral, encyclopedic tone backed by sources.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Estilo Enciclopédico',
-      title: 'Redação com tom ensaístico ou opinativo',
+      kicker: 'Template · Encyclopedic Style',
+      title: 'Written in an essay-like or opinionated tone',
       body: reason,
     });
   }
@@ -6999,13 +6978,13 @@ function resolveBuiltinTemplate(
   ) {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Este conteúdo está redigido como tutorial ou manual passo a passo; apresente o tema de maneira descritiva e enciclopédica.'
+      ['reason', 'motivo', '1'],
+      'This content is written like a how-to guide or step-by-step manual; present the subject descriptively and encyclopedically.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Formato Tutorial',
-      title: 'Contém instruções no estilo "como fazer"',
+      kicker: 'Template · Manual Style',
+      title: 'Contains "how-to" style instructions',
       body: reason,
     });
   }
@@ -7016,16 +6995,16 @@ function resolveBuiltinTemplate(
     key === 'excessive examples' ||
     key === 'muitos exemplos'
   ) {
-    const section = pickParam(call, ['secao', 'seção', 'section']);
+    const section = pickParam(call, ['section', 'secao', 'seção']);
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Esta secção contém exemplos redundantes ou triviais; mantenha apenas os mais representativos e referenciados.'
+      ['reason', 'motivo', '1'],
+      'This section contains redundant or trivial examples; keep only the most representative and sourced ones.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Seleção Editorial',
-      title: section ? `Excesso de exemplos em "${section}"` : 'Excesso de exemplos neste artigo',
+      kicker: 'Template · Editorial Curation',
+      title: section ? `Excessive examples in "${section}"` : 'Excessive examples in this article',
       body: reason,
     });
   }
@@ -7036,16 +7015,16 @@ function resolveBuiltinTemplate(
     key === 'rough translation' ||
     key === 'traducao de maquina'
   ) {
-    const lang = pickParam(call, ['idioma', 'lang', '1'], 'outro idioma');
+    const lang = pickParam(call, ['language', 'lang', 'idioma', '1'], 'another language');
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '2'],
-      `Trechos deste texto parecem traduzidos automaticamente de ${lang}; revise a fluência idiomática e a concordância.`
+      ['reason', 'motivo', '2'],
+      `Passages of this text appear to be machine-translated from ${lang}; please review fluency, grammar, and terminology.`
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Revisão de Tradução',
-      title: `Possível tradução automática (${lang})`,
+      kicker: 'Template · Translation Review',
+      title: `Possible machine translation (${lang})`,
       body: reason,
     });
   }
@@ -7057,16 +7036,16 @@ function resolveBuiltinTemplate(
     key === 'perito' ||
     key === 'revisao especializada'
   ) {
-    const area = pickParam(call, ['area', 'área', 'tema', '1'], 'área técnica');
+    const area = pickParam(call, ['area', 'área', 'topic', 'tema', '1'], 'specialized field');
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '2'],
-      `Este artigo precisa de revisão por um especialista em ${area} para validar conceitos e terminologia.`
+      ['reason', 'motivo', '2'],
+      `This article needs attention from an expert in ${area} to verify technical concepts and terminology.`
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Revisão Especializada',
-      title: `Solicitada revisão de especialista (${area})`,
+      kicker: 'Template · Expert Attention',
+      title: `Expert review requested (${area})`,
       body: reason,
     });
   }
@@ -7078,14 +7057,14 @@ function resolveBuiltinTemplate(
     key === 'sem categoria' ||
     key === 'categorizar'
   ) {
-    const suggestion = pickParam(call, ['sugestao', 'sugestão', '1']);
+    const suggestion = pickParam(call, ['suggestion', 'sugestao', 'sugestão', '1']);
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Taxonomia',
-      title: 'Página sem categorias ou tags temáticas',
+      kicker: 'Template · Taxonomy',
+      title: 'Page lacks categories or topic tags',
       body: suggestion
-        ? `Adicione uma categoria e tags adequadas ao verbete (sugestão inicial: ${suggestion}).`
-        : 'Classifique este verbete em uma categoria e adicione tags temáticas para facilitar a descoberta.',
+        ? `Add an appropriate category and topic tags to this entry (initial suggestion: ${suggestion}).`
+        : 'Assign this entry to a category and add topic tags to improve discoverability.',
     });
   }
 
@@ -7098,25 +7077,25 @@ function resolveBuiltinTemplate(
   ) {
     const subject = pickParam(
       call,
-      ['tema', 'descricao', 'descrição', '1'],
-      'Uma fotografia livre, mapa ou diagrama explicativo ajudaria a ilustrar este verbete.'
+      ['description', 'descricao', 'descrição', 'topic', 'tema', '1'],
+      'An open-licensed photograph, map, or explanatory diagram would help illustrate this article.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Ilustração Solicitada',
-      title: 'Este artigo beneficiaria de uma imagem ilustrativa',
+      kicker: 'Template · Image Requested',
+      title: 'This article would benefit from an illustration',
       body: subject,
     });
   }
 
   // 9cc. {{Falta infobox}} / {{New infobox}} / {{Sem info}}
   if (key === 'falta infobox' || key === 'new infobox' || key === 'sem info') {
-    const model = pickParam(call, ['modelo', 'tipo', '1'], 'Info');
+    const model = pickParam(call, ['model', 'modelo', 'type', 'tipo', '1'], 'Infobox');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Infobox Sugerida',
-      title: 'Este verbete ainda não possui Infobox',
-      body: `Considere inserir \`{{${model}|...}}\` no topo da página para sintetizar os principais atributos do tema.`,
+      kicker: 'Template · Infobox Suggested',
+      title: 'This article does not yet have an Infobox',
+      body: `Consider adding \`{{${model}|...}}\` at the top of the page to summarize the subject's key attributes.`,
     });
   }
 
@@ -7127,16 +7106,16 @@ function resolveBuiltinTemplate(
     key === 'requested move' ||
     key === 'mudar titulo'
   ) {
-    const target = pickParam(call, ['sugestao', 'sugestão', 'titulo', 'título', '1'], 'Novo título proposto');
+    const target = pickParam(call, ['suggestion', 'sugestao', 'sugestão', 'title', 'titulo', 'título', '1'], 'Proposed new title');
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '2'],
-      'Foi proposta a renomeação deste verbete para refletir o nome mais preciso e usual.'
+      ['reason', 'motivo', '2'],
+      'It has been proposed to rename this page to reflect its most accurate and commonly used title.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Proposta de Renomeação',
-      title: `Proposta de mover para "${target}"`,
+      kicker: 'Template · Requested Move',
+      title: `Proposed move to "${target}"`,
       body: reason,
     });
   }
@@ -7145,26 +7124,26 @@ function resolveBuiltinTemplate(
   if (key === 'introducao curta' || key === 'lead too short' || key === 'resumo curto') {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'A introdução está muito breve; expanda-a para sintetizar definição, contexto e pontos centrais do artigo.'
+      ['reason', 'motivo', '1'],
+      'The lead section is too short; expand it to summarize the definition, context, and key highlights of the article.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Introdução Curta',
-      title: 'A secção introdutória pode ser ampliada',
+      kicker: 'Template · Short Lead',
+      title: 'The introductory section should be expanded',
       body: reason,
     });
   }
 
   // 9cf. {{Lista destacada}} / {{Featured list}}
   if (key === 'lista destacada' || key === 'featured list') {
-    const dateVal = pickParam(call, ['data', 'date']);
+    const dateVal = pickParam(call, ['date', 'data']);
     return serializePredefinicaoBlock({
       variant: 'success',
-      kicker: 'Predefinição · Lista Destacada',
-      title: 'Reconhecida como Lista Destacada',
-      body: 'Esta lista atende aos critérios editoriais de abrangência, organização tabular e verificabilidade.',
-      meta: dateVal ? `Reconhecida em: ${dateVal}` : undefined,
+      kicker: 'Template · Featured List',
+      title: 'Recognized as Featured List',
+      body: 'This list meets the wiki editorial criteria for comprehensiveness, tabular organization, and verifiability.',
+      meta: dateVal ? `Recognized on: ${dateVal}` : undefined,
     });
   }
 
@@ -7172,13 +7151,13 @@ function resolveBuiltinTemplate(
   if (key === 'conteudo sensivel' || key === 'content warning' || key === 'tema sensivel') {
     const topic = pickParam(
       call,
-      ['tema', '1'],
-      'Esta página documenta temas sensíveis ou históricos delicados sob perspectiva estritamente informativa.'
+      ['topic', 'tema', '1'],
+      'This page documents sensitive or delicate historical topics from a strictly informational perspective.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Aviso de Conteúdo',
-      title: 'Aviso sobre tema sensível',
+      kicker: 'Template · Content Warning',
+      title: 'Sensitive topic notice',
       body: topic,
     });
   }
@@ -7192,33 +7171,33 @@ function resolveBuiltinTemplate(
   ) {
     const outcome = pickParam(
       call,
-      ['resultado', 'consenso', '1'],
-      'Consenso registrado pela comunidade; tópico encerrado.'
+      ['outcome', 'resultado', 'consensus', 'consenso', '1'],
+      'Community consensus recorded; discussion closed.'
     );
-    const closedBy = pickParam(call, ['responsavel', 'responsável', '2']);
+    const closedBy = pickParam(call, ['responsible', 'responsavel', 'responsável', '2']);
     return serializePredefinicaoBlock({
       variant: 'success',
-      kicker: 'Discussão Encerrada',
-      title: 'Resultado do consenso',
+      kicker: 'Discussion Closed',
+      title: 'Consensus outcome',
       body: outcome,
-      meta: closedBy ? `Encerrado por: ${closedBy}` : undefined,
+      meta: closedBy ? `Closed by: ${closedBy}` : undefined,
     });
   }
 
   // 9ci. {{Ping}} / {{Responder}} / {{Mention}} / {{Notificar}}
   if (key === 'ping' || key === 'responder' || key === 'mention' || key === 'notificar') {
     const users = call.positional.filter(Boolean);
-    if (users.length === 0) return '**@Colaborador**';
+    if (users.length === 0) return '**@Collaborator**';
     return users.map((u) => `[[usuario-${toWikiSlug(u.trim())}|@${u.trim()}]]`).join(', ');
   }
 
   // 9cj. {{Não assinou}} / {{Unsigned}} / {{Sem assinatura}}
   if (key === 'nao assinou' || key === 'unsigned' || key === 'sem assinatura') {
-    const author = pickParam(call, ['1', 'usuario', 'usuário'], 'Colaborador');
-    const timestamp = pickParam(call, ['2', 'data', 'date']);
+    const author = pickParam(call, ['1', 'user', 'usuario', 'usuário'], 'Collaborator');
+    const timestamp = pickParam(call, ['2', 'date', 'data']);
     return timestamp
-      ? `— *Comentário não assinado de [[usuario-${toWikiSlug(author)}|${author}]] (${timestamp})*`
-      : `— *Comentário não assinado de [[usuario-${toWikiSlug(author)}|${author}]]*`;
+      ? `— *Unsigned comment added by [[usuario-${toWikiSlug(author)}|${author}]] (${timestamp})*`
+      : `— *Unsigned comment added by [[usuario-${toWikiSlug(author)}|${author}]]*`;
   }
 
   // 9ck. {{Apoio}} / {{Support}} / {{Concordo}} / {{Discordo}} / {{Oppose}} / {{Contra}} / {{Neutro}} / {{Neutral}} / {{Comentário}}
@@ -7233,17 +7212,17 @@ function resolveBuiltinTemplate(
     key === 'neutral' ||
     key === 'comentario'
   ) {
-    const custom = pickParam(call, ['1', 'texto']);
+    const custom = pickParam(call, ['1', 'text', 'texto']);
     if (key === 'apoio' || key === 'support' || key === 'concordo') {
-      return `👍 **${custom || (key === 'support' ? 'Support' : 'Apoio')}**`;
+      return `👍 **${custom || 'Support'}**`;
     }
     if (key === 'discordo' || key === 'oppose' || key === 'contra') {
-      return `👎 **${custom || (key === 'oppose' ? 'Oppose' : 'Discordo')}**`;
+      return `👎 **${custom || 'Oppose'}**`;
     }
     if (key === 'comentario') {
-      return `💬 **${custom || 'Comentário'}**`;
+      return `💬 **${custom || 'Comment'}**`;
     }
-    return `⚪ **${custom || (key === 'neutral' ? 'Neutral' : 'Neutro')}**`;
+    return `⚪ **${custom || 'Neutral'}**`;
   }
 
   // 9cl. {{Artigos principais}} / {{Details}} / {{Detalhes}}
@@ -7253,11 +7232,11 @@ function resolveBuiltinTemplate(
       .map((item) => `[[${toWikiSlug(item.trim())}|${item.trim()}]]`);
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Artigos Principais',
+      kicker: 'Main Articles',
       body:
         links.length > 0
-          ? `Para detalhes aprofundados, veja: ${links.join(' · ')}`
-          : 'Para detalhes aprofundados, veja [[start|Página Inicial]].',
+          ? `For more details, see: ${links.join(' · ')}`
+          : 'For more details, see [[start|Home]].',
     });
   }
 
@@ -7268,15 +7247,15 @@ function resolveBuiltinTemplate(
     key === 'cite press release' ||
     key === 'comunicado'
   ) {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Comunicado oficial');
-    const org = pickParam(call, ['instituicao', 'instituição', 'publisher', 'emissor']);
-    const dateVal = pickParam(call, ['data', 'date', 'ano', 'year']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Official press release');
+    const org = pickParam(call, ['institution', 'instituicao', 'instituição', 'publisher', 'emissor']);
+    const dateVal = pickParam(call, ['date', 'data', 'year', 'ano']);
     const url = pickParam(call, ['url', 'link']);
     const formatted =
       url && (url.startsWith('https://') || url.startsWith('http://'))
         ? `[${title}](${url})`
         : `"${title}"`;
-    const parts = [`${formatted} (Comunicado à imprensa)`];
+    const parts = [`${formatted} (Press release)`];
     if (org) parts.push(`— ${org}`);
     if (dateVal) parts.push(`(${dateVal})`);
     return `<ref>${parts.join(' ')}</ref>`;
@@ -7284,38 +7263,38 @@ function resolveBuiltinTemplate(
 
   // 9cn. {{Citar mapa}} / {{Cite map}} / {{Mapa}}
   if (key === 'citar mapa' || key === 'cite map' || key === 'mapa') {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Mapa geográfico');
-    const carto = pickParam(call, ['cartografia', 'autor', 'author', 'publisher']);
-    const scale = pickParam(call, ['escala', 'scale']);
-    const year = pickParam(call, ['ano', 'year']);
-    const parts = [`*${title}* [Mapa]`];
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Geographic Map');
+    const carto = pickParam(call, ['cartography', 'cartografia', 'author', 'autor', 'publisher']);
+    const scale = pickParam(call, ['scale', 'escala']);
+    const year = pickParam(call, ['year', 'ano']);
+    const parts = [`*${title}* [Map]`];
     if (carto) parts.push(`— ${carto}`);
-    if (scale) parts.push(`Escala ${scale}`);
+    if (scale) parts.push(`Scale ${scale}`);
     if (year) parts.push(`(${year})`);
     return `<ref>${parts.join(' ')}</ref>`;
   }
 
   // 9co. {{Citar episódio}} / {{Cite episode}} / {{Episódio}}
   if (key === 'citar episodio' || key === 'cite episode' || key === 'episodio') {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Episódio');
-    const series = pickParam(call, ['serie', 'série', 'series']);
-    const season = pickParam(call, ['temporada', 'season']);
-    const number = pickParam(call, ['numero', 'número', 'number']);
-    const year = pickParam(call, ['ano', 'year', 'data', 'date']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Episode');
+    const series = pickParam(call, ['series', 'serie', 'série']);
+    const season = pickParam(call, ['season', 'temporada']);
+    const number = pickParam(call, ['number', 'numero', 'número']);
+    const year = pickParam(call, ['year', 'ano', 'date', 'data']);
     const parts = [`"${title}"`];
     if (series) parts.push(`In: *${series}*`);
-    if (season || number) parts.push(`(T${season || '?'} · Ep. ${number || '?'})`);
+    if (season || number) parts.push(`(S${season || '?'} · Ep. ${number || '?'})`);
     if (year) parts.push(`(${year})`);
     return `<ref>${parts.join(' ')}</ref>`;
   }
 
   // 9cp. {{Citar jogo}} / {{Cite video game}} / {{Citar videogame}}
   if (key === 'citar jogo' || key === 'cite video game' || key === 'citar videogame') {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Jogo eletrônico');
-    const dev = pickParam(call, ['desenvolvedora', 'developer', 'publisher']);
-    const platform = pickParam(call, ['plataforma', 'platform']);
-    const year = pickParam(call, ['ano', 'year']);
-    const quote = pickParam(call, ['citacao', 'citação', 'quote']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Video Game');
+    const dev = pickParam(call, ['developer', 'desenvolvedora', 'publisher']);
+    const platform = pickParam(call, ['platform', 'plataforma']);
+    const year = pickParam(call, ['year', 'ano']);
+    const quote = pickParam(call, ['quote', 'citacao', 'citação']);
     const parts = [`*${title}*`];
     if (platform) parts.push(`[${platform}]`);
     if (dev) parts.push(`— ${dev}`);
@@ -7326,10 +7305,10 @@ function resolveBuiltinTemplate(
 
   // 9cq. {{Citar conferência}} / {{Cite conference}} / {{Anais}}
   if (key === 'citar conferencia' || key === 'cite conference' || key === 'anais') {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Trabalho acadêmico');
-    const author = pickParam(call, ['autor', 'author']);
-    const conf = pickParam(call, ['conferencia', 'conferência', 'conference', 'booktitle']);
-    const year = pickParam(call, ['ano', 'year']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Conference Paper');
+    const author = pickParam(call, ['author', 'autor']);
+    const conf = pickParam(call, ['conference', 'conferencia', 'conferência', 'booktitle']);
+    const year = pickParam(call, ['year', 'ano']);
     const parts: string[] = [];
     if (author) parts.push(`${author}.`);
     parts.push(`"${title}"`);
@@ -7340,10 +7319,10 @@ function resolveBuiltinTemplate(
 
   // 9cr. {{Citar lei}} / {{Lei}} / {{Decreto}} / {{Cite act}}
   if (key === 'citar lei' || key === 'lei' || key === 'decreto' || key === 'cite act') {
-    const num = pickParam(call, ['numero', 'número', 'number', '1'], 'Lei');
-    const title = pickParam(call, ['titulo', 'título', 'title', '2']);
-    const juris = pickParam(call, ['jurisdicao', 'jurisdição', 'pais', 'país']);
-    const art = pickParam(call, ['artigo', 'article']);
+    const num = pickParam(call, ['number', 'numero', 'número', '1'], 'Act');
+    const title = pickParam(call, ['title', 'titulo', 'título', '2']);
+    const juris = pickParam(call, ['jurisdiction', 'jurisdicao', 'jurisdição', 'country', 'pais', 'país']);
+    const art = pickParam(call, ['article', 'artigo']);
     const parts = [`**${num}**`];
     if (title) parts.push(`(${title})`);
     if (art) parts.push(`— ${art}`);
@@ -7358,15 +7337,15 @@ function resolveBuiltinTemplate(
     key === 'relatorio' ||
     key === 'citar documento'
   ) {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Relatório técnico');
-    const inst = pickParam(call, ['instituicao', 'instituição', 'publisher']);
-    const year = pickParam(call, ['ano', 'year']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Technical Report');
+    const inst = pickParam(call, ['institution', 'instituicao', 'instituição', 'publisher']);
+    const year = pickParam(call, ['year', 'ano']);
     const url = pickParam(call, ['url', 'link']);
     const formatted =
       url && (url.startsWith('https://') || url.startsWith('http://'))
         ? `[${title}](${url})`
         : `"${title}"`;
-    const parts = [`${formatted} (Relatório)`];
+    const parts = [`${formatted} (Report)`];
     if (inst) parts.push(`— ${inst}`);
     if (year) parts.push(`(${year})`);
     return `<ref>${parts.join(' ')}</ref>`;
@@ -7407,46 +7386,46 @@ function resolveBuiltinTemplate(
     key === 'contestado'
   ) {
     const clean = key.replace(/\?$/, '');
-    const dateVal = pickParam(call, ['data', 'date']);
+    const dateVal = pickParam(call, ['date', 'data']);
     const labelMap: Record<string, string> = {
-      'carece de pagina': 'página necessária',
+      'carece de pagina': 'page needed',
       'page needed': 'page needed',
-      pagina: 'página necessária',
-      'ligacao inativa': dateVal ? `ligação inativa (${dateVal})` : 'ligação inativa',
+      pagina: 'page needed',
+      'ligacao inativa': dateVal ? `dead link (${dateVal})` : 'dead link',
       'dead link': dateVal ? `dead link (${dateVal})` : 'dead link',
-      'link quebrado': 'ligação inativa',
-      'exemplo necessario': 'carece de exemplo',
+      'link quebrado': 'dead link',
+      'exemplo necessario': 'example needed',
       'example needed': 'example needed',
-      exemplo: 'carece de exemplo',
-      'por quem': 'segundo quem?',
+      exemplo: 'example needed',
+      'por quem': 'by whom?',
       'by whom': 'by whom?',
-      'segundo quem': 'segundo quem?',
-      como: 'como?',
+      'segundo quem': 'by whom?',
+      como: 'how?',
       how: 'how?',
-      'por que': 'por quê?',
-      porque: 'por quê?',
+      'por que': 'why?',
+      porque: 'why?',
       why: 'why?',
-      'melhor fonte': 'carece de fonte melhor',
+      'melhor fonte': 'better source needed',
       'better source needed': 'better source needed',
-      'fonte melhor': 'carece de fonte melhor',
-      duvidoso: 'duvidoso – discutir',
+      'fonte melhor': 'better source needed',
+      duvidoso: 'dubious – discuss',
       dubious: 'dubious – discuss',
-      contestado: 'contestado',
+      contestado: 'disputed',
     };
-    return `^[${labelMap[clean] ?? 'nota editorial'}]^`;
+    return `^[${labelMap[clean] ?? 'editorial note'}]^`;
   }
 
   // 9cu. {{Data}} / {{Date}}
   if (key === 'data' || key === 'date') {
-    const day = Number.parseInt(pickParam(call, ['1', 'dia', 'day'], '1'), 10);
-    const month = Number.parseInt(pickParam(call, ['2', 'mes', 'mês', 'month'], '1'), 10);
-    const year = pickParam(call, ['3', 'ano', 'year'], '2026');
-    const monthsPt = [
-      'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+    const day = Number.parseInt(pickParam(call, ['1', 'day', 'dia'], '1'), 10);
+    const month = Number.parseInt(pickParam(call, ['2', 'month', 'mes', 'mês'], '1'), 10);
+    const year = pickParam(call, ['3', 'year', 'ano'], '2026');
+    const monthsEn = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     if (Number.isFinite(day) && Number.isFinite(month) && month >= 1 && month <= 12) {
-      return `${day} de ${monthsPt[month - 1]} de ${year}`;
+      return `${monthsEn[month - 1]} ${day}, ${year}`;
     }
     return `${pickParam(call, ['1'], '01')}/${pickParam(call, ['2'], '01')}/${year}`;
   }
@@ -7465,46 +7444,46 @@ function resolveBuiltinTemplate(
 
   // 9cw. {{IPA}} / {{AFI}} / {{Pronúncia}} / {{Pronunciation}}
   if (key === 'ipa' || key === 'afi' || key === 'pronuncia' || key === 'pronunciation') {
-    const ipaText = pickParam(call, ['1', 'texto'], '...');
-    return `AFI: \`/${ipaText}/\``;
+    const ipaText = pickParam(call, ['1', 'text', 'texto'], '...');
+    return `IPA: \`/${ipaText}/\``;
   }
 
   // 9cx. {{Lang}} / {{Idioma}} / {{Estrangeiro}}
   if (key === 'lang' || key === 'idioma' || key === 'estrangeiro') {
-    const code = pickParam(call, ['1', 'codigo', 'código'], 'en');
-    const text = pickParam(call, ['2', 'texto', 'text'], '');
+    const code = pickParam(call, ['1', 'code', 'codigo', 'código'], 'en');
+    const text = pickParam(call, ['2', 'text', 'texto'], '');
     return text ? `*${text}* (\`${code}\`)` : `\`${code}\``;
   }
 
   // 9cy. {{Nihongo}} / {{Japonês}}
   if (key === 'nihongo' || key === 'japones') {
-    const pt = pickParam(call, ['1'], 'Termo');
+    const term = pickParam(call, ['1'], 'Term');
     const kanji = pickParam(call, ['2']);
     const romaji = pickParam(call, ['3']);
     const inner = [kanji, romaji ? `*${romaji}*` : ''].filter(Boolean).join(', ');
-    return inner ? `${pt} (${inner})` : pt;
+    return inner ? `${term} (${inner})` : term;
   }
 
   // 9cz. {{Código}} / {{Code}} / {{Syntax}}
   if (key === 'codigo' || key === 'code' || key === 'syntax') {
-    const snippet = pickParam(call, ['1', 'texto'], 'code()');
+    const snippet = pickParam(call, ['1', 'text', 'texto'], 'code()');
     return `\`${snippet}\``;
   }
 
   // 9da. {{Tag}} / {{HTMLtag}} / {{XML}}
   if (key === 'tag' || key === 'htmltag' || key === 'xml') {
     const tagName = pickParam(call, ['1', 'tag'], 'div').replace(/[<>]/g, '');
-    const inner = pickParam(call, ['2', 'conteudo', 'conteúdo']);
+    const inner = pickParam(call, ['2', 'content', 'conteudo', 'conteúdo']);
     return inner ? `\`<${tagName}>${inner}</${tagName}>\`` : `\`<${tagName}>\``;
   }
 
   // 9db. {{Ocultar}} / {{Collapse}} / {{Esconder}} / {{Caixa expansível}}
   if (key === 'ocultar' || key === 'collapse' || key === 'esconder' || key === 'caixa expansivel') {
-    const title = pickParam(call, ['titulo', 'título', 'title', '1'], 'Conteúdo complementar');
-    const body = pickParam(call, ['conteudo', 'conteúdo', 'texto', '2'], 'Detalhes adicionais.');
+    const title = pickParam(call, ['title', 'titulo', 'título', '1'], 'Additional content');
+    const body = pickParam(call, ['content', 'conteudo', 'conteúdo', 'text', 'texto', '2'], 'Additional details.');
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Caixa Temática',
+      kicker: 'Collapsible Box',
       title,
       body,
     });
@@ -7512,18 +7491,18 @@ function resolveBuiltinTemplate(
 
   // 9dc. {{Barra de progresso}} / {{Progresso}} / {{Progress bar}}
   if (key === 'barra de progresso' || key === 'progresso' || key === 'progress bar') {
-    const rawPct = Number.parseFloat(pickParam(call, ['1', 'pct', 'valor'], '50').replace(',', '.'));
+    const rawPct = Number.parseFloat(pickParam(call, ['1', 'pct', 'value', 'valor'], '50').replace(',', '.'));
     const pct = Number.isFinite(rawPct) ? Math.max(0, Math.min(100, Math.round(rawPct))) : 50;
     const filled = Math.round(pct / 10);
     const bar = `${'█'.repeat(filled)}${'░'.repeat(10 - filled)}`;
-    const caption = pickParam(call, ['2', 'texto', 'legenda']);
+    const caption = pickParam(call, ['2', 'text', 'texto', 'caption', 'legenda']);
     return caption ? `\`[${bar}]\` **${pct}%** — ${caption}` : `\`[${bar}]\` **${pct}%**`;
   }
 
   // 9dd. {{Efn}} / {{Nota explicativa}} / {{Notelist}}
   if (key === 'efn' || key === 'nota explicativa' || key === 'notelist') {
-    const note = pickParam(call, ['1', 'texto'], 'Nota explicativa.');
-    return `<ref>[Nota] ${note}</ref>`;
+    const note = pickParam(call, ['1', 'text', 'texto'], 'Explanatory note.');
+    return `<ref>[Note] ${note}</ref>`;
   }
 
   // 9de. {{Circa}} / {{Aprox}}
@@ -7536,22 +7515,18 @@ function resolveBuiltinTemplate(
   // 9df. {{Século}} / {{Century}}
   if (key === 'seculo' || key === 'century') {
     const num = Number.parseInt(pickParam(call, ['1'], '21'), 10);
-    const toRoman = (n: number): string => {
-      if (!Number.isFinite(n) || n <= 0 || n >= 40) return String(n || 'XXI');
-      const table: Array<[number, string]> = [
-        [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
-      ];
-      let rem = n;
-      let res = '';
-      for (const [val, sym] of table) {
-        while (rem >= val) {
-          res += sym;
-          rem -= val;
-        }
+    const ordinal = (n: number): string => {
+      if (!Number.isFinite(n) || n <= 0) return '21st';
+      const mod100 = n % 100;
+      if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+      switch (n % 10) {
+        case 1: return `${n}st`;
+        case 2: return `${n}nd`;
+        case 3: return `${n}rd`;
+        default: return `${n}th`;
       }
-      return res;
     };
-    return `século ${toRoman(num)}`;
+    return `${ordinal(num)} century`;
   }
 
   // 9dg. {{Vandalismo}} / {{uw-vandalism}} / {{Teste}} / {{uw-test}} / {{Aviso spam}} / {{Remoção de conteúdo}}
@@ -7569,38 +7544,38 @@ function resolveBuiltinTemplate(
     key === 'uw delete' ||
     key === 'apagamento indevido'
   ) {
-    const page = pickParam(call, ['pagina', 'página', 'page', '1']);
-    const pageSuffix = page ? ` na página [[${toWikiSlug(page)}|${page}]]` : '';
+    const page = pickParam(call, ['page', 'pagina', 'página', '1']);
+    const pageSuffix = page ? ` on [[${toWikiSlug(page)}|${page}]]` : '';
     if (key === 'teste' || key === 'uw test' || key === 'edicao de teste') {
       return serializePredefinicaoBlock({
         variant: 'info',
-        kicker: 'Discussão · Teste de Edição',
-        title: 'Bem-vindo! Detectamos uma edição de teste',
-        body: `Sua modificação recente${pageSuffix} parece ter sido um teste de formatação. Para experimentar livremente sem alterar artigos, utilize uma [[predefinicao-boas-vindas|página de testes]].`,
+        kicker: 'Talk · Test Edit',
+        title: 'Welcome! A test edit was detected',
+        body: `Your recent edit${pageSuffix} appears to have been a formatting test. To experiment freely without altering articles, please use a [[template-welcome|sandbox or test page]].`,
       });
     }
     if (key === 'aviso spam' || key === 'uw spam' || key === 'links promocionais') {
       return serializePredefinicaoBlock({
         variant: 'warning',
-        kicker: 'Discussão · Aviso de Spam',
-        title: 'Evite inserir links externos promocionais',
-        body: `As ligações adicionadas${pageSuffix} possuem caráter comercial ou promocional. Consulte as [Regras de Uso do WikiMaker](#/terms) antes de incluir referências externas.`,
+        kicker: 'Talk · Spam Warning',
+        title: 'Please avoid adding promotional external links',
+        body: `The links added${pageSuffix} appear commercial or promotional in nature. Review the [WikiMaker Usage Rules](#/terms) before adding external references.`,
       });
     }
     if (key === 'remocao de conteudo' || key === 'uw delete' || key === 'apagamento indevido') {
       return serializePredefinicaoBlock({
         variant: 'warning',
-        kicker: 'Discussão · Remoção de Conteúdo',
-        title: 'Justifique a remoção de conteúdo referenciado',
-        body: `Parte do texto${pageSuffix} foi removida sem explicação no resumo de edição. Sempre explique remoções substanciais na página de discussão.`,
+        kicker: 'Talk · Content Removal',
+        title: 'Please explain removal of sourced content',
+        body: `Portions of content${pageSuffix} were removed without explanation in the edit summary. Always explain substantial removals on the talk page.`,
       });
     }
-    const level = pickParam(call, ['nivel', 'nível', 'level', '2'], '1');
+    const level = pickParam(call, ['level', 'nivel', 'nível', '2'], '1');
     return serializePredefinicaoBlock({
       variant: 'alert',
-      kicker: `Discussão · Aviso de Vandalismo (Nível ${level})`,
-      title: 'Edição destrutiva ou não construtiva identificada',
-      body: `Sua edição recente${pageSuffix} desfez ou corrompeu conteúdo informativo e foi revertida. Edições destrutivas recorrentes podem levar ao bloqueio conforme as [Regras de Uso](#/terms).`,
+      kicker: `Talk · Vandalism Warning (Level ${level})`,
+      title: 'Unconstructive or disruptive editing detected',
+      body: `Your recent edit${pageSuffix} reverted or damaged informational content and has been undone. Repeated disruptive edits may result in an account block under the [Usage Rules](#/terms).`,
     });
   }
 
@@ -7608,29 +7583,29 @@ function resolveBuiltinTemplate(
   if (key === 'sem consenso' || key === 'discutido' || key === 'debate em curso') {
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '1'],
-      'Alterações recentes nesta página ainda não alcançaram consenso; debata na página de discussão antes de editar novamente.'
+      ['reason', 'motivo', '1'],
+      'Recent changes on this page have not yet reached consensus; please discuss on the talk page before editing again.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Sem Consenso',
-      title: 'Conteúdo aguardando consenso editorial',
+      kicker: 'Template · No Consensus',
+      title: 'Content awaiting editorial consensus',
       body: reason,
     });
   }
 
   // 9di. {{Fusão de histórico}} / {{History merge}} / {{Histmerge}}
   if (key === 'fusao de historico' || key === 'history merge' || key === 'histmerge') {
-    const target = pickParam(call, ['alvo', 'target', '1'], 'start');
+    const target = pickParam(call, ['target', 'alvo', '1'], 'start');
     const reason = pickParam(
       call,
-      ['motivo', 'reason', '2'],
-      'Solicitada fusão técnica de históricos entre versões paralelas para preservar atribuição.'
+      ['reason', 'motivo', '2'],
+      'A technical history merge has been requested between parallel page versions to preserve attribution.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Manutenção Técnica',
-      title: `Fusão de histórico solicitada com [[${toWikiSlug(target)}|${target}]]`,
+      kicker: 'Template · Technical Maintenance',
+      title: `History merge requested with [[${toWikiSlug(target)}|${target}]]`,
       body: reason,
     });
   }
@@ -7651,49 +7626,49 @@ function resolveBuiltinTemplate(
     key === 'fora do escopo'
   ) {
     if (key === 'wikisource' || key === 'texto integral' || key === 'documento fonte') {
-      const work = pickParam(call, ['obra', '1'], 'este documento');
+      const work = pickParam(call, ['work', 'obra', '1'], 'this document');
       return serializePredefinicaoBlock({
         variant: 'info',
-        kicker: 'Predefinição · Wikisource',
-        title: 'Texto fonte ou documento integral',
-        body: `Em uma enciclopédia, "${work}" deve ser analisado e contextualizado historicamente em vez de apenas transcrito integralmente.`,
+        kicker: 'Template · Wikisource',
+        title: 'Primary source text or full document',
+        body: `In an encyclopedia, "${work}" should be analyzed and historically contextualized rather than transcribed verbatim in full.`,
       });
     }
     if (key === 'wikinoticias' || key === 'estilo jornalistico' || key === 'noticiario') {
       const reason = pickParam(
         call,
-        ['motivo', '1'],
-        'O texto adota estilo de cobertura jornalística imediata; reescreva com distanciamento enciclopédico.'
+        ['reason', 'motivo', '1'],
+        'The text adopts a breaking-news reporting style; rewrite with encyclopedic perspective and retrospective context.'
       );
       return serializePredefinicaoBlock({
         variant: 'warning',
-        kicker: 'Predefinição · Wikinotícias',
-        title: 'Redigido em formato noticioso',
+        kicker: 'Template · Wikinews Style',
+        title: 'Written like a news report',
         body: reason,
       });
     }
     if (key === 'nao enciclopedico' || key === 'unencyclopedic' || key === 'fora do escopo') {
       const reason = pickParam(
         call,
-        ['motivo', '1'],
-        'O conteúdo atual aparenta estar fora do escopo enciclopédico (panfleto, anúncio ou relato pessoal).'
+        ['reason', 'motivo', '1'],
+        'The current content appears to be outside encyclopedic scope (pamphlet, announcement, or personal essay).'
       );
       return serializePredefinicaoBlock({
         variant: 'alert',
-        kicker: 'Predefinição · Escopo Enciclopédico',
-        title: 'Conteúdo potencialmente não enciclopédico',
+        kicker: 'Template · Encyclopedic Scope',
+        title: 'Potentially unencyclopedic content',
         body: reason,
       });
     }
     const reason = pickParam(
       call,
-      ['motivo', '1'],
-      'Verbete restrito a definição lexical; expanda com contexto enciclopédico ou consolide em glossário.'
+      ['reason', 'motivo', '1'],
+      'This entry is limited to a dictionary definition; expand it with encyclopedic context or move it to a glossary.'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Wikcionário',
-      title: 'Conteúdo com caráter de verbete de dicionário',
+      kicker: 'Template · Wiktionary',
+      title: 'Reads like a dictionary definition',
       body: reason,
     });
   }
@@ -7702,29 +7677,29 @@ function resolveBuiltinTemplate(
   if (key === 'variante linguistica' || key === 'pt br' || key === 'pt pt' || key === 'ortografia') {
     const variant = pickParam(
       call,
-      ['variante', '1'],
-      key === 'pt pt' ? 'Português europeu' : 'Português brasileiro'
+      ['variant', 'variante', '1'],
+      key === 'pt pt' ? 'European Portuguese' : key === 'pt br' ? 'Brazilian Portuguese' : 'US English'
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Norma Ortográfica',
-      title: `Artigo redigido em ${variant}`,
-      body: `Para manter uniformidade estilística, preserve a variante linguística (${variant}) ao editar este artigo.`,
+      kicker: 'Template · Language Variant',
+      title: `Article written in ${variant}`,
+      body: `To maintain stylistic consistency, please preserve this spelling and regional variant (${variant}) when editing this article.`,
     });
   }
 
   // 9dl. {{Linguagem técnica}} / {{Technical}} / {{Jargão}}
   if (key === 'linguagem tecnica' || key === 'technical' || key === 'jargao') {
-    const area = pickParam(call, ['area', 'área', '1'], 'área especializada');
+    const area = pickParam(call, ['area', 'área', '1'], 'a specialized field');
     const reason = pickParam(
       call,
-      ['motivo', '2'],
-      `Este artigo pode estar excessivamente técnico para leitores não iniciados em ${area}; simplifique a introdução.`
+      ['reason', 'motivo', '2'],
+      `This article may be too technical for general readers unfamiliar with ${area}; please make the lead more accessible.`
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Acessibilidade Editorial',
-      title: 'Linguagem excessivamente técnica',
+      kicker: 'Template · Editorial Accessibility',
+      title: 'Overly technical language',
       body: reason,
     });
   }
@@ -7736,55 +7711,55 @@ function resolveBuiltinTemplate(
     key === 'overly detailed' ||
     key === 'detalhamento excessivo'
   ) {
-    const sec = pickParam(call, ['secao', 'seção', 'section', '1'], 'Esta secção');
+    const sec = pickParam(call, ['section', 'secao', 'seção', '1'], 'This section');
     const reason = pickParam(
       call,
-      ['motivo', '2'],
-      'Apresenta pormenores excessivos para um resumo enciclopédico; sintetize os pontos principais.'
+      ['reason', 'motivo', '2'],
+      'Contains excessive detail for an encyclopedic summary; please condense to the main points.'
     );
     return serializePredefinicaoBlock({
       variant: 'warning',
-      kicker: 'Predefinição · Síntese Editorial',
-      title: `Detalhamento excessivo em "${sec}"`,
+      kicker: 'Template · Editorial Conciseness',
+      title: `Excessive detail in "${sec}"`,
       body: reason,
     });
   }
 
   // 9dn. {{Atualizar após}} / {{Update after}} / {{Prazo}}
   if (key === 'atualizar apos' || key === 'update after' || key === 'prazo') {
-    const year = pickParam(call, ['1', 'ano', 'data'], '2027');
+    const year = pickParam(call, ['1', 'year', 'ano', 'date', 'data'], '2027');
     const note = pickParam(
       call,
-      ['2', 'motivo'],
-      `Esta secção contém previsão ou mandato sujeito a atualização a partir de ${year}.`
+      ['2', 'reason', 'motivo'],
+      `This section contains a forecast or term scheduled for review after ${year}.`
     );
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: `Predefinição · Revisão Programada (${year})`,
-      title: `Atualizar após ${year}`,
+      kicker: `Template · Scheduled Review (${year})`,
+      title: `Update after ${year}`,
       body: note,
     });
   }
 
   // 9do. {{Morte recente}} / {{Recent death}} / {{Falecimento recente}}
   if (key === 'morte recente' || key === 'recent death' || key === 'falecimento recente') {
-    const name = pickParam(call, ['nome', '1'], options?.currentTitle || 'esta personalidade');
+    const name = pickParam(call, ['name', 'nome', '1'], options?.currentTitle || 'this person');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Predefinição · Falecimento Recente',
-      title: `Este artigo documenta o falecimento recente de ${name}`,
-      body: 'Novas informações biográficas podem surgir rapidamente; adicione apenas fatos confirmados por fontes fidedignas.',
+      kicker: 'Template · Recent Death',
+      title: `This article documents the recent death of ${name}`,
+      body: 'Biographical information may evolve rapidly; add only facts confirmed by reliable, independent sources.',
     });
   }
 
   // 9dp. {{Homônimos}} / {{Surname}} / {{Given name}} / {{Lista de nomes}}
   if (key === 'homonimos' || key === 'surname' || key === 'given name' || key === 'lista de nomes') {
-    const term = pickParam(call, ['1', 'nome'], options?.currentTitle || 'este nome');
+    const term = pickParam(call, ['1', 'name', 'nome'], options?.currentTitle || 'this name');
     return serializePredefinicaoBlock({
       variant: 'disambiguation',
-      kicker: 'Predefinição · Índice Onomástico',
-      title: `Lista de homônimos de "${term}"`,
-      body: 'Esta página agrupa personalidades, obras ou localidades que compartilham este nome próprio ou sobrenome.',
+      kicker: 'Template · Name Index',
+      title: `List of articles sharing the name "${term}"`,
+      body: 'This page lists people, works, or places sharing this given name or surname.',
     });
   }
 
@@ -7804,116 +7779,116 @@ function resolveBuiltinTemplate(
     key === 'esboco videogame'
   ) {
     const defaultArea = key.includes('bio')
-      ? 'Biografias'
+      ? 'Biographies'
       : key.includes('geo')
-        ? 'Geografia e Localidades'
+        ? 'Geography & Locations'
         : key.includes('jogos') || key.includes('vg') || key.includes('videogame')
-          ? 'Jogos Eletrônicos'
-          : 'Ciência e Tecnologia';
-    const topic = pickParam(call, ['1', 'tema', 'area'], defaultArea);
+          ? 'Video Games'
+          : 'Science & Technology';
+    const topic = pickParam(call, ['1', 'topic', 'tema', 'area'], defaultArea);
     return serializePredefinicaoBlock({
       variant: 'stub',
-      kicker: `Predefinição · Esboço (${defaultArea})`,
-      title: `Este verbete é um esboço sobre ${topic}`,
-      body: 'Você pode colaborar expandindo este artigo com novas secções, dados verificáveis e referências.',
+      kicker: `Template · Stub (${defaultArea})`,
+      title: `This article about ${topic} is a stub`,
+      body: 'You can help expand this article by adding sections, verifiable facts, and reliable references.',
     });
   }
 
   // 9dr. {{WikiProjeto}} / {{WikiProject}} / {{Projeto editorial}}
   if (key === 'wikiprojeto' || key === 'wikiproject' || key === 'projeto editorial') {
-    const project = pickParam(call, ['projeto', '1'], 'WikiMaker Editorial');
-    const quality = pickParam(call, ['qualidade', 'quality', '2'], '3');
-    const importance = pickParam(call, ['importancia', 'importância', 'importance', '3'], 'Média');
+    const project = pickParam(call, ['project', 'projeto', '1'], 'WikiMaker Editorial');
+    const quality = pickParam(call, ['quality', 'qualidade', '2'], '3');
+    const importance = pickParam(call, ['importance', 'importancia', 'importância', '3'], 'Medium');
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: `WikiProjeto · ${project}`,
-      title: `Artigo vinculado ao WikiProjeto ${project}`,
-      body: `Avaliação editorial registrada — Qualidade: Nível ${quality} · Importância: ${importance}.`,
+      kicker: `WikiProject · ${project}`,
+      title: `Within the scope of WikiProject ${project}`,
+      body: `Editorial assessment — Quality: Level ${quality} · Importance: ${importance}.`,
     });
   }
 
   // 9ds. {{Arquivo automático}} / {{Autoarchive}} / {{Configuração arquivo}}
   if (key === 'arquivo automatico' || key === 'autoarchive' || key === 'configuracao arquivo') {
-    const days = pickParam(call, ['dias', 'days', '1'], '90');
+    const days = pickParam(call, ['days', 'dias', '1'], '90');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Discussão · Arquivamento Automático',
-      title: `Tópicos inativos arquivados após ${days} dias`,
-      body: 'Discussões sem novas respostas durante o período configurado são movidas para o arquivo histórico para manter esta página organizada.',
+      kicker: 'Talk · Auto-archiving',
+      title: `Inactive threads archived after ${days} days`,
+      body: 'Discussions without new replies during the configured period are moved to the historical archive to keep this page organized.',
     });
   }
 
   // 9dt. {{Em votação}} / {{RfC}} / {{Consulta pública}}
   if (key === 'em votacao' || key === 'rfc' || key === 'consulta publica') {
-    const topic = pickParam(call, ['tema', '1'], 'Proposta editorial aberta à comunidade');
-    const deadline = pickParam(call, ['prazo', '2'], 'Em aberto');
+    const topic = pickParam(call, ['topic', 'tema', '1'], 'Open community editorial proposal');
+    const deadline = pickParam(call, ['deadline', 'prazo', '2'], 'Open');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Consulta Pública · Em Votação',
+      kicker: 'Request for Comment · Open Vote',
       title: topic,
-      body: 'Colaboradores são convidados a apresentar argumentos baseados nas políticas editoriais antes do encerramento.',
-      meta: `Prazo: ${deadline}`,
+      body: 'Contributors are invited to share policy-based arguments before the discussion closes.',
+      meta: `Deadline: ${deadline}`,
     });
   }
 
   // 9du. {{Página de usuário}} / {{Userpage}} / {{Perfil colaborador}}
   if (key === 'pagina de usuario' || key === 'userpage' || key === 'perfil colaborador') {
-    const user = pickParam(call, ['usuario', 'usuário', '1'], 'Colaborador');
+    const user = pickParam(call, ['user', 'usuario', 'usuário', '1'], 'Collaborator');
     return serializePredefinicaoBlock({
       variant: 'info',
-      kicker: 'Espaço Nominal · Usuário',
-      title: `Esta é a página pessoal de ${user}`,
-      body: 'Esta página pertence ao espaço de usuário do WikiMaker para apresentação e anotações editoriais — não constitui um artigo enciclopédico.',
+      kicker: 'Namespace · User',
+      title: `This is the user page for ${user}`,
+      body: 'This page belongs to the WikiMaker user namespace for contributor profiles and editorial notes — it is not an encyclopedia article.',
     });
   }
 
   // 9dv. {{Página de testes}} / {{Sandbox}} / {{Rascunho}}
   if (key === 'pagina de testes' || key === 'sandbox' || key === 'rascunho') {
-    const author = pickParam(call, ['autor', 'usuario', '1']);
+    const author = pickParam(call, ['author', 'autor', 'user', 'usuario', '1']);
     return serializePredefinicaoBlock({
       variant: 'wip',
-      kicker: 'Predefinição · Rascunho / Sandbox',
-      title: author ? `Página de testes de ${author}` : 'Página de testes e rascunho pessoal',
-      body: 'Espaço experimental destinado a testar formatação Markdown, tabelas, citações e predefinições antes da publicação definitiva.',
+      kicker: 'Template · Draft / Sandbox',
+      title: author ? `${author}'s sandbox page` : 'Personal sandbox and draft page',
+      body: 'Experimental workspace intended for testing Markdown formatting, tables, citations, and templates before publishing.',
     });
   }
 
   // 9dw. {{Hatnote}} / {{Nota topo}} / {{Distinguir}} / {{Distinguish2}} / {{Ver categoria}}
   if (key === 'hatnote' || key === 'nota topo') {
-    const text = pickParam(call, ['1', 'texto'], 'Nota de orientação editorial.');
+    const text = pickParam(call, ['1', 'text', 'texto'], 'Editorial orientation note.');
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Nota de Topo',
+      kicker: 'Hatnote',
       body: text,
     });
   }
   if (key === 'distinguir' || key === 'distinguish2') {
-    const text = pickParam(call, ['1', 'texto'], 'Não confundir com [[start|Página Inicial]].');
+    const text = pickParam(call, ['1', 'text', 'texto'], 'Not to be confused with [[start|Home]].');
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Nota de Topo · Distinção',
+      kicker: 'Hatnote · Distinguish',
       body: text,
     });
   }
   if (key === 'ver categoria' || key === 'see category' || key === 'categoria') {
-    const cat = pickParam(call, ['1', 'categoria'], 'Geral');
+    const cat = pickParam(call, ['1', 'category', 'categoria'], 'General');
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Categoria Relacionada',
-      body: `Veja mais artigos agrupados na categoria **${cat}**.`,
+      kicker: 'Related Category',
+      body: `Explore more articles grouped under category **${cat}**.`,
     });
   }
 
   // 9dx. {{Tracklist}} / {{Lista de faixas}} / {{Faixas}}
   if (key === 'tracklist' || key === 'lista de faixas' || key === 'faixas') {
-    const title = pickParam(call, ['titulo', 'título', 'title'], 'Lista de faixas');
+    const title = pickParam(call, ['title', 'titulo', 'título'], 'Track listing');
     const tracks = call.orderedEntries
       .filter((e) => !['titulo', 'título', 'title'].includes(normalizeTemplateKey(e.key)) && e.value)
       .map((e, idx) => `${idx + 1}. ${e.value}`);
-    const body = tracks.length > 0 ? tracks.join(' · ') : '1. Faixa Principal (3:30)';
+    const body = tracks.length > 0 ? tracks.join(' · ') : '1. Main Track (3:30)';
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Áudio · Tracklist',
+      kicker: 'Audio · Tracklist',
       title,
       body,
     });
@@ -7921,28 +7896,28 @@ function resolveBuiltinTemplate(
 
   // 9dy. {{Cronologia}} / {{Timeline}} / {{Linha do tempo}}
   if (key === 'cronologia' || key === 'timeline' || key === 'linha do tempo') {
-    const theme = pickParam(call, ['tema', 'titulo', 'título'], 'Cronologia');
-    const prev = pickParam(call, ['anterior', 'prev'], 'Anterior');
-    const curr = pickParam(call, ['atual', 'current', '1'], 'Atual');
-    const next = pickParam(call, ['proximo', 'próximo', 'next'], 'Próximo');
+    const theme = pickParam(call, ['theme', 'tema', 'title', 'titulo', 'título'], 'Timeline');
+    const prev = pickParam(call, ['prev', 'anterior'], 'Previous');
+    const curr = pickParam(call, ['current', 'atual', '1'], 'Current');
+    const next = pickParam(call, ['next', 'proximo', 'próximo'], 'Next');
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: `Cronologia · ${theme}`,
+      kicker: `Timeline · ${theme}`,
       body: `← ${prev}  ·  **${curr}**  ·  ${next} →`,
     });
   }
 
   // 9dz. {{Sucessão}} / {{Succession box}} / {{Antecessor}}
   if (key === 'sucessao' || key === 'succession box' || key === 'antecessor') {
-    const role = pickParam(call, ['cargo', 'titulo', 'título', '1'], 'Cargo');
-    const period = pickParam(call, ['periodo', 'período'], '');
-    const prev = pickParam(call, ['antecessor', 'before'], '—');
-    const next = pickParam(call, ['sucessor', 'after'], '—');
+    const role = pickParam(call, ['role', 'cargo', 'title', 'titulo', 'título', '1'], 'Role');
+    const period = pickParam(call, ['period', 'periodo', 'período'], '');
+    const prev = pickParam(call, ['predecessor', 'antecessor', 'before'], '—');
+    const next = pickParam(call, ['successor', 'sucessor', 'after'], '—');
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Caixa de Sucessão',
+      kicker: 'Succession Box',
       title: period ? `${role} (${period})` : role,
-      body: `Precedido por: **${prev}**  |  Sucedido por: **${next}**`,
+      body: `Preceded by: **${prev}**  |  Succeeded by: **${next}**`,
     });
   }
 
@@ -7957,34 +7932,34 @@ function resolveBuiltinTemplate(
     key === 'link wikiquote' ||
     key === 'citacoes relacionadas'
   ) {
-    const term = pickParam(call, ['1', 'tema', 'termo'], options?.currentTitle || 'Tema');
+    const term = pickParam(call, ['1', 'topic', 'tema', 'term', 'termo'], options?.currentTitle || 'Topic');
     if (key.includes('wikcionar') || key === 'wiktionary' || key === 'definicao') {
       return serializePredefinicaoBlock({
         variant: 'navigation',
-        kicker: 'Projeto Irmão · Wikcionário',
-        body: `Consulte a definição lexical e etimologia de **${term}** no dicionário colaborativo.`,
+        kicker: 'Sister Project · Wiktionary',
+        body: `Look up the lexical definition and etymology of **${term}** in the collaborative dictionary.`,
       });
     }
     if (key.includes('wikiquote') || key === 'citacoes relacionadas') {
       return serializePredefinicaoBlock({
         variant: 'navigation',
-        kicker: 'Projeto Irmão · Wikiquote',
-        body: `Veja coletânea de citações e frases relacionadas a **${term}**.`,
+        kicker: 'Sister Project · Wikiquote',
+        body: `Browse collected quotations and notable phrases related to **${term}**.`,
       });
     }
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Acervo Multimídia · Commons',
-      body: `Explore imagens, áudios e diagramas livres na galeria sobre **${term}**.`,
+      kicker: 'Media Repository · Commons',
+      body: `Explore open-licensed images, audio, and diagrams in the gallery for **${term}**.`,
     });
   }
 
   // 9eb. Citações adicionais (<ref>) — Podcast, Entrevista, Discurso, Tweet, Arquivo, Software, Patente, Nota de rodapé
   if (key === 'citar podcast' || key === 'cite podcast' || key === 'podcast') {
-    const title = pickParam(call, ['título', 'titulo', 'title', '1'], 'Episódio de Podcast');
-    const show = pickParam(call, ['programa', 'podcast', 'series']);
-    const host = pickParam(call, ['apresentador', 'autor', 'host']);
-    const year = pickParam(call, ['ano', 'year', 'data']);
+    const title = pickParam(call, ['title', 'título', 'titulo', '1'], 'Podcast Episode');
+    const show = pickParam(call, ['program', 'programa', 'podcast', 'series']);
+    const host = pickParam(call, ['host', 'apresentador', 'author', 'autor']);
+    const year = pickParam(call, ['year', 'ano', 'date', 'data']);
     const parts = [`"${title}" (Podcast)`];
     if (show) parts.push(`In: *${show}*`);
     if (host) parts.push(`— ${host}`);
@@ -7992,38 +7967,38 @@ function resolveBuiltinTemplate(
     return `<ref>${parts.join(' ')}</ref>`;
   }
   if (key === 'citar entrevista' || key === 'cite interview' || key === 'entrevista') {
-    const subject = pickParam(call, ['entrevistado', 'subject', '1'], 'Entrevistado');
-    const title = pickParam(call, ['titulo', 'título', 'title'], 'Entrevista');
-    const inter = pickParam(call, ['entrevistador', 'interviewer', 'veiculo']);
-    const year = pickParam(call, ['ano', 'year', 'data']);
-    const parts = [`${subject}. "${title}" (Entrevista)`];
+    const subject = pickParam(call, ['interviewee', 'entrevistado', 'subject', '1'], 'Interviewee');
+    const title = pickParam(call, ['title', 'titulo', 'título'], 'Interview');
+    const inter = pickParam(call, ['interviewer', 'entrevistador', 'outlet', 'veiculo']);
+    const year = pickParam(call, ['year', 'ano', 'date', 'data']);
+    const parts = [`${subject}. "${title}" (Interview)`];
     if (inter) parts.push(`— ${inter}`);
     if (year) parts.push(`(${year})`);
     return `<ref>${parts.join(' ')}</ref>`;
   }
   if (key === 'citar discurso' || key === 'cite speech' || key === 'discurso') {
-    const speaker = pickParam(call, ['autor', 'orador', '1'], 'Orador');
-    const title = pickParam(call, ['titulo', 'título', 'title'], 'Discurso');
-    const event = pickParam(call, ['evento', 'event']);
-    const year = pickParam(call, ['ano', 'year', 'data']);
+    const speaker = pickParam(call, ['author', 'autor', 'speaker', 'orador', '1'], 'Speaker');
+    const title = pickParam(call, ['title', 'titulo', 'título'], 'Speech');
+    const event = pickParam(call, ['event', 'evento']);
+    const year = pickParam(call, ['year', 'ano', 'date', 'data']);
     const parts = [`${speaker}. "${title}"`];
     if (event) parts.push(`(${event})`);
     if (year) parts.push(`— ${year}`);
     return `<ref>${parts.join(' ')}</ref>`;
   }
   if (key === 'citar tweet' || key === 'citar post' || key === 'cite tweet' || key === 'rede social') {
-    const user = pickParam(call, ['usuario', 'usuário', 'user', '1'], '@conta');
-    const text = pickParam(call, ['texto', 'text', '2'], 'Publicação oficial');
-    const dateVal = pickParam(call, ['data', 'date']);
+    const user = pickParam(call, ['user', 'usuario', 'usuário', '1'], '@account');
+    const text = pickParam(call, ['text', 'texto', '2'], 'Official post');
+    const dateVal = pickParam(call, ['date', 'data']);
     const parts = [`${user}: "${text}"`];
     if (dateVal) parts.push(`(${dateVal})`);
     return `<ref>${parts.join(' ')}</ref>`;
   }
   if (key === 'citar arquivo' || key === 'cite archive' || key === 'arquivo historico') {
-    const doc = pickParam(call, ['documento', 'titulo', 'título', '1'], 'Documento de arquivo');
-    const archive = pickParam(call, ['acervo', 'arquivo', 'repository']);
-    const fund = pickParam(call, ['fundo', 'colecao', 'coleção']);
-    const year = pickParam(call, ['ano', 'year']);
+    const doc = pickParam(call, ['document', 'documento', 'title', 'titulo', 'título', '1'], 'Archival Document');
+    const archive = pickParam(call, ['archive', 'acervo', 'arquivo', 'repository']);
+    const fund = pickParam(call, ['collection', 'fundo', 'colecao', 'coleção']);
+    const year = pickParam(call, ['year', 'ano']);
     const parts = [`"${doc}"`];
     if (fund) parts.push(`— ${fund}`);
     if (archive) parts.push(`[${archive}]`);
@@ -8031,10 +8006,10 @@ function resolveBuiltinTemplate(
     return `<ref>${parts.join(' ')}</ref>`;
   }
   if (key === 'citar software' || key === 'cite software' || key === 'manual software') {
-    const name = pickParam(call, ['nome', 'titulo', 'título', '1'], 'Software');
-    const ver = pickParam(call, ['versao', 'versão', 'version']);
-    const dev = pickParam(call, ['desenvolvedor', 'autor', 'developer']);
-    const year = pickParam(call, ['ano', 'year']);
+    const name = pickParam(call, ['name', 'nome', 'title', 'titulo', 'título', '1'], 'Software');
+    const ver = pickParam(call, ['version', 'versao', 'versão']);
+    const dev = pickParam(call, ['developer', 'desenvolvedor', 'author', 'autor']);
+    const year = pickParam(call, ['year', 'ano']);
     const parts = [`*${name}*`];
     if (ver) parts.push(`v${ver}`);
     if (dev) parts.push(`— ${dev}`);
@@ -8042,18 +8017,18 @@ function resolveBuiltinTemplate(
     return `<ref>${parts.join(' ')}</ref>`;
   }
   if (key === 'citar patente' || key === 'cite patent' || key === 'patente') {
-    const num = pickParam(call, ['numero', 'número', 'number', '1'], 'PAT-0001');
-    const title = pickParam(call, ['titulo', 'título', 'title']);
-    const holder = pickParam(call, ['titular', 'inventor', 'assignee']);
-    const year = pickParam(call, ['ano', 'year']);
-    const parts = [`Patente **${num}**`];
+    const num = pickParam(call, ['number', 'numero', 'número', '1'], 'PAT-0001');
+    const title = pickParam(call, ['title', 'titulo', 'título']);
+    const holder = pickParam(call, ['holder', 'titular', 'inventor', 'assignee']);
+    const year = pickParam(call, ['year', 'ano']);
+    const parts = [`Patent **${num}**`];
     if (title) parts.push(`— "${title}"`);
     if (holder) parts.push(`(${holder})`);
     if (year) parts.push(`[${year}]`);
     return `<ref>${parts.join(' ')}</ref>`;
   }
   if (key === 'nota de rodape' || key === 'refn' || key === 'observacao') {
-    const note = pickParam(call, ['1', 'texto'], 'Nota editorial.');
+    const note = pickParam(call, ['1', 'text', 'texto'], 'Editorial note.');
     return `<ref>${note}</ref>`;
   }
 
@@ -8065,15 +8040,15 @@ function resolveBuiltinTemplate(
     const by = Number.parseInt(pickParam(call, ['4'], '1940'), 10);
     const bm = Number.parseInt(pickParam(call, ['5'], '1'), 10);
     const bd = Number.parseInt(pickParam(call, ['6'], '1'), 10);
-    if (!Number.isFinite(dy) || !Number.isFinite(by)) return 'Data inválida';
+    if (!Number.isFinite(dy) || !Number.isFinite(by)) return 'Invalid date';
     let age = dy - by;
     if (dm < bm || (dm === bm && dd < bd)) age -= 1;
     const pad = (n: number) => String(Math.max(1, n)).padStart(2, '0');
-    return `${pad(dd)}/${pad(dm)}/${dy} (${Math.max(0, age)} anos)`;
+    return `${dy}-${pad(dm)}-${pad(dd)} (${Math.max(0, age)} years old)`;
   }
   if (key === 'inicio e fim' || key === 'start and end dates' || key === 'periodo') {
-    const start = pickParam(call, ['1', 'inicio', 'início'], '2020');
-    const end = pickParam(call, ['2', 'fim'], 'presente');
+    const start = pickParam(call, ['1', 'start', 'inicio', 'início'], '2020');
+    const end = pickParam(call, ['2', 'end', 'fim'], 'present');
     return `${start}–${end}`;
   }
   if (key === 'duracao' || key === 'duration' || key === 'tempo') {
@@ -8086,9 +8061,9 @@ function resolveBuiltinTemplate(
   }
   if (key === 'formatnum' || key === 'numero' || key === 'val') {
     const raw = pickParam(call, ['1'], '0');
-    const unit = pickParam(call, ['2', 'unidade']);
+    const unit = pickParam(call, ['2', 'unit', 'unidade']);
     const num = Number.parseFloat(raw.replace(/\s+/g, '').replace(',', '.'));
-    const formatted = Number.isFinite(num) ? num.toLocaleString('pt-BR') : raw;
+    const formatted = Number.isFinite(num) ? num.toLocaleString('en-US') : raw;
     return unit ? `${formatted} ${unit}` : formatted;
   }
   if (key === 'fracao' || key === 'frac' || key === 'sfrac') {
@@ -8135,7 +8110,7 @@ function resolveBuiltinTemplate(
     return converted !== val ? converted : `^${val}^`;
   }
   if (key === 'sigla' || key === 'abbr' || key === 'abreviacao') {
-    const abbr = pickParam(call, ['1'], 'ONU');
+    const abbr = pickParam(call, ['1'], 'UN');
     const meaning = pickParam(call, ['2']);
     return meaning ? `**${abbr}** (${meaning})` : `**${abbr}**`;
   }
@@ -8148,7 +8123,7 @@ function resolveBuiltinTemplate(
   if (key === 'n/a' || key === 'na' || key === 'desconhecido' || key === 'tbd') {
     const custom = pickParam(call, ['1']);
     if (custom) return `— *${custom}*`;
-    return key === 'tbd' ? '⏳ *A definir*' : '— *N/A*';
+    return key === 'tbd' ? '⏳ *TBD*' : '— *N/A*';
   }
   if (key === 'estrelas' || key === 'rating' || key === 'nota estrelas') {
     const scoreRaw = Number.parseFloat(pickParam(call, ['1'], '4').replace(',', '.'));
@@ -8158,55 +8133,70 @@ function resolveBuiltinTemplate(
     return `${'★'.repeat(score)}${'☆'.repeat(max - score)} (${scoreRaw}/${max})`;
   }
   if (key === 'bandeira' || key === 'flag' || key === 'flagicon' || key === 'pais bandeira') {
-    const rawCountry = pickParam(call, ['1', 'pais', 'país'], 'Brasil');
+    const rawCountry = pickParam(call, ['1', 'country', 'pais', 'país'], 'Brazil');
     const normCountry = normalizeTemplateKey(rawCountry);
     const flagMap: Record<string, [string, string]> = {
-      brasil: ['🇧🇷', 'Brasil'],
-      br: ['🇧🇷', 'Brasil'],
+      brasil: ['🇧🇷', 'Brazil'],
+      brazil: ['🇧🇷', 'Brazil'],
+      br: ['🇧🇷', 'Brazil'],
       portugal: ['🇵🇹', 'Portugal'],
       pt: ['🇵🇹', 'Portugal'],
       angola: ['🇦🇴', 'Angola'],
-      mocambique: ['🇲🇿', 'Moçambique'],
-      'cabo verde': ['🇨🇻', 'Cabo Verde'],
-      'estados unidos': ['🇺🇸', 'Estados Unidos'],
-      eua: ['🇺🇸', 'Estados Unidos'],
-      usa: ['🇺🇸', 'Estados Unidos'],
-      us: ['🇺🇸', 'Estados Unidos'],
-      'reino unido': ['🇬🇧', 'Reino Unido'],
-      uk: ['🇬🇧', 'Reino Unido'],
-      gb: ['🇬🇧', 'Reino Unido'],
-      japao: ['🇯🇵', 'Japão'],
-      jp: ['🇯🇵', 'Japão'],
-      franca: ['🇫🇷', 'França'],
-      fr: ['🇫🇷', 'França'],
-      alemanha: ['🇩🇪', 'Alemanha'],
-      de: ['🇩🇪', 'Alemanha'],
-      espanha: ['🇪🇸', 'Espanha'],
-      es: ['🇪🇸', 'Espanha'],
-      italia: ['🇮🇹', 'Itália'],
-      it: ['🇮🇹', 'Itália'],
+      mocambique: ['🇲🇿', 'Mozambique'],
+      mozambique: ['🇲🇿', 'Mozambique'],
+      'cabo verde': ['🇨🇻', 'Cape Verde'],
+      'cape verde': ['🇨🇻', 'Cape Verde'],
+      'estados unidos': ['🇺🇸', 'United States'],
+      'united states': ['🇺🇸', 'United States'],
+      eua: ['🇺🇸', 'United States'],
+      usa: ['🇺🇸', 'United States'],
+      us: ['🇺🇸', 'United States'],
+      'reino unido': ['🇬🇧', 'United Kingdom'],
+      'united kingdom': ['🇬🇧', 'United Kingdom'],
+      uk: ['🇬🇧', 'United Kingdom'],
+      gb: ['🇬🇧', 'United Kingdom'],
+      japao: ['🇯🇵', 'Japan'],
+      japan: ['🇯🇵', 'Japan'],
+      jp: ['🇯🇵', 'Japan'],
+      franca: ['🇫🇷', 'France'],
+      france: ['🇫🇷', 'France'],
+      fr: ['🇫🇷', 'France'],
+      alemanha: ['🇩🇪', 'Germany'],
+      germany: ['🇩🇪', 'Germany'],
+      de: ['🇩🇪', 'Germany'],
+      espanha: ['🇪🇸', 'Spain'],
+      spain: ['🇪🇸', 'Spain'],
+      es: ['🇪🇸', 'Spain'],
+      italia: ['🇮🇹', 'Italy'],
+      italy: ['🇮🇹', 'Italy'],
+      it: ['🇮🇹', 'Italy'],
       argentina: ['🇦🇷', 'Argentina'],
       ar: ['🇦🇷', 'Argentina'],
-      canada: ['🇨🇦', 'Canadá'],
-      ca: ['🇨🇦', 'Canadá'],
-      mexico: ['🇲🇽', 'México'],
+      canada: ['🇨🇦', 'Canada'],
+      ca: ['🇨🇦', 'Canada'],
+      mexico: ['🇲🇽', 'Mexico'],
       china: ['🇨🇳', 'China'],
-      coreia: ['🇰🇷', 'Coreia do Sul'],
-      'coreia do sul': ['🇰🇷', 'Coreia do Sul'],
-      india: ['🇮🇳', 'Índia'],
-      suecia: ['🇸🇪', 'Suécia'],
-      suica: ['🇨🇭', 'Suíça'],
-      holanda: ['🇳🇱', 'Países Baixos'],
-      'paises baixos': ['🇳🇱', 'Países Baixos'],
-      uniao: ['🇪🇺', 'União Europeia'],
-      ue: ['🇪🇺', 'União Europeia'],
+      coreia: ['🇰🇷', 'South Korea'],
+      'coreia do sul': ['🇰🇷', 'South Korea'],
+      'south korea': ['🇰🇷', 'South Korea'],
+      india: ['🇮🇳', 'India'],
+      suecia: ['🇸🇪', 'Sweden'],
+      sweden: ['🇸🇪', 'Sweden'],
+      suica: ['🇨🇭', 'Switzerland'],
+      switzerland: ['🇨🇭', 'Switzerland'],
+      holanda: ['🇳🇱', 'Netherlands'],
+      'paises baixos': ['🇳🇱', 'Netherlands'],
+      netherlands: ['🇳🇱', 'Netherlands'],
+      uniao: ['🇪🇺', 'European Union'],
+      'european union': ['🇪🇺', 'European Union'],
+      ue: ['🇪🇺', 'European Union'],
     };
     const hit = flagMap[normCountry];
     return hit ? `${hit[0]} ${hit[1]}` : `🏳️ ${rawCountry}`;
   }
   if (key === 'site oficial' || key === 'official website' || key === 'links externos') {
-    const rawUrl = pickParam(call, ['1', 'url'], 'https://exemplo.org');
-    const label = pickParam(call, ['2', 'titulo', 'título', 'nome'], 'Site oficial');
+    const rawUrl = pickParam(call, ['1', 'url'], 'https://example.org');
+    const label = pickParam(call, ['2', 'title', 'titulo', 'título', 'name', 'nome'], 'Official website');
     const safeUrl = rawUrl.startsWith('http://') || rawUrl.startsWith('https://') ? rawUrl : `https://${rawUrl}`;
     return `🌐 [${label}](${safeUrl})`;
   }
@@ -8226,11 +8216,11 @@ function resolveBuiltinTemplate(
     if (lattes) entries.push(`Lattes: \`${lattes}\``);
     return serializePredefinicaoBlock({
       variant: 'navigation',
-      kicker: 'Controle de Autoridade',
+      kicker: 'Authority Control',
       body:
         entries.length > 0
           ? entries.join(' · ')
-          : 'Registros internacionais de catalogação (VIAF, ORCID, LCCN, GND).',
+          : 'International bibliographic authority identifiers (VIAF, ORCID, LCCN, GND).',
     });
   }
 
@@ -8881,11 +8871,8 @@ export function resolveWikiTemplates(
         // Priority 3: Explicit {{Predefinição:Foo}} / {{Template:Foo}} pointing to a missing template page
         if (explicitNamespace) {
           const prefix = explicitNamespace === 'template' ? 'template-' : 'predefinicao-';
-          const targetSlug = toWikiSlug(`${prefix}${cleanName}`) || 'predefinicao-nova';
-          const displayLabel =
-            explicitNamespace === 'template'
-              ? `Template:${cleanName}`
-              : `Predefinição:${cleanName}`;
+          const targetSlug = toWikiSlug(`${prefix}${cleanName}`) || 'template-new';
+          const displayLabel = `Template:${cleanName}`;
           out += `[[${targetSlug}|${displayLabel}]]`;
           cursor = closeIdx;
           continue;
@@ -9001,23 +8988,23 @@ export interface StarterTemplateSeed {
 }
 
 export const STARTER_TEMPLATE_SLUG = 'predefinicao-boas-vindas';
-export const STARTER_TEMPLATE_TITLE = 'Predefinição:Boas-vindas';
+export const STARTER_TEMPLATE_TITLE = 'Template:Welcome';
 export const STARTER_TEMPLATE_CATEGORY = 'reference';
 export const STARTER_TEMPLATE_TAGS = ['predefinicao', 'template', 'mediawiki', 'onboarding'];
 export const STARTER_TEMPLATE_SUMMARY =
   'Reusable MediaWiki-style community welcome template with usage rules link and parameter substitution';
 export const STARTER_TEMPLATE_CONTENT = `<noinclude>
-Esta página define a **Predefinição de Boas-vindas** (\`{{Predefinição:Boas-vindas}}\` ou \`{{Boas-vindas|colaborador=...|tema=...}}\`) com link direto para as [Regras de Uso do WikiMaker](#/terms). O conteúdo dentro de \`<noinclude>\` aparece apenas aqui como documentação, enquanto o bloco fora de \`<noinclude>\` é transcluído nos artigos e páginas de discussão.
+This page defines the **Welcome Template** (\`{{Template:Welcome|contributor=...|topic=...}}\` or legacy \`{{Boas-vindas|colaborador=...|tema=...}}\`) with a direct link to the [WikiMaker Usage Rules & Terms](#/terms). Content inside \`<noinclude>\` appears only here as documentation, while the block outside \`<noinclude>\` is transcluded into articles and talk pages.
 
-## Como usar
+## Usage
 
 \`\`\`markdown
-{{Predefinição:Boas-vindas|colaborador=WazzimaGiygg|tema=WazzimaGiygg Maker}}
+{{Template:Welcome|contributor=WazzimaGiygg|topic=WazzimaGiygg Maker}}
 \`\`\`
 
-## Visualização ao vivo
+## Live Preview
 
-</noinclude>{{Aviso|tipo=sucesso|título=Boas-vindas, {{{colaborador|Colaborador}}}!|texto=Obrigado por contribuir com {{{tema|WazzimaGiygg Maker}}}. Antes de começar, consulte as [Regras de Uso do WikiMaker](#/terms), leia o [[markdown-guide|Guia de Markdown e Predefinições]] ou explore os [[ecossistema-wazzimagiygg|Produtos do Ecossistema WazzimaGiygg]].|data={{{data|}}}}}`;
+</noinclude>{{Notice|type=success|title=Welcome, {{{contributor|{{{colaborador|Collaborator}}}}}}!|text=Thank you for contributing to {{{topic|{{{tema|WazzimaGiygg Maker}}}}}}. Before getting started, please review the [WikiMaker Usage Rules & Terms](#/terms), read the [[markdown-guide|Markdown & Templates Guide]], or explore [[ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products]].|date={{{date|{{{data|}}}}}}}}`;
 
 export const ENGLISH_COMMUNITY_TEMPLATES: StarterTemplateSeed[] = [
   {

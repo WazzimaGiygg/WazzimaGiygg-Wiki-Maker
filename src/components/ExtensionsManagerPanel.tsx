@@ -155,10 +155,10 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
         },
       }));
       setFeedbackMsg(
-        `Extensão "${ext.name}" ${nextEnabled ? 'ativada' : 'desativada'} e salva no Firebase.`
+        `Extension "${ext.name}" ${nextEnabled ? 'enabled' : 'disabled'} and saved to Firebase.`
       );
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Falha ao salvar estado da extensão.');
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to save extension state.');
     } finally {
       setBusyKey(null);
     }
@@ -184,10 +184,10 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
         delete copy[ext.id];
         return copy;
       });
-      setFeedbackMsg(`Configurações de "${ext.name}" salvas no Firebase.`);
+      setFeedbackMsg(`Settings for "${ext.name}" saved to Firebase.`);
     } catch (err) {
       setErrorMsg(
-        err instanceof Error ? err.message : 'Falha ao salvar configurações da extensão.'
+        err instanceof Error ? err.message : 'Failed to save extension settings.'
       );
     } finally {
       setBusyKey(null);
@@ -206,16 +206,16 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
       if (mode === 'seed-missing') {
         setFeedbackMsg(
           count > 0
-            ? `${count} extensões inicializadas no Firebase com configurações padrão.`
-            : 'Todas as extensões já estão registradas no Firebase.'
+            ? `${count} extensions initialized in Firebase with default settings.`
+            : 'All extensions are already registered in Firebase.'
         );
       } else {
         setFeedbackMsg(
-          `${count} extensões restauradas para as configurações padrão no Firebase.`
+          `${count} extensions restored to default settings in Firebase.`
         );
       }
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Falha ao sincronizar extensões.');
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to sync extensions.');
     } finally {
       setBusyKey(null);
     }
@@ -245,24 +245,24 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
         <div className="space-y-1 max-w-2xl">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
             <Puzzle className="w-4 h-4 text-blue-700 dark:text-blue-400 shrink-0" />
-            <span>Gerenciamento de Extensões da Wiki</span>
+            <span>Wiki Extensions Management</span>
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-            As configurações determinadas pelos Burocratas são persistidas na coleção{' '}
-            <code className="font-mono text-[11px]">extensions</code> do Firebase e carregadas
-            automaticamente durante a abertura do Wiki-site para todos os leitores e colaboradores.
+            Settings configured by Bureaucrats are persisted in the Firebase{' '}
+            <code className="font-mono text-[11px]">extensions</code> collection and loaded
+            automatically when the Wiki-site opens for all readers and collaborators.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-4 text-xs font-mono tabular-nums text-slate-600 dark:text-slate-300 shrink-0">
           <div>
-            Ativas:{' '}
+            Active:{' '}
             <strong className="text-slate-900 dark:text-slate-100">
               {enabledCount}/{extensionsState.list.length}
             </strong>
           </div>
           <div>
-            Salvas no Firebase:{' '}
+            Saved in Firebase:{' '}
             <strong className="text-slate-900 dark:text-slate-100">
               {persistedCount}/{extensionsState.list.length}
             </strong>
@@ -272,8 +272,8 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
 
       {!isBureaucrat && (
         <div className="p-3.5 rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/30 text-xs text-amber-900 dark:text-amber-200">
-          Visualização somente leitura — apenas <strong>Burocratas</strong> podem alterar e salvar
-          configurações de extensões no Firebase.
+          Read-only view — only <strong>Bureaucrats</strong> can modify and save
+          extension settings in Firebase.
         </div>
       )}
 
@@ -308,7 +308,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
-              Todas
+              All
             </button>
             {(Object.keys(EXTENSION_CATEGORY_LABELS) as WikiExtensionCategory[]).map((cat) => (
               <button
@@ -332,7 +332,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Filtrar extensões..."
+              placeholder="Filter extensions..."
               className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
             />
           </div>
@@ -350,8 +350,8 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>
                   {busyKey === 'bulk:seed-missing'
-                    ? 'Inicializando...'
-                    : 'Salvar padrões pendentes no Firebase'}
+                    ? 'Initializing...'
+                    : 'Save pending defaults to Firebase'}
                 </span>
               </button>
             )}
@@ -364,7 +364,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Restaurar padrões</span>
+                <span>Reset defaults</span>
               </button>
             ) : (
               <div className="flex items-center gap-2">
@@ -374,14 +374,14 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                   onClick={() => void handleBulkSync('reset-all')}
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-700 text-white hover:bg-amber-800 whitespace-nowrap shrink-0 disabled:opacity-50"
                 >
-                  {busyKey === 'bulk:reset-all' ? 'Restaurando...' : 'Confirmar restauração'}
+                  {busyKey === 'bulk:reset-all' ? 'Resetting...' : 'Confirm reset'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmResetOpen(false)}
                   className="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0"
                 >
-                  Cancelar
+                  Cancel
                 </button>
               </div>
             )}
@@ -393,7 +393,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
       {filteredExtensions.length === 0 ? (
         <div className="py-10 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/40 dark:bg-[#0b0f17]">
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Nenhuma extensão encontrada para o filtro atual.
+            No extensions match the current filter.
           </p>
         </div>
       ) : (
@@ -407,7 +407,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
             return (
               <section
                 key={ext.id}
-                aria-label={`Extensão ${ext.name}`}
+                aria-label={`Extension ${ext.name}`}
                 className="flex flex-col justify-between p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f17] space-y-4"
               >
                 <div className="space-y-3">
@@ -427,7 +427,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                         <span aria-hidden="true">·</span>
                         <span className="inline-flex items-center gap-1 font-mono">
                           <Database className="w-3 h-3 shrink-0" />
-                          <span>{ext.persisted ? 'Firebase' : 'Padrão local'}</span>
+                          <span>{ext.persisted ? 'Firebase' : 'Local default'}</span>
                         </span>
                       </div>
                     </div>
@@ -437,7 +437,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                       type="button"
                       role="switch"
                       aria-checked={draft.enabled}
-                      aria-label={`Alternar extensão ${ext.name}`}
+                      aria-label={`Toggle extension ${ext.name}`}
                       disabled={!isBureaucrat || isCardBusy}
                       onClick={() => void handleToggleExtension(ext)}
                       className={`inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed ${
@@ -451,7 +451,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                           draft.enabled ? 'bg-emerald-300' : 'bg-slate-400 dark:bg-slate-500'
                         }`}
                       />
-                      <span>{draft.enabled ? 'Ativa' : 'Desativada'}</span>
+                      <span>{draft.enabled ? 'Active' : 'Disabled'}</span>
                     </button>
                   </div>
 
@@ -553,7 +553,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                                     {field.label}
                                   </span>
                                   <span className="font-mono text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
-                                    {field.options.length} temas disponíveis
+                                    {field.options.length} available themes
                                   </span>
                                 </div>
 
@@ -599,7 +599,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                                             )}
                                             {opt.typographyLabel && (
                                               <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-0.5">
-                                                Tipografia: {opt.typographyLabel}
+                                                Typography: {opt.typographyLabel}
                                               </p>
                                             )}
                                           </div>
@@ -608,7 +608,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                                             {opt.lightSwatches && (
                                               <div
                                                 className="flex items-center gap-1 px-1.5 py-1 rounded border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/70"
-                                                title="Paleta modo Claro"
+                                                title="Light mode palette"
                                               >
                                                 <span className="text-[9px] font-mono text-slate-500 dark:text-slate-400 pr-0.5">
                                                   L
@@ -624,7 +624,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                                             {opt.darkSwatches && (
                                               <div
                                                 className="flex items-center gap-1 px-1.5 py-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-900/90"
-                                                title="Paleta modo Escuro"
+                                                title="Dark mode palette"
                                               >
                                                 <span className="text-[9px] font-mono text-slate-300 pr-0.5">
                                                   D
@@ -727,13 +727,13 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                   >
                     {ext.persisted ? (
                       <span>
-                        Determinada por <strong>{ext.updatedByName}</strong> ·{' '}
+                        Configured by <strong>{ext.updatedByName}</strong> ·{' '}
                         <span className="font-mono tabular-nums">
                           {formatRelativeTime(ext.updatedAt)}
                         </span>
                       </span>
                     ) : (
-                      <span>Aguardando gravação inicial do Burocrata</span>
+                      <span>Awaiting initial save by Bureaucrat</span>
                     )}
                   </div>
 
@@ -746,7 +746,7 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                           onClick={() => discardDraft(ext)}
                           className="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 whitespace-nowrap"
                         >
-                          Descartar
+                          Discard
                         </button>
                       )}
                       <button
@@ -756,16 +756,16 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                         className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-700 text-white hover:bg-blue-800 whitespace-nowrap disabled:opacity-50 cursor-pointer"
                       >
                         {busyKey === `save:${ext.id}` ? (
-                          <span>Salvando...</span>
+                          <span>Saving...</span>
                         ) : !dirty && !ext.persisted ? (
                           <>
                             <Check className="w-3 h-3" />
-                            <span>Fixar no Firebase</span>
+                            <span>Pin to Firebase</span>
                           </>
                         ) : (
                           <>
                             <Save className="w-3 h-3" />
-                            <span>Salvar no Firebase</span>
+                            <span>Save to Firebase</span>
                           </>
                         )}
                       </button>

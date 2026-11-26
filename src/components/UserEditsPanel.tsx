@@ -113,14 +113,14 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-semibold text-slate-900 dark:text-slate-100">
-            Contribuições de {authorName}
+            Contributions by {authorName}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
             {edits.length === 0
-              ? `Nenhuma edição pública registrada para ${authorName}`
-              : `${edits.length} ${edits.length === 1 ? 'edição' : 'edições'} em ${
+              ? `No public edits recorded for ${authorName}`
+              : `${edits.length} ${edits.length === 1 ? 'edit' : 'edits'} across ${
                   groupedContributions.length
-                } ${groupedContributions.length === 1 ? 'página' : 'páginas'} · última ${formatRelativeTime(
+                } ${groupedContributions.length === 1 ? 'page' : 'pages'} · latest ${formatRelativeTime(
                   edits[0]?.createdAt
                 )}`}
           </p>
@@ -138,12 +138,12 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
               {isCollapsed ? (
                 <>
                   <ChevronDown className="w-3.5 h-3.5" />
-                  <span>Expandir</span>
+                  <span>Expand</span>
                 </>
               ) : (
                 <>
                   <ChevronUp className="w-3.5 h-3.5" />
-                  <span>Recolher</span>
+                  <span>Collapse</span>
                 </>
               )}
             </button>
@@ -187,7 +187,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div
               role="tablist"
-              aria-label="Modo de visualização das contribuições"
+              aria-label="Contributions view mode"
               className="inline-flex items-center gap-1 p-1 rounded-lg bg-slate-100 dark:bg-slate-800/80"
             >
               <button
@@ -205,7 +205,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                 }`}
               >
                 <Layers className="w-3.5 h-3.5 shrink-0" />
-                <span>Por página ({groupedContributions.length})</span>
+                <span>By page ({groupedContributions.length})</span>
               </button>
               <button
                 type="button"
@@ -222,7 +222,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                 }`}
               >
                 <History className="w-3.5 h-3.5 shrink-0" />
-                <span>Cronológico ({edits.length})</span>
+                <span>Timeline ({edits.length})</span>
               </button>
             </div>
 
@@ -236,14 +236,14 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                     setSearchQuery(e.target.value);
                     setVisibleCount(INITIAL_VISIBLE_COUNT);
                   }}
-                  placeholder="Filtrar por página, :slug ou resumo..."
+                  placeholder="Filter by page, :slug, or summary..."
                   className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    aria-label="Limpar filtro de contribuições"
+                    aria-label="Clear contributions filter"
                     className="p-0.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -256,14 +256,14 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
           {totalFilteredCount === 0 ? (
             <div className="py-8 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-[#0b0f17] space-y-2">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Nenhuma contribuição encontrada para &ldquo;{searchQuery.trim()}&rdquo;.
+                No contributions found for &ldquo;{searchQuery.trim()}&rdquo;.
               </p>
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 className="text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
               >
-                Limpar filtro
+                Clear filter
               </button>
             </div>
           ) : viewMode === 'grouped' ? (
@@ -323,7 +323,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                               data-wiki-surface="inset"
                               className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-mono font-medium rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                             >
-                              <span className="tabular-nums">{group.edits.length} edições</span>
+                              <span className="tabular-nums">{group.edits.length} edits</span>
                               {isExpanded ? (
                                 <ChevronUp className="w-3 h-3" />
                               ) : (
@@ -332,7 +332,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                             </button>
                           ) : (
                             <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 px-1.5">
-                              1 edição
+                              1 edit
                             </span>
                           )}
                         </div>
@@ -365,7 +365,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                           {group.edits.length > 8 && (
                             <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500 dark:text-slate-400">
                               <span>
-                                Exibindo as 8 revisões mais recentes desta página (de {group.edits.length}).
+                                Showing the 8 most recent revisions for this page (of {group.edits.length}).
                               </span>
                               <button
                                 type="button"
@@ -376,7 +376,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                                 }}
                                 className="text-blue-700 dark:text-blue-400 hover:underline font-medium cursor-pointer"
                               >
-                                Ver todas na linha do tempo
+                                View all in timeline
                               </button>
                             </div>
                           )}
@@ -445,15 +445,15 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
           {totalFilteredCount > INITIAL_VISIBLE_COUNT && (
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="tabular-nums">
-                Exibindo <strong className="text-slate-800 dark:text-slate-200">{shownCount}</strong> de{' '}
+                Showing <strong className="text-slate-800 dark:text-slate-200">{shownCount}</strong> of{' '}
                 {totalFilteredCount}{' '}
                 {viewMode === 'grouped'
                   ? totalFilteredCount === 1
-                    ? 'página'
-                    : 'páginas'
+                    ? 'page'
+                    : 'pages'
                   : totalFilteredCount === 1
-                  ? 'edição'
-                  : 'edições'}
+                  ? 'edit'
+                  : 'edits'}
               </span>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -464,7 +464,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                     data-wiki-surface="inset"
                     className="px-3 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition-colors cursor-pointer"
                   >
-                    Mostrar mais (+{Math.min(LOAD_MORE_STEP, remainingCount)})
+                    Show more (+{Math.min(LOAD_MORE_STEP, remainingCount)})
                   </button>
                 )}
                 {remainingCount > LOAD_MORE_STEP && (
@@ -473,7 +473,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                     onClick={() => setVisibleCount(totalFilteredCount)}
                     className="text-blue-700 dark:text-blue-400 hover:underline font-medium cursor-pointer"
                   >
-                    Ver tudo ({totalFilteredCount})
+                    View all ({totalFilteredCount})
                   </button>
                 )}
                 {visibleCount > INITIAL_VISIBLE_COUNT && (
@@ -482,7 +482,7 @@ export const UserEditsPanel: React.FC<UserEditsPanelProps> = ({
                     onClick={() => setVisibleCount(INITIAL_VISIBLE_COUNT)}
                     className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:underline cursor-pointer"
                   >
-                    Mostrar apenas {INITIAL_VISIBLE_COUNT}
+                    Show only {INITIAL_VISIBLE_COUNT}
                   </button>
                 )}
               </div>

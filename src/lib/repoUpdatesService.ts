@@ -200,7 +200,7 @@ async function fetchGitHubJson<T>(
 
     if (isRateLimited) {
       throw new GitHubUpdatesError(
-        'Limite de requisições anônimas da API do GitHub atingido temporariamente.',
+        'Anonymous GitHub API rate limit temporarily reached.',
         response.status,
         true,
         resetAtIso
@@ -209,8 +209,8 @@ async function fetchGitHubJson<T>(
 
     throw new GitHubUpdatesError(
       apiMessage
-        ? `Falha ao consultar o GitHub (${response.status}): ${apiMessage}`
-        : `Falha ao consultar o repositório no GitHub (HTTP ${response.status}).`,
+        ? `Failed to query GitHub (${response.status}): ${apiMessage}`
+        : `Failed to query GitHub repository (HTTP ${response.status}).`,
       response.status,
       false,
       resetAtIso
@@ -230,7 +230,7 @@ async function fetchGitHubJson<T>(
 function splitCommitMessage(rawMessage: string): { title: string; body: string } {
   const normalized = (rawMessage || '').replace(/\r\n/g, '\n').trim();
   if (!normalized) {
-    return { title: '(Sem mensagem de commit)', body: '' };
+    return { title: '(No commit message)', body: '' };
   }
   const firstBreak = normalized.indexOf('\n');
   if (firstBreak === -1) {
@@ -254,7 +254,7 @@ function mapCommitSummary(item: GitHubCommitApiResponse): RepoCommitSummary {
     shortSha: item.sha.slice(0, 7),
     title,
     body,
-    authorName: item.commit?.author?.name || item.author?.login || 'Colaborador',
+    authorName: item.commit?.author?.name || item.author?.login || 'Contributor',
     authorLogin: item.author?.login ?? null,
     authorAvatarUrl: item.author?.avatar_url ?? null,
     authorHtmlUrl: item.author?.html_url ?? null,
@@ -364,20 +364,20 @@ export async function fetchRepoCommitDetail(sha: string): Promise<RepoCommitDeta
 }
 
 export function formatIsoRelativePt(isoDate: string | null | undefined): string {
-  if (!isoDate) return 'agora';
+  if (!isoDate) return 'now';
   const parsed = Date.parse(isoDate);
   if (Number.isNaN(parsed)) return '—';
 
   const diffSec = Math.max(0, Math.floor((Date.now() - parsed) / 1000));
-  if (diffSec < 60) return 'agora mesmo';
+  if (diffSec < 60) return 'just now';
   const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `há ${diffMin} min`;
+  if (diffMin < 60) return `${diffMin}m ago`;
   const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `há ${diffHours}h`;
+  if (diffHours < 24) return `${diffHours}h ago`;
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return `há ${diffDays}d`;
+  if (diffDays < 30) return `${diffDays}d ago`;
 
-  return new Date(parsed).toLocaleDateString('pt-BR', {
+  return new Date(parsed).toLocaleDateString('en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -389,7 +389,7 @@ export function formatIsoAbsolutePt(isoDate: string | null | undefined): string 
   const parsed = Date.parse(isoDate);
   if (Number.isNaN(parsed)) return '—';
 
-  return new Date(parsed).toLocaleString('pt-BR', {
+  return new Date(parsed).toLocaleString('en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

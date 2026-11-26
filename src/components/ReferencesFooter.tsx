@@ -38,7 +38,7 @@ function getBacklinkLabel(idx: number): string {
 
 export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
   references,
-  title = 'Referências',
+  title = 'References',
   group,
   columns = 1,
   inline = false,
@@ -64,7 +64,7 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
     return (
       <section
         id={group ? `referencias-${group}` : 'referencias'}
-        aria-label={group ? `Referências (${group})` : 'Referências bibliográficas'}
+        aria-label={group ? `References (${group})` : 'Bibliographic references'}
         className={`not-prose my-5 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0b0f17] text-xs text-slate-500 dark:text-slate-400 ${className}`.trim()}
       >
         <div className="flex items-center gap-2 font-medium text-slate-700 dark:text-slate-300">
@@ -72,8 +72,8 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
           <span>{title}{group ? ` · ${group}` : ''}</span>
         </div>
         <p className="mt-1">
-          Nenhuma citação <code className="font-mono text-[11px]">&lt;ref&gt;</code> encontrada
-          {group ? ` para o grupo "${group}"` : ' neste artigo'}.
+          No <code className="font-mono text-[11px]">&lt;ref&gt;</code> citations found
+          {group ? ` for group "${group}"` : ' in this article'}.
         </p>
       </section>
     );
@@ -93,7 +93,7 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
   return (
     <section
       id={group ? `referencias-${group}` : 'referencias'}
-      aria-label={group ? `Referências (${group})` : 'Referências bibliográficas'}
+      aria-label={group ? `References (${group})` : 'Bibliographic references'}
       className={sectionWrapperClass}
     >
       {!hideHeading && (
@@ -135,7 +135,7 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
                   e.preventDefault();
                   scrollToWikiAnchor(ref.id, 'center');
                 }}
-                title={ref.name ? `Referência "${ref.name}"` : `Referência ${numberLabel}`}
+                title={ref.name ? `Reference "${ref.name}"` : `Reference ${numberLabel}`}
                 className="font-mono text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 shrink-0 select-none min-w-[1.75rem] text-right no-underline"
               >
                 {numberLabel}
@@ -151,8 +151,8 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
                         scrollToWikiAnchor(ref.backlinks[0], 'center');
                       }
                     }}
-                    title="Voltar à citação no texto"
-                    aria-label={`Voltar à citação ${numberLabel} no texto`}
+                    title="Jump back to citation in prose"
+                    aria-label={`Jump back to citation ${numberLabel} in prose`}
                     className="font-semibold text-blue-700 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 rounded px-0.5 cursor-pointer"
                   >
                     ↑
@@ -172,8 +172,8 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
                             e.preventDefault();
                             scrollToWikiAnchor(backlinkId, 'center');
                           }}
-                          title={`Voltar à ocorrência ${label} da citação ${numberLabel}`}
-                          aria-label={`Voltar à ocorrência ${label} da citação ${numberLabel}`}
+                          title={`Jump back to occurrence ${label} of citation ${numberLabel}`}
+                          aria-label={`Jump back to occurrence ${label} of citation ${numberLabel}`}
                           className="font-medium text-blue-700 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40 rounded px-0.5 cursor-pointer"
                         >
                           <sup>{label}</sup>
@@ -210,8 +210,8 @@ export const ReferencesFooter: React.FC<ReferencesFooterProps> = ({
                             onClick={() => onNavigateSlug(targetSlug)}
                             title={
                               exists
-                                ? `Abrir página :${targetSlug}`
-                                : `Criar página :${targetSlug}`
+                                ? `Open page :${targetSlug}`
+                                : `Create page :${targetSlug}`
                             }
                             className={
                               exists

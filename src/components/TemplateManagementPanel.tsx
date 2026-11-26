@@ -82,29 +82,29 @@ interface TemplateManagementPanelProps {
 }
 
 const CATEGORY_TABS: { id: TemplateManagerCategory; label: string }[] = [
-  { id: 'all', label: 'Principais' },
+  { id: 'all', label: 'Featured' },
   { id: 'infobox', label: 'Infoboxes' },
-  { id: 'alert', label: 'Alertas & Avisos' },
-  { id: 'navigation', label: 'Caixas de Navegação' },
-  { id: 'catalog', label: 'Catálogo Completo' },
+  { id: 'alert', label: 'Alerts & Notices' },
+  { id: 'navigation', label: 'Navigation Boxes' },
+  { id: 'catalog', label: 'Full Catalog' },
 ];
 
 const VARIANT_OPTIONS: { value: TemplateBlockVariant; label: string }[] = [
   { value: 'info', label: 'Info' },
-  { value: 'warning', label: 'Aviso' },
-  { value: 'alert', label: 'Crítico' },
-  { value: 'success', label: 'Sucesso' },
-  { value: 'wip', label: 'Construção' },
-  { value: 'stub', label: 'Esboço' },
-  { value: 'navigation', label: 'Navegação' },
-  { value: 'disambiguation', label: 'Desambiguação' },
-  { value: 'quote', label: 'Citação' },
+  { value: 'warning', label: 'Warning' },
+  { value: 'alert', label: 'Critical' },
+  { value: 'success', label: 'Success' },
+  { value: 'wip', label: 'Work in Progress' },
+  { value: 'stub', label: 'Stub' },
+  { value: 'navigation', label: 'Navigation' },
+  { value: 'disambiguation', label: 'Disambiguation' },
+  { value: 'quote', label: 'Quote' },
 ];
 
 const CATEGORY_LABELS: Record<'infobox' | 'alert' | 'navigation', string> = {
   infobox: 'Infobox',
-  alert: 'Alerta',
-  navigation: 'Navegação',
+  alert: 'Alert',
+  navigation: 'Navigation',
 };
 
 function buildCuratedInfoboxPresets(): CuratedPresetItem[] {
@@ -126,226 +126,226 @@ function buildCuratedInfoboxPresets(): CuratedPresetItem[] {
 }
 
 function buildCuratedAlertAndNavPresets(): CuratedPresetItem[] {
-  const byName = new Map(WIKI_TEMPLATE_CATALOG.map((item) => [item.name, item]));
+  const byId = new Map(WIKI_TEMPLATE_CATALOG.map((item) => [item.id, item]));
 
   return [
     {
       id: 'curated-alert-note',
       source: 'curated',
-      name: 'Nota Informativa (Wikidot)',
+      name: 'Informational Note (Wikidot)',
       category: 'alert',
       syntaxTag: ':::predefinicao info',
-      description: 'Caixa azul informativa para observações de contexto, dicas ou notas do autor.',
+      description: 'Blue callout box for context notes, tips, or author remarks.',
       snippet: serializePredefinicaoBlock({
         variant: 'info',
-        kicker: 'Nota',
-        title: 'Informação adicional',
-        body: 'Utilize este bloco para destacar explicações complementares ou orientações de leitura.',
+        kicker: 'Note',
+        title: 'Additional Information',
+        body: 'Use this block to highlight complementary explanations or reading guidance.',
       }),
     },
     {
       id: 'curated-alert-warning',
       source: 'curated',
-      name: 'Alerta de Cuidado / Revisão',
+      name: 'Caution / Review Alert',
       category: 'alert',
       syntaxTag: ':::predefinicao warning',
-      description: 'Aviso em âmbar indicando atenção necessária, conteúdo em revisão ou ressalvas.',
+      description: 'Amber notice indicating attention needed, content under review, or caveats.',
       snippet: serializePredefinicaoBlock({
         variant: 'warning',
-        kicker: 'Atenção',
-        title: 'Conteúdo em revisão editorial',
-        body: 'Verifique as referências e atualize os dados antes de consolidar esta seção.',
+        kicker: 'Attention',
+        title: 'Content Under Editorial Review',
+        body: 'Verify references and update facts before finalizing this section.',
       }),
     },
     {
       id: 'curated-alert-critical',
       source: 'curated',
-      name: 'Alerta Crítico / Segurança',
+      name: 'Critical / Security Alert',
       category: 'alert',
       syntaxTag: ':::predefinicao alert',
-      description: 'Banner vermelho para avisos críticos, regras obrigatórias ou risco de remoção.',
+      description: 'Red banner for critical warnings, mandatory rules, or removal risk.',
       snippet: serializePredefinicaoBlock({
         variant: 'alert',
-        kicker: 'Alerta Crítico',
-        title: 'Aviso importante aos editores',
-        body: 'Esta página contém diretrizes obrigatórias ou está sujeita a moderação.',
+        kicker: 'Critical Alert',
+        title: 'Important Notice to Editors',
+        body: 'This page contains mandatory guidelines or is subject to moderation.',
       }),
     },
     {
       id: 'curated-alert-success',
       source: 'curated',
-      name: 'Confirmação / Verificado',
+      name: 'Confirmation / Verified',
       category: 'alert',
       syntaxTag: ':::predefinicao success',
-      description: 'Caixa verde confirmando conformidade, revisão concluída ou padrão aprovado.',
+      description: 'Green box confirming compliance, completed review, or approved standard.',
       snippet: serializePredefinicaoBlock({
         variant: 'success',
-        kicker: 'Verificado',
-        title: 'Documentação validada',
-        body: 'As especificações desta página foram conferidas e seguem os padrões do projeto.',
+        kicker: 'Verified',
+        title: 'Documentation Validated',
+        body: 'The specifications on this page have been checked and follow project standards.',
       }),
     },
     {
       id: 'curated-alert-wip',
       source: 'curated',
-      name: 'Em Construção (WIP)',
+      name: 'Work in Progress (WIP)',
       category: 'alert',
       syntaxTag: ':::predefinicao wip',
-      description: 'Sinaliza que o artigo está em desenvolvimento ativo para evitar conflitos de edição.',
+      description: 'Signals that the article is under active development to prevent edit conflicts.',
       snippet: serializePredefinicaoBlock({
         variant: 'wip',
-        kicker: 'Em construção',
-        title: 'Artigo em desenvolvimento',
-        body: 'Esta página está passando por edições estruturais e será expandida em breve.',
+        kicker: 'Work in Progress',
+        title: 'Article Under Construction',
+        body: 'This page is undergoing structural edits and will be expanded shortly.',
       }),
     },
     {
       id: 'curated-alert-stub',
       source: 'curated',
-      name: 'Esboço (Stub)',
+      name: 'Stub',
       category: 'alert',
       syntaxTag: ':::predefinicao stub',
-      description: 'Marca verbetes introdutórios curtos convidando colaboradores a expandir o conteúdo.',
+      description: 'Marks short introductory entries inviting collaborators to expand content.',
       snippet: serializePredefinicaoBlock({
         variant: 'stub',
-        kicker: 'Esboço',
-        title: 'Artigo introdutório',
-        body: 'Este artigo ainda é um esboço. Você pode ajudar o WikiMaker expandindo suas seções.',
+        kicker: 'Stub',
+        title: 'Introductory Article',
+        body: 'This article is still a stub. You can help WikiMaker by expanding its sections.',
       }),
     },
     {
       id: 'curated-alert-sources',
       source: 'curated',
-      name: 'Carece de Fontes',
+      name: 'Citation Needed / Needs Sources',
       category: 'alert',
-      syntaxTag: '{{Carece de fontes}}',
-      description: 'Solicita referências bibliográficas verificáveis com <ref>...</ref>.',
-      snippet: '{{Carece de fontes|este artigo}}',
-      catalogItem: byName.get('Carece de fontes'),
+      syntaxTag: '{{Citation needed}}',
+      description: 'Requests verifiable bibliographic references using <ref>...</ref>.',
+      snippet: '{{Citation needed|this article}}',
+      catalogItem: byId.get('carece-de-fontes'),
     },
     {
       id: 'curated-alert-welcome',
       source: 'curated',
-      name: 'Boas-vindas (Regras de Uso)',
+      name: 'Welcome (Usage Rules)',
       category: 'alert',
-      syntaxTag: '{{Boas-vindas}}',
-      description: 'Mensagem de boas-vindas com link direto para as Regras de Uso do WikiMaker.',
-      snippet: '{{Boas-vindas|colaborador=Novo Colaborador|tema=WikiMaker}}',
-      catalogItem: byName.get('Boas-vindas'),
+      syntaxTag: '{{Welcome}}',
+      description: 'Welcome message with a direct link to the WikiMaker Usage Rules.',
+      snippet: '{{Welcome|contributor=New Collaborator|topic=WikiMaker}}',
+      catalogItem: byId.get('boas-vindas'),
     },
     {
       id: 'curated-nav-navbox',
       source: 'curated',
-      name: 'Caixa de Navegação (Navbox)',
+      name: 'Navigation Box (Navbox)',
       category: 'navigation',
       syntaxTag: '{{Navbox}}',
-      description: 'Caixa horizontal conectando páginas relacionadas de um mesmo tema ou série.',
-      snippet: '{{Navbox|titulo=Guias do WikiMaker|1=start|2=markdown-guide|3=regras-de-uso}}',
-      catalogItem: byName.get('Navbox'),
+      description: 'Horizontal box connecting related pages on a shared topic or series.',
+      snippet: '{{Navbox|title=WikiMaker Guides|1=start|2=markdown-guide|3=regras-de-uso}}',
+      catalogItem: byId.get('navbox'),
     },
     {
       id: 'curated-nav-series',
       source: 'curated',
-      name: 'Artigo em Série (Anterior / Próximo)',
+      name: 'Article Series (Previous / Next)',
       category: 'navigation',
-      syntaxTag: '{{Artigo em série}}',
-      description: 'Barra sequencial para tutoriais, capítulos ou documentações em múltiplas partes.',
+      syntaxTag: '{{Part of a series}}',
+      description: 'Sequential navigation bar for multi-part tutorials, chapters, or documentation.',
       snippet:
-        '{{Artigo em série|serie=Documentação WikiMaker|indice=start|anterior=markdown-guide|proximo=regras-de-uso}}',
-      catalogItem: byName.get('Artigo em série'),
+        '{{Part of a series|series=WikiMaker Documentation|index=start|previous=markdown-guide|next=regras-de-uso}}',
+      catalogItem: byId.get('artigo-em-serie'),
     },
     {
       id: 'curated-nav-main',
       source: 'curated',
-      name: 'Artigo Principal (Hatnote)',
+      name: 'Main Article (Hatnote)',
       category: 'navigation',
       syntaxTag: ':::predefinicao navigation',
-      description: 'Nota de remissão no topo de uma seção apontando para o artigo completo.',
+      description: 'Cross-reference hatnote at the top of a section pointing to the full article.',
       snippet: serializePredefinicaoBlock({
         variant: 'navigation',
-        kicker: 'Artigo principal',
-        body: 'Artigo principal: [[markdown-guide|Guia Completo de Markdown]]',
+        kicker: 'Main article',
+        body: 'Main article: [[markdown-guide|Complete Markdown Guide]]',
       }),
     },
     {
       id: 'curated-nav-seealso',
       source: 'curated',
-      name: 'Ver Também',
+      name: 'See Also',
       category: 'navigation',
-      syntaxTag: '{{Ver também}}',
-      description: 'Bloco rápido de remissão cruzada para dois ou três artigos relacionados.',
-      snippet: '{{Ver também|start|markdown-guide|regras-de-uso}}',
-      catalogItem: byName.get('Ver também'),
+      syntaxTag: '{{See also}}',
+      description: 'Quick cross-reference block linking two or three related articles.',
+      snippet: '{{See also|start|markdown-guide|regras-de-uso}}',
+      catalogItem: byId.get('ver-tambem'),
     },
     {
       id: 'curated-nav-collapsible',
       source: 'curated',
-      name: 'Bloco Recolhível / Anexo (Ocultar)',
+      name: 'Collapsible Box / Appendix',
       category: 'navigation',
-      syntaxTag: '{{Ocultar}}',
-      description: 'Caixa estruturada estilo Wikidot collapsible para apêndices, listas ou registros.',
+      syntaxTag: '{{Collapse}}',
+      description: 'Wikidot-style collapsible box for appendices, lists, or change logs.',
       snippet:
-        '{{Ocultar|titulo=Registro de alterações e notas|conteudo=v1.0 — Estrutura inicial · v1.1 — Revisão de referências}}',
-      catalogItem: byName.get('Ocultar'),
+        '{{Collapse|title=Changelog and notes|content=v1.0 — Initial structure · v1.1 — Reference review}}',
+      catalogItem: byId.get('ocultar-caixa'),
     },
     {
       id: 'curated-nav-cronologia',
       source: 'curated',
-      name: 'Cronologia / Sucessão',
+      name: 'Chronology / Succession',
       category: 'navigation',
-      syntaxTag: '{{Cronologia}}',
-      description: 'Linha de navegação temporal exibindo edição anterior, atual e próxima.',
-      snippet: '{{Cronologia|tema=Edições do Projeto|anterior=2024|atual=2025|proximo=2026}}',
-      catalogItem: byName.get('Cronologia'),
+      syntaxTag: '{{Timeline}}',
+      description: 'Timeline navigation strip showing previous, current, and next edition.',
+      snippet: '{{Timeline|theme=Project Editions|prev=2024|current=2025|next=2026}}',
+      catalogItem: byId.get('cronologia'),
     },
     {
       id: 'curated-nav-disambig',
       source: 'curated',
-      name: 'Desambiguação',
+      name: 'Disambiguation',
       category: 'navigation',
       syntaxTag: ':::predefinicao disambiguation',
-      description: 'Caixa de desambiguação para orientar o leitor entre termos homônimos.',
+      description: 'Disambiguation notice guiding readers between similarly titled topics.',
       snippet: serializePredefinicaoBlock({
         variant: 'disambiguation',
-        kicker: 'Desambiguação',
-        title: 'Outros significados',
-        body: 'Se procura outro significado para este título, consulte [[start|Página Inicial]] ou [[markdown-guide|Guia de Markdown]].',
+        kicker: 'Disambiguation',
+        title: 'Other Meanings',
+        body: 'If you are looking for another meaning of this title, see [[start|Home Page]] or [[markdown-guide|Markdown Guide]].',
       }),
     },
     {
       id: 'curated-nav-quote',
       source: 'curated',
-      name: 'Citação Destacada',
+      name: 'Featured Quote',
       category: 'navigation',
       syntaxTag: ':::predefinicao quote',
-      description: 'Bloco tipográfico de citação com atribuição de autor e fonte bibliográfica.',
+      description: 'Typographic quotation block with author attribution and bibliographic source.',
       snippet: serializePredefinicaoBlock({
         variant: 'quote',
-        kicker: 'Citação',
-        body: 'O conhecimento compartilhado se fortalece quando cada revisão preserva clareza e referências verificáveis.',
-        author: 'Conselho Editorial',
-        source: 'Manual de Estilo WikiMaker',
+        kicker: 'Quote',
+        body: 'Shared knowledge grows stronger when every revision preserves clarity and verifiable references.',
+        author: 'Editorial Board',
+        source: 'WikiMaker Style Manual',
       }),
     },
     {
       id: 'curated-nav-reflist',
       source: 'curated',
-      name: 'Lista de Referências',
+      name: 'Reference List',
       category: 'navigation',
       syntaxTag: '{{Reflist}}',
-      description: 'Insere o bloco de referências bibliográficas ao final do artigo.',
+      description: 'Inserts the interactive bibliographic reference list at the end of the article.',
       snippet: '{{Reflist}}',
-      catalogItem: byName.get('Reflist'),
+      catalogItem: byId.get('reflist'),
     },
     {
       id: 'curated-nav-bar-table',
       source: 'curated',
-      name: 'Barra Horizontal de Links (Tabela)',
+      name: 'Horizontal Link Bar (Table)',
       category: 'navigation',
       syntaxTag: '| Links |',
-      description: 'Menu compacto em tabela Markdown para conectar seções principais no topo da página.',
+      description: 'Compact Markdown table menu connecting key sections at the top of a page.',
       snippet:
-        '| Visão Geral | Documentação | Diretrizes |\n| --- | --- | --- |\n| [[start|Início]] | [[markdown-guide|Guia Markdown]] | [[regras-de-uso|Regras de Uso]] |',
+        '| Overview | Documentation | Guidelines |\n| --- | --- | --- |\n| [[start|Home]] | [[markdown-guide|Markdown Guide]] | [[regras-de-uso|Usage Rules]] |',
     },
   ];
 }
@@ -456,15 +456,15 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
       }
       const snippet =
         defaults.length > 0
-          ? `{{Predefinição:${tpl.name}|${defaults.join('|')}}}`
-          : `{{Predefinição:${tpl.name}}}`;
+          ? `{{Template:${tpl.name}|${defaults.join('|')}}}`
+          : `{{Template:${tpl.name}}}`;
       return {
         id: `community-${tpl.slug}`,
         source: 'community',
         name: tpl.name,
         category: 'navigation',
-        syntaxTag: `{{Predefinição:${tpl.name}}}`,
-        description: tpl.description || `Predefinição comunitária :${tpl.slug}`,
+        syntaxTag: `{{Template:${tpl.name}}}`,
+        description: tpl.description || `Community template :${tpl.slug}`,
         snippet,
       };
     });
@@ -558,7 +558,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
 
   return (
     <section
-      aria-label="Gestão de Predefinições"
+      aria-label="Template Manager"
       className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-[#0d131f] overflow-hidden"
     >
       {/* Panel Header */}
@@ -570,14 +570,14 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-display text-sm font-semibold text-slate-900 dark:text-slate-100">
-                Gestão de Predefinições
+                Template Manager
               </h3>
               <span className="text-[11px] font-mono tabular-nums text-slate-500 dark:text-slate-400">
-                · {allLookupItems.length} modelos disponíveis
+                · {allLookupItems.length} templates available
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Selecione, visualize em tempo real e insira infoboxes, alertas e caixas de navegação diretamente no Markdown.
+              Select, preview live, and insert infoboxes, alerts, and navigation boxes directly into Markdown.
             </p>
           </div>
         </div>
@@ -590,7 +590,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <PanelRight className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-              <span>Construtor de Infobox</span>
+              <span>Infobox Builder</span>
             </button>
           )}
           {onOpenFullCatalog && (
@@ -600,17 +600,17 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <LayoutList className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
-              <span>Criar / Catálogo</span>
+              <span>Create / Catalog</span>
             </button>
           )}
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar Gestão de Predefinições"
+            aria-label="Close Template Manager"
             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
-            <span>Fechar</span>
+            <span>Close</span>
           </button>
         </div>
       </div>
@@ -619,7 +619,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-[#0f1623]">
         <div
           role="tablist"
-          aria-label="Categorias de predefinições"
+          aria-label="Template categories"
           className="flex flex-wrap items-center gap-1"
         >
           {CATEGORY_TABS.map((tab) => {
@@ -649,8 +649,8 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar infobox, alerta, navbox..."
-            aria-label="Buscar predefinição"
+            placeholder="Search infobox, alert, navbox..."
+            aria-label="Search templates"
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
           />
         </div>
@@ -663,19 +663,19 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
           <div className="flex items-center justify-between px-3.5 py-2 border-b border-slate-200/80 dark:border-slate-800/80 text-[11px] font-mono text-slate-500 dark:text-slate-400">
             <span className="inline-flex items-center gap-1.5">
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Modelos ({filteredItems.length})</span>
+              <span>Templates ({filteredItems.length})</span>
             </span>
-            <span>Clique para visualizar</span>
+            <span>Click to preview</span>
           </div>
 
           <div className="max-h-[380px] lg:max-h-[440px] overflow-y-auto divide-y divide-slate-200/70 dark:divide-slate-800/70">
             {filteredItems.length === 0 ? (
               <div className="p-6 text-center space-y-2">
                 <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Nenhuma predefinição encontrada para &ldquo;{searchQuery}&rdquo;.
+                  No templates found for &ldquo;{searchQuery}&rdquo;.
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Limpe a busca ou altere a aba para ver os blocos disponíveis.
+                  Clear the search or switch tabs to browse available blocks.
                 </p>
                 {searchQuery && (
                   <button
@@ -683,7 +683,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                     onClick={() => setSearchQuery('')}
                     className="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                   >
-                    Limpar busca
+                    Clear search
                   </button>
                 )}
               </div>
@@ -727,7 +727,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                     <div className="flex items-center pr-2.5 pl-1 shrink-0">
                       <button
                         type="button"
-                        title={`Inserir ${item.name} diretamente no Markdown`}
+                        title={`Insert ${item.name} directly into Markdown`}
                         onClick={() => {
                           selectItem(item);
                           onInsert(item.snippet);
@@ -735,7 +735,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                         className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-[11px] font-medium text-blue-700 dark:text-blue-300 hover:border-blue-700 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors whitespace-nowrap cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />
-                        <span>Inserir</span>
+                        <span>Insert</span>
                       </button>
                     </div>
                   </div>
@@ -760,7 +760,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
 
             <div
               role="tablist"
-              aria-label="Visualização da predefinição"
+              aria-label="Template view mode"
               className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-200/70 dark:bg-slate-800/80 shrink-0"
             >
               <button
@@ -775,7 +775,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                 }`}
               >
                 <SplitSquareHorizontal className="w-3 h-3" />
-                <span>Ambos</span>
+                <span>Both</span>
               </button>
               <button
                 type="button"
@@ -789,7 +789,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                 }`}
               >
                 <Eye className="w-3 h-3" />
-                <span>Visualizar</span>
+                <span>Preview</span>
               </button>
               <button
                 type="button"
@@ -803,7 +803,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                 }`}
               >
                 <Code2 className="w-3 h-3" />
-                <span>Código</span>
+                <span>Code</span>
               </button>
             </div>
           </div>
@@ -816,14 +816,14 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                   htmlFor="template-quick-title"
                   className="text-[11px] font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap"
                 >
-                  Título:
+                  Title:
                 </label>
                 <input
                   id="template-quick-title"
                   type="text"
                   value={currentBlockTitle}
                   onChange={(e) => setDraftCode((prev) => upsertBlockField(prev, 'title', e.target.value))}
-                  placeholder="Título da caixa..."
+                  placeholder="Box title..."
                   className="w-full px-2 py-1 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
@@ -831,11 +831,11 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
               {isInfoboxBlock && (
                 <div className="flex items-center gap-1 shrink-0">
                   <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mr-0.5">
-                    Posição:
+                    Position:
                   </span>
                   {(['right', 'left', 'full'] as InfoboxLayout[]).map((layout) => {
                     const label =
-                      layout === 'right' ? 'Direita' : layout === 'left' ? 'Esquerda' : 'Largura total';
+                      layout === 'right' ? 'Right' : layout === 'left' ? 'Left' : 'Full width';
                     const active = currentInfoboxLayout === layout;
                     return (
                       <button
@@ -863,7 +863,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                     htmlFor="template-quick-variant"
                     className="text-[11px] font-medium text-slate-600 dark:text-slate-400"
                   >
-                    Estilo:
+                    Style:
                   </label>
                   <select
                     id="template-quick-variant"
@@ -893,7 +893,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
                   <span className="inline-flex items-center gap-1">
                     <Info className="w-3 h-3" />
-                    <span>Pré-visualização ao vivo</span>
+                    <span>Live preview</span>
                   </span>
                 </div>
                 <div className="flow-root p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f17] overflow-x-auto">
@@ -917,7 +917,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
             {(previewMode === 'split' || previewMode === 'code') && (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                  <span>Código Markdown editável</span>
+                  <span>Editable Markdown code</span>
                   <div className="flex items-center gap-2">
                     {isModified && (
                       <button
@@ -926,7 +926,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                         className="inline-flex items-center gap-1 text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
                       >
                         <RotateCcw className="w-3 h-3" />
-                        <span>Restaurar padrão</span>
+                        <span>Reset default</span>
                       </button>
                     )}
                     <span className="tabular-nums">{draftCode.length} chars</span>
@@ -936,7 +936,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                   value={draftCode}
                   onChange={(e) => setDraftCode(e.target.value)}
                   rows={previewMode === 'code' ? 11 : 6}
-                  aria-label="Código Markdown da predefinição selecionada"
+                  aria-label="Markdown code for selected template"
                   className="w-full p-3 text-xs font-mono leading-relaxed rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 resize-y"
                 />
               </div>
@@ -946,7 +946,7 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
           {/* Action Bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f17]">
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Você pode editar o código acima antes de inserir no artigo.
+              You can edit the code above before inserting it into the article.
             </span>
 
             <div className="flex items-center gap-2 shrink-0">
@@ -958,12 +958,12 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                 {copiedId === selectedItem.id ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Copiado</span>
+                    <span>Copied</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copiar código</span>
+                    <span>Copy code</span>
                   </>
                 )}
               </button>
@@ -977,12 +977,12 @@ export const TemplateManagementPanel: React.FC<TemplateManagementPanelProps> = (
                 {justInserted ? (
                   <>
                     <Check className="w-3.5 h-3.5" />
-                    <span>Inserido no Markdown</span>
+                    <span>Inserted into Markdown</span>
                   </>
                 ) : (
                   <>
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Inserir no Markdown</span>
+                    <span>Insert into Markdown</span>
                   </>
                 )}
               </button>

@@ -137,68 +137,68 @@ function getModerationNoticeMeta(
     case 'block':
       return {
         noticeType: 'critico',
-        heading: 'Bloqueio de conta aplicado',
-        categoryLabel: 'Sanção administrativa / Bloqueio',
+        heading: 'Account block applied',
+        categoryLabel: 'Administrative sanction / Account block',
       };
     case 'unblock':
       return {
         noticeType: 'sucesso',
-        heading: 'Bloqueio encerrado',
-        categoryLabel: 'Revisão administrativa / Desbloqueio',
+        heading: 'Account block lifted',
+        categoryLabel: 'Administrative review / Unblock',
       };
     case 'sanction':
       return {
         noticeType: 'cuidado',
-        heading: sanctionLabel?.trim() || 'Sanção / Advertência formal',
-        categoryLabel: 'Sanção administrativa',
+        heading: sanctionLabel?.trim() || 'Formal sanction / Warning',
+        categoryLabel: 'Administrative sanction',
       };
     case 'speedy-deletion':
       return {
         noticeType: 'critico',
-        heading: 'Proposta de eliminação rápida inserida',
-        categoryLabel: 'Aviso editorial / Eliminação rápida',
+        heading: 'Speedy deletion proposal inserted',
+        categoryLabel: 'Editorial notice / Speedy deletion',
       };
     case 'edit-reverted':
       return {
         noticeType: 'cuidado',
-        heading: 'Edição revertida pela administração',
-        categoryLabel: 'Aplicação administrativa sobre edição',
+        heading: 'Edit reverted by administration',
+        categoryLabel: 'Administrative action on edit',
       };
     case 'edit-removed':
       return {
         noticeType: 'critico',
-        heading: 'Revisão removida pela administração',
-        categoryLabel: 'Aplicação administrativa sobre edição',
+        heading: 'Revision removed by administration',
+        categoryLabel: 'Administrative action on edit',
       };
     case 'edit-moderation':
       return {
         noticeType: 'nota',
-        heading: 'Intervenção administrativa sobre edição',
-        categoryLabel: 'Aplicação administrativa sobre edição',
+        heading: 'Administrative intervention on edit',
+        categoryLabel: 'Administrative action on edit',
       };
     case 'page-locked':
       return {
         noticeType: 'cuidado',
-        heading: 'Página protegida / bloqueada para edição',
-        categoryLabel: 'Aplicação administrativa sobre página',
+        heading: 'Page protected / locked for editing',
+        categoryLabel: 'Administrative action on page',
       };
     case 'page-unlocked':
       return {
         noticeType: 'nota',
-        heading: 'Proteção de página removida',
-        categoryLabel: 'Aplicação administrativa sobre página',
+        heading: 'Page protection removed',
+        categoryLabel: 'Administrative action on page',
       };
     case 'page-deleted':
       return {
         noticeType: 'critico',
-        heading: 'Página removida pela administração',
-        categoryLabel: 'Aplicação administrativa sobre página',
+        heading: 'Page removed by administration',
+        categoryLabel: 'Administrative action on page',
       };
     case 'comment-removed':
       return {
         noticeType: 'cuidado',
-        heading: 'Comentário removido pela administração',
-        categoryLabel: 'Moderação de discussão',
+        heading: 'Comment removed by administration',
+        categoryLabel: 'Discussion moderation',
       };
   }
 }
@@ -267,49 +267,49 @@ export async function notifyUserDiscussionPage(
 
   const cleanReason =
     sanitizeTemplateInlineText(reason, 600) ||
-    'Aplicação administrativa registrada pela moderação da wiki.';
+    'Administrative action logged by wiki moderation.';
   const cleanPageTitle = pageTitle ? sanitizeTemplateInlineText(pageTitle, 140) : '';
   const cleanHeading = sanitizeTemplateInlineText(heading, 120);
   const cleanActorName = sanitizeTemplateInlineText(actorName, 80);
 
   const templateTitle = `${categoryLabel}: ${cleanHeading}`;
-  const templateBodyParts = [`Notificação oficial aplicada por ${cleanActorName}: ${cleanReason}`];
+  const templateBodyParts = [`Official notice issued by ${cleanActorName}: ${cleanReason}`];
   if (pageSlug) {
     templateBodyParts.push(
-      `Página: :${pageSlug}${typeof version === 'number' ? ` (v${version})` : ''}.`
+      `Page: :${pageSlug}${typeof version === 'number' ? ` (v${version})` : ''}.`
     );
   }
   const templateBody = sanitizeTemplateInlineText(templateBodyParts.join(' '), 500);
 
   const metadataLines = [
-    `- **Ação aplicada:** ${cleanHeading}`,
-    `- **Categoria:** ${categoryLabel}`,
-    `- **Administrador / Burocrata:** ${cleanActorName}`,
-    `- **Data e hora:** \`${dateTimeUtc}\``,
-    `- **Motivo / Aplicação:** ${cleanReason}`,
+    `- **Action applied:** ${cleanHeading}`,
+    `- **Category:** ${categoryLabel}`,
+    `- **Administrator / Bureaucrat:** ${cleanActorName}`,
+    `- **Date & time:** \`${dateTimeUtc}\``,
+    `- **Reason / Action:** ${cleanReason}`,
   ];
 
   if (pageSlug) {
     if (kind === 'page-deleted') {
       metadataLines.push(
-        `- **Página afetada:** \`:${pageSlug}\`${cleanPageTitle ? ` (${cleanPageTitle})` : ''}`
+        `- **Affected page:** \`:${pageSlug}\`${cleanPageTitle ? ` (${cleanPageTitle})` : ''}`
       );
     } else {
       metadataLines.push(
-        `- **Página afetada:** [[${pageSlug}|${cleanPageTitle || pageSlug}]] (\`:${pageSlug}\`)`
+        `- **Affected page:** [[${pageSlug}|${cleanPageTitle || pageSlug}]] (\`:${pageSlug}\`)`
       );
     }
   }
   if (typeof version === 'number') {
-    metadataLines.push(`- **Revisão / Edição:** \`v${version}\``);
+    metadataLines.push(`- **Revision / Edit:** \`v${version}\``);
   }
 
   const noticeSection = [
     '---',
     '',
-    `## Notificação administrativa — ${cleanHeading} (${dateOnly})`,
+    `## Administrative Notice — ${cleanHeading} (${dateOnly})`,
     '',
-    `{{Aviso|tipo=${noticeType}|título=${templateTitle}|texto=${templateBody}|data=${dateTimeUtc}}}`,
+    `{{Notice|type=${noticeType}|title=${templateTitle}|text=${templateBody}|date=${dateTimeUtc}}}`,
     '',
     ...metadataLines,
   ].join('\n');
@@ -326,7 +326,7 @@ export async function notifyUserDiscussionPage(
     const actorHasCollab = actorCollabSnap.exists();
     const batch = writeBatch(db);
     const revSummary = sanitizeString(
-      `Notificação administrativa: ${cleanHeading}`,
+      `Administrative notice: ${cleanHeading}`,
       VALIDATION_LIMITS.SUMMARY_MAX_LENGTH
     );
 
@@ -523,10 +523,10 @@ async function insertBlockTemplateOnPersonalPage(input: {
   const now = new Date();
   const dateTimeUtc = `${now.toISOString().slice(0, 10)} ${now.toISOString().slice(11, 16)} UTC`;
   const cleanReason =
-    sanitizeTemplateInlineText(reason, 500) || 'Violação das políticas editoriais da wiki.';
+    sanitizeTemplateInlineText(reason, 500) || 'Violation of wiki editorial or conduct policies.';
   const cleanActorName = sanitizeTemplateInlineText(actorName, 80);
 
-  const blockTemplateCall = `{{Bloqueio|motivo=${cleanReason}|administrador=${cleanActorName}|duracao=Indeterminado|data=${dateTimeUtc}}}`;
+  const blockTemplateCall = `{{Block|reason=${cleanReason}|admin=${cleanActorName}|duration=Indefinite|date=${dateTimeUtc}}}`;
 
   const personalRef = doc(db, 'pages', personalPageSlug);
   const actorCollabRef = doc(db, 'collaborators', actor.uid);
@@ -540,7 +540,7 @@ async function insertBlockTemplateOnPersonalPage(input: {
     const actorHasCollab = actorCollabSnap.exists();
     const batch = writeBatch(db);
     const revSummary = sanitizeString(
-      `Predefinição {{Bloqueio}} inserida pela administração`,
+      `Template {{Block}} inserted by administration`,
       VALIDATION_LIMITS.SUMMARY_MAX_LENGTH
     );
 
@@ -705,7 +705,7 @@ async function removeBlockTemplateFromPersonalPage(input: {
     const actorName = getActorDisplayName(actor);
     const nextVersion = existingPage.version + 1;
     const revSummary = sanitizeString(
-      'Remoção da predefinição {{Bloqueio}} após desbloqueio administrativo',
+      'Removed {{Block}} template after administrative unblock',
       VALIDATION_LIMITS.SUMMARY_MAX_LENGTH
     );
 
@@ -805,8 +805,8 @@ export async function notifyAuthorSpeedyDeletion(input: {
 
   const ruleText = rule?.trim() ? ` (${rule.trim()})` : '';
   const cleanReason = reason?.trim()
-    ? `Eliminação rápida${ruleText} solicitada para :${pageSlug}. Motivo: ${reason.trim()}`
-    : `O artigo :${pageSlug} foi marcado com a predefinição de Eliminação rápida${ruleText}.`;
+    ? `Speedy deletion${ruleText} requested for :${pageSlug}. Reason: ${reason.trim()}`
+    : `The article :${pageSlug} was tagged with Speedy Deletion${ruleText}.`;
 
   if (actorIsAdmin) {
     return notifyUserDiscussionPage({
@@ -832,10 +832,10 @@ export async function notifyAuthorSpeedyDeletion(input: {
     }
 
     const commentBody = [
-      `⚠️ Alerta de Eliminação rápida${ruleText}`,
-      `O artigo "${pageTitle}" (:${pageSlug}) foi marcado com {{Eliminação rápida}}.`,
-      reason?.trim() ? `Motivo informado: ${reason.trim()}` : '',
-      'Verifique a página para corrigir ou contestar antes de eventual remoção pela administração.',
+      `⚠️ Speedy Deletion Alert${ruleText}`,
+      `The article "${pageTitle}" (:${pageSlug}) was tagged with {{Speedy delete}}.`,
+      reason?.trim() ? `Stated reason: ${reason.trim()}` : '',
+      'Please check the page to fix or contest before possible removal by administration.',
     ]
       .filter(Boolean)
       .join(' ')
@@ -1191,7 +1191,7 @@ export async function unblockUserAccount(
     targetDisplayName: displayName,
     actor,
     kind: 'unblock',
-    reason: 'Bloqueio administrativo encerrado e permissões de escrita restauradas.',
+    reason: 'Administrative block lifted and editing permissions restored.',
   });
 }
 
@@ -1213,7 +1213,7 @@ export async function applySanctionToUser(input: {
 }> {
   const safeReason =
     sanitizeString(input.reason, VALIDATION_LIMITS.BLOCK_REASON_MAX_LENGTH) ||
-    'Sanção administrativa aplicada pela moderação.';
+    'Administrative sanction applied by moderation.';
 
   if (input.severity === 'block') {
     const result = await blockUserAccount(
@@ -1238,8 +1238,8 @@ export async function applySanctionToUser(input: {
   const label =
     input.sanctionLabel?.trim() ||
     (input.severity === 'edit-sanction'
-      ? 'Sanção sobre edição'
-      : 'Advertência formal');
+      ? 'Edit sanction'
+      : 'Formal warning');
 
   const result = await notifyUserDiscussionPage({
     targetUid: input.targetUid,
@@ -1310,7 +1310,7 @@ export async function deletePageAsAdmin(
       kind: 'page-deleted',
       reason:
         reason?.trim() ||
-        `A página :${slug} foi removida pela administração/burocracia.`,
+        `Page :${slug} was removed by administration/bureaucracy.`,
       pageSlug: slug,
       pageTitle: deletedPageData.title,
       version: deletedPageData.version,
@@ -1339,7 +1339,7 @@ export async function removeRevisionEditAsAdmin(
       page.slug,
       actor,
       moderationReason?.trim() ||
-        `Página removida após exclusão da única revisão (v${targetRevision.version}).`
+        `Page removed after deletion of its only revision (v${targetRevision.version}).`
     );
     if (targetRevision.editorId && targetRevision.editorId !== 'lgpd-anonymized') {
       try {
@@ -1373,7 +1373,7 @@ export async function removeRevisionEditAsAdmin(
         kind: 'edit-removed',
         reason:
           moderationReason?.trim() ||
-          `Sua edição v${targetRevision.version} em :${page.slug} foi removida pela administração.`,
+          `Your edit v${targetRevision.version} on :${page.slug} was removed by administration.`,
         pageSlug: page.slug,
         pageTitle: page.title,
         version: targetRevision.version,
@@ -1442,8 +1442,8 @@ export async function removeRevisionEditAsAdmin(
     reason:
       moderationReason?.trim() ||
       (isLatest
-        ? `Sua edição v${targetRevision.version} em :${page.slug} foi revertida e removida pela administração.`
-        : `Sua revisão v${targetRevision.version} em :${page.slug} foi removida do histórico pela administração.`),
+        ? `Your edit v${targetRevision.version} on :${page.slug} was reverted and removed by administration.`
+        : `Your revision v${targetRevision.version} on :${page.slug} was removed from history by administration.`),
     pageSlug: page.slug,
     pageTitle: page.title,
     version: targetRevision.version,

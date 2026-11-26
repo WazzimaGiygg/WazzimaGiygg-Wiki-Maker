@@ -422,8 +422,8 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
           actor: currentUser,
           kind: nextLocked ? 'page-locked' : 'page-unlocked',
           reason: nextLocked
-            ? `A página :${page.slug} foi bloqueada para edição pela administração.`
-            : `A proteção de edição da página :${page.slug} foi removida pela administração.`,
+            ? `Page :${page.slug} was locked for editing by administration.`
+            : `Editing protection for page :${page.slug} was lifted by administration.`,
           pageSlug: page.slug,
           pageTitle: page.title,
           version: page.version + 1,
@@ -540,7 +540,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-emerald-400/60 dark:border-emerald-700 bg-white dark:bg-[#0b0f17] text-emerald-800 dark:text-emerald-300 font-medium hover:bg-emerald-100/60 dark:hover:bg-emerald-900/40 whitespace-nowrap shrink-0 cursor-pointer"
             >
               <MessageSquare className="w-3 h-3" />
-              <span>Abrir página de discussão</span>
+              <span>Open discussion page</span>
             </button>
           )}
         </div>
@@ -641,7 +641,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
-            Extensões ({extensionsState.list.filter((e) => e.enabled).length}/
+            Extensions ({extensionsState.list.filter((e) => e.enabled).length}/
             {extensionsState.list.length})
           </button>
           <button
@@ -653,7 +653,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
-            Atualizações do Repo
+            Repo Updates
           </button>
         </div>
 
@@ -1088,7 +1088,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                                           setSanctionSeverity('edit-sanction');
                                           setSanctionLabel('');
                                           setSanctionReason(
-                                            `Sanção aplicada sobre a edição v${edit.version} em :${edit.pageSlug}`
+                                            `Sanction applied to edit v${edit.version} on :${edit.pageSlug}`
                                           );
                                         }}
                                         className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 whitespace-nowrap shrink-0"
@@ -1402,8 +1402,8 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                 Blocking <strong>{blockModalUser.displayName}</strong> immediately revokes
-                permission to create, edit, or delete pages and comments. Uma notificação será
-                inserida automaticamente dentro da página de discussão do usuário.
+                permission to create, edit, or delete pages and comments. A notification will be
+                inserted automatically into the user&apos;s discussion page.
               </p>
             </div>
 
@@ -1458,11 +1458,11 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 Governance · Discussion Page Notification
               </p>
               <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
-                Aplicar Sanção: {sanctionModalTarget.displayName}
+                Apply Sanction: {sanctionModalTarget.displayName}
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                A notificação oficial desta sanção será inserida automaticamente dentro da página de
-                discussão de <strong>{sanctionModalTarget.displayName}</strong>
+                The official notification of this sanction will be inserted automatically into{' '}
+                <strong>{sanctionModalTarget.displayName}</strong>&apos;s discussion page
                 {sanctionModalTarget.pageSlug
                   ? ` (ref: :${sanctionModalTarget.pageSlug}${
                       typeof sanctionModalTarget.version === 'number'
@@ -1479,7 +1479,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 htmlFor="sanction-severity-select"
                 className="block text-xs font-medium text-slate-700 dark:text-slate-300"
               >
-                Tipo de sanção / aplicação
+                Sanction / action type
               </label>
               <select
                 id="sanction-severity-select"
@@ -1487,9 +1487,9 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 onChange={(e) => setSanctionSeverity(e.target.value as SanctionSeverity)}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
               >
-                <option value="warning">Advertência formal (Aviso)</option>
-                <option value="edit-sanction">Sanção / Revisão sobre edição</option>
-                <option value="block">Sanção com bloqueio imediato da conta</option>
+                <option value="warning">Formal warning (Notice)</option>
+                <option value="edit-sanction">Edit sanction / review</option>
+                <option value="block">Sanction with immediate account block</option>
               </select>
             </div>
 
@@ -1499,7 +1499,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                   htmlFor="sanction-label-input"
                   className="block text-xs font-medium text-slate-700 dark:text-slate-300"
                 >
-                  Título curto da sanção (opcional)
+                  Short sanction title (optional)
                 </label>
                 <input
                   id="sanction-label-input"
@@ -1507,7 +1507,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                   maxLength={100}
                   value={sanctionLabel}
                   onChange={(e) => setSanctionLabel(e.target.value)}
-                  placeholder="Ex.: Advertência de conduta editorial"
+                  placeholder="e.g., Editorial conduct warning"
                   className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
@@ -1518,7 +1518,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 htmlFor="sanction-reason-input"
                 className="block text-xs font-medium text-slate-700 dark:text-slate-300"
               >
-                Motivo / Descrição da notificação
+                Reason / Notification description
               </label>
               <textarea
                 id="sanction-reason-input"
@@ -1527,7 +1527,7 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 maxLength={300}
                 value={sanctionReason}
                 onChange={(e) => setSanctionReason(e.target.value)}
-                placeholder="Descreva a sanção ou determinação administrativa que aparecerá na página de discussão..."
+                placeholder="Describe the sanction or administrative action that will appear on the discussion page..."
                 className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
               />
             </div>
@@ -1546,8 +1546,8 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50"
               >
                 {busyKey === `sanction:${sanctionModalTarget.uid}`
-                  ? 'Aplicando...'
-                  : 'Aplicar & Notificar'}
+                  ? 'Applying...'
+                  : 'Apply & Notify'}
               </button>
             </div>
           </form>

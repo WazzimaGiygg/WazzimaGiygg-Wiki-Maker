@@ -62,7 +62,7 @@ export const FormattedMarkdownPane = React.forwardRef<
       value,
       onChange,
       onActiveFormatsChange,
-      placeholder = 'Escreva diretamente no modo formatado...',
+      placeholder = 'Write directly in formatted mode...',
       roundedClassName = 'rounded-xl',
       minHeightClassName = 'min-h-[420px]',
     },
@@ -223,7 +223,7 @@ export const FormattedMarkdownPane = React.forwardRef<
         setSelectedLink({
           anchor,
           kind: 'external',
-          target: href || 'https://exemplo.com',
+          target: href || 'https://example.com',
           label: label || 'Link',
         });
       }
@@ -270,14 +270,14 @@ export const FormattedMarkdownPane = React.forwardRef<
             break;
           }
           case 'checklist': {
-            const itemLabel = selectedText || 'Tarefa pendente';
+            const itemLabel = selectedText || 'Pending task';
             insertHtmlAtSelection(
               `<ul data-task-list="true"><li data-task-item="true"><input type="checkbox" /> ${itemLabel}</li></ul><p><br /></p>`
             );
             return;
           }
           case 'codeBlock': {
-            const codeSample = (selectedText || 'const exemplo = "wiki";')
+            const codeSample = (selectedText || 'const example = "wiki";')
               .replace(/&/g, '&amp;')
               .replace(/</g, '&lt;')
               .replace(/>/g, '&gt;');
@@ -288,7 +288,7 @@ export const FormattedMarkdownPane = React.forwardRef<
           }
           case 'table': {
             insertHtmlAtSelection(
-              `<table><thead><tr><th>Coluna 1</th><th>Coluna 2</th></tr></thead><tbody><tr><td>Valor 1</td><td>Valor 2</td></tr><tr><td>Linha 2A</td><td>Linha 2B</td></tr></tbody></table><p><br /></p>`
+              `<table><thead><tr><th>Column 1</th><th>Column 2</th></tr></thead><tbody><tr><td>Value 1</td><td>Value 2</td></tr><tr><td>Row 2A</td><td>Row 2B</td></tr></tbody></table><p><br /></p>`
             );
             return;
           }
@@ -297,8 +297,8 @@ export const FormattedMarkdownPane = React.forwardRef<
             return;
           }
           case 'wikilink': {
-            const label = selectedText || 'Texto do Link';
-            const slug = selectedText ? toWikiSlug(selectedText) || 'slug-da-pagina' : 'slug-da-pagina';
+            const label = selectedText || 'Link Text';
+            const slug = selectedText ? toWikiSlug(selectedText) || 'page-slug' : 'page-slug';
             insertHtmlAtSelection(
               `<a href="https://wiki.internal/${slug}" data-wiki-slug="${slug}" class="wiki-rich-wikilink">${label}</a>`
             );
@@ -311,8 +311,8 @@ export const FormattedMarkdownPane = React.forwardRef<
             return;
           }
           case 'externallink': {
-            const label = selectedText || 'Texto do Link';
-            const href = 'https://exemplo.com';
+            const label = selectedText || 'Link Text';
+            const href = 'https://example.com';
             insertHtmlAtSelection(`<a href="${href}">${label}</a>`);
             const anchors = el.querySelectorAll(`a[href="${href}"]`);
             const insertedAnchor = anchors[anchors.length - 1] as HTMLAnchorElement | undefined;
@@ -485,7 +485,7 @@ export const FormattedMarkdownPane = React.forwardRef<
         const trimmedUrl = target.trim();
         const safeUrl = /^(https?:\/\/|mailto:|\/)/i.test(trimmedUrl)
           ? trimmedUrl
-          : 'https://exemplo.com';
+          : 'https://example.com';
         anchor.removeAttribute('data-wiki-slug');
         anchor.removeAttribute('class');
         anchor.setAttribute('href', safeUrl);
@@ -518,12 +518,12 @@ export const FormattedMarkdownPane = React.forwardRef<
               {selectedLink.kind === 'wiki' ? (
                 <>
                   <Link2 className="w-3.5 h-3.5" />
-                  <span>Link interno</span>
+                  <span>Internal link</span>
                 </>
               ) : (
                 <>
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>URL externa</span>
+                  <span>External URL</span>
                 </>
               )}
             </span>
@@ -533,8 +533,8 @@ export const FormattedMarkdownPane = React.forwardRef<
               onChange={(e) =>
                 setSelectedLink((prev) => (prev ? { ...prev, target: e.target.value } : null))
               }
-              placeholder={selectedLink.kind === 'wiki' ? 'slug-da-pagina' : 'https://...'}
-              aria-label={selectedLink.kind === 'wiki' ? 'Slug da página' : 'URL externa'}
+              placeholder={selectedLink.kind === 'wiki' ? 'page-slug' : 'https://...'}
+              aria-label={selectedLink.kind === 'wiki' ? 'Page slug' : 'External URL'}
               className="flex-1 min-w-[140px] px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 font-mono text-xs focus:outline-none focus:border-blue-700"
             />
             <input
@@ -543,29 +543,29 @@ export const FormattedMarkdownPane = React.forwardRef<
               onChange={(e) =>
                 setSelectedLink((prev) => (prev ? { ...prev, label: e.target.value } : null))
               }
-              placeholder="Texto exibido"
-              aria-label="Texto exibido do link"
+              placeholder="Display text"
+              aria-label="Link display text"
               className="flex-1 min-w-[130px] px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 text-xs focus:outline-none focus:border-blue-700"
             />
             <button
               type="submit"
               className="px-2.5 py-1 rounded-md bg-blue-700 text-white font-medium hover:bg-blue-800 transition-colors cursor-pointer shrink-0"
             >
-              Aplicar
+              Apply
             </button>
             <button
               type="button"
               onClick={handleUnlink}
-              title="Remover link mantendo o texto"
+              title="Remove link while keeping text"
               className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
             >
               <Unlink className="w-3 h-3" />
-              <span>Desvincular</span>
+              <span>Unlink</span>
             </button>
             <button
               type="button"
               onClick={() => setSelectedLink(null)}
-              aria-label="Fechar editor de link"
+              aria-label="Close link editor"
               className="p-1 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer shrink-0"
             >
               <X className="w-3.5 h-3.5" />
@@ -587,7 +587,7 @@ export const FormattedMarkdownPane = React.forwardRef<
             ref={editorRef}
             role="textbox"
             aria-multiline="true"
-            aria-label="Editor de texto formatado"
+            aria-label="Formatted text editor"
             contentEditable
             suppressContentEditableWarning
             onInput={() => {

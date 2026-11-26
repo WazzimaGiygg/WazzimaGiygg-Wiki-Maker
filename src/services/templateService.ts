@@ -134,8 +134,8 @@ export function formatTemplateSlug(rawName: string): string {
  */
 export function formatTemplateTitle(rawName: string): string {
   const withoutNs = rawName.replace(/^(predefini[cç][aã]o|predefinicao|template)\s*:\s*/i, '').trim();
-  const safeName = (withoutNs || 'Nova Predefinição').slice(0, VALIDATION_LIMITS.TITLE_MAX_LENGTH - 13);
-  return `Predefinição:${safeName}`.slice(0, VALIDATION_LIMITS.TITLE_MAX_LENGTH);
+  const safeName = (withoutNs || 'New Template').slice(0, VALIDATION_LIMITS.TITLE_MAX_LENGTH - 9);
+  return `Template:${safeName}`.slice(0, VALIDATION_LIMITS.TITLE_MAX_LENGTH);
 }
 
 /**
@@ -160,7 +160,7 @@ export function extractTemplateParameters(templateSource: string): ExtractedTemp
     if (a.isPositional && b.isPositional) return Number(a.name) - Number(b.name);
     if (a.isPositional) return -1;
     if (b.isPositional) return 1;
-    return a.name.localeCompare(b.name, 'pt-BR');
+    return a.name.localeCompare(b.name, 'en-US');
   });
 }
 
@@ -238,12 +238,12 @@ export function validateTemplateSyntax(
   const trimmed = source.trim();
 
   if (!trimmed) {
-    errors.push('O corpo da predefinição não pode ficar vazio.');
+    errors.push('The template body cannot be empty.');
   }
 
   if (source.length > VALIDATION_LIMITS.CONTENT_MAX_LENGTH) {
     errors.push(
-      `O conteúdo excede o limite máximo de ${VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('pt-BR')} caracteres.`
+      `Content exceeds the maximum limit of ${VALIDATION_LIMITS.CONTENT_MAX_LENGTH.toLocaleString('en-US')} characters.`
     );
   }
 
@@ -256,28 +256,28 @@ export function validateTemplateSyntax(
     if (nonCode[i] === '{') braceBalance += 1;
     else if (nonCode[i] === '}') braceBalance -= 1;
     if (braceBalance < 0) {
-      errors.push('Chave de fechamento "}" sem abertura correspondente.');
+      errors.push('Unmatched closing brace "}" without an opening brace.');
       break;
     }
   }
   if (braceBalance > 0) {
-    errors.push('Chaves de abertura "{{" ou "{{{" não foram fechadas corretamente.');
+    errors.push('Opening braces "{{" or "{{{" were not closed properly.');
   }
 
   if (/\{\{\{\s*(?:\|[^}]*)?\}\}\}/.test(nonCode)) {
-    errors.push('Há um marcador de parâmetro vazio ({{{}}}). Informe um nome ou número, como {{{1}}} ou {{{texto}}}.');
+    errors.push('Empty parameter placeholder ({{{}}}) found. Provide a name or index, such as {{{1}}} or {{{text}}}.');
   }
 
   const openNoinclude = (nonCode.match(/<noinclude>/gi) ?? []).length;
   const closeNoinclude = (nonCode.match(/<\/noinclude>/gi) ?? []).length;
   if (openNoinclude !== closeNoinclude) {
-    errors.push('Tags <noinclude> e </noinclude> estão desbalanceadas.');
+    errors.push('<noinclude> and </noinclude> tags are unbalanced.');
   }
 
   const openIncludeonly = (nonCode.match(/<includeonly>/gi) ?? []).length;
   const closeIncludeonly = (nonCode.match(/<\/includeonly>/gi) ?? []).length;
   if (openIncludeonly !== closeIncludeonly) {
-    errors.push('Tags <includeonly> e </includeonly> estão desbalanceadas.');
+    errors.push('<includeonly> and </includeonly> tags are unbalanced.');
   }
 
   const transcludable = nonCode
@@ -286,7 +286,7 @@ export function validateTemplateSyntax(
     .trim();
 
   if (trimmed && !transcludable) {
-    warnings.push('Todo o conteúdo está dentro de <noinclude>; nada será inserido quando a predefinição for chamada.');
+    warnings.push('All content is inside <noinclude>; nothing will be inserted when this template is called.');
   }
 
   if (selfTemplateName) {
@@ -301,7 +301,7 @@ export function validateTemplateSyntax(
         'i'
       );
       if (selfCallRegex.test(transcludable)) {
-        errors.push(`Recursão direta detectada: a predefinição "${selfTemplateName}" não pode invocar a si mesma fora de <noinclude>.`);
+        errors.push(`Direct recursion detected: template "${selfTemplateName}" cannot call itself outside <noinclude>.`);
       }
     }
   }
@@ -327,13 +327,13 @@ export function validateTemplateDefinition(
   const errors = [...syntax.errors];
 
   if (!slug || !VALIDATION_LIMITS.SLUG_PATTERN.test(slug)) {
-    errors.unshift('Informe um nome válido para gerar um identificador compatível.');
+    errors.unshift('Enter a valid name to generate a compatible identifier.');
   } else if (existingSlugs && existingSlugs.has(slug)) {
-    errors.unshift(`Já existe uma predefinição com o identificador :${slug}.`);
+    errors.unshift(`A template already exists with identifier :${slug}.`);
   }
 
   if (title.length > VALIDATION_LIMITS.TITLE_MAX_LENGTH) {
-    errors.push(`O título excede ${VALIDATION_LIMITS.TITLE_MAX_LENGTH} caracteres.`);
+    errors.push(`Title exceeds ${VALIDATION_LIMITS.TITLE_MAX_LENGTH} characters.`);
   }
 
   return {
@@ -493,7 +493,7 @@ export async function createTemplateModel(
     defaultInvocationMap[param.name] = param.defaultValue || param.name;
   }
 
-  const cleanDisplayName = title.replace(/^Predefinição\s*:\s*/i, '');
+  const cleanDisplayName = title.replace(/^(?:predefini[cç][aã]o|predefinicao|template)\s*:\s*/i, '');
   const invocation = buildTemplateInvocation(cleanDisplayName, defaultInvocationMap, true);
 
   return {

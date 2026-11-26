@@ -268,18 +268,18 @@ function buildWelcomeNoticeSection(displayName: string, personalPageSlug: string
   const now = new Date();
   const dateOnly = now.toISOString().slice(0, 10);
   const dateTimeUtc = `${dateOnly} ${now.toISOString().slice(11, 16)} UTC`;
-  const safeInlineName = sanitizeTemplateInline(displayName, 80) || 'Colaborador';
-  const safeLinkLabel = safeInlineName.replace(/[[\]]/g, '') || 'Colaborador';
+  const safeInlineName = sanitizeTemplateInline(displayName, 80) || 'Collaborator';
+  const safeLinkLabel = safeInlineName.replace(/[[\]]/g, '') || 'Collaborator';
 
   return [
-    `## Boas-vindas à wiki (${dateOnly})`,
+    `## Welcome to the wiki (${dateOnly})`,
     '',
-    `{{Boas-vindas|colaborador=${safeInlineName}|tema=WazzimaGiygg Maker|data=${dateTimeUtc}}}`,
+    `{{Welcome|contributor=${safeInlineName}|topic=WazzimaGiygg Maker|date=${dateTimeUtc}}}`,
     '',
-    `- **Regras de uso:** Consulte as [Regras de Uso do WikiMaker](#/terms) antes de editar ou publicar conteúdo`,
-    `- **Sua página pessoal:** [[${personalPageSlug}|${safeLinkLabel}]] (\`:${personalPageSlug}\`)`,
-    `- **Primeiros passos:** Confira o [[markdown-guide|Guia de Markdown e Predefinições]] ou explore a [[start|Página Inicial]]`,
-    `- **Discussões:** Outros usuários podem deixar comentários e mensagens para você logo abaixo ou editar esta conversa conforme as regras da wiki.`,
+    `- **Usage rules:** Review the [WikiMaker Usage Rules](#/terms) before editing or publishing content`,
+    `- **Your personal page:** [[${personalPageSlug}|${safeLinkLabel}]] (\`:${personalPageSlug}\`)`,
+    `- **Getting started:** Check the [[markdown-guide|Markdown & Templates Guide]] or explore [[start|Home]]`,
+    `- **Discussions:** Other collaborators can leave comments below or edit this conversation following wiki guidelines.`,
   ].join('\n');
 }
 
@@ -476,7 +476,10 @@ export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
         );
       } else if (isNewUser) {
         const existingDiscussion = discussionSnap.data() as WikiPage;
-        if (!existingDiscussion.content.includes('Boas-vindas')) {
+        if (
+          !existingDiscussion.content.includes('Boas-vindas') &&
+          !existingDiscussion.content.includes('Welcome')
+        ) {
           if (existingDiscussion.authorId === user.uid) {
             const welcomeSection = buildWelcomeNoticeSection(displayName, resolvedPersonalSlug);
             const combinedContent = existingDiscussion.content.trim()
@@ -539,7 +542,7 @@ export async function syncUserDocuments(user: User): Promise<SyncUserResult> {
         try {
           await addPageComment(
             pendingWelcomeCommentPage,
-            `Boas-vindas à wiki, ${displayName}! Seu acesso foi conectado com sucesso ao WazzimaGiygg Maker.`,
+            `Welcome to the wiki, ${displayName}! Your account is now connected to WazzimaGiygg Maker.`,
             user
           );
         } catch (commentError) {
@@ -1244,7 +1247,7 @@ export async function seedStarterWiki(user: User): Promise<void> {
 
 - [x] Sign in with Google to collaborate
 - [ ] Explore the [[markdown-guide|Markdown Guide]]
-- [ ] Try inserting MediaWiki templates with \`Ctrl+Shift+T\` (\`{{Aviso}}\`, \`{{Esboço}}\`, \`{{Info}}\`)
+- [ ] Try inserting MediaWiki templates with \`Ctrl+Shift+T\` (\`{{Notice}}\`, \`{{Stub}}\`, \`{{Infobox}}\`)
 - [ ] Create your first custom page like [[team-notes|Team Notes]]`,
     },
     {
@@ -1307,41 +1310,36 @@ Stack: TypeScript, React, Firebase
 :::
 \`\`\`
 
-## Predefinições MediaWiki (\`{{...}}\`)
+## MediaWiki Templates (\`{{...}}\`)
 
 Use braces just like MediaWiki to insert notices, maintenance banners, navigation strips, quotes, infoboxes, and custom transcluded templates (\`Ctrl+Shift+T\` opens the template picker):
 
 \`\`\`markdown
-{{Aviso|tipo=cuidado|título=Conteúdo em revisão|texto=Seção em verificação colaborativa.}}
-{{Esboço|Governança Digital}}
-{{Em construção}}
-{{Carece de fontes|data=November 2026}}
-{{Principal|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products}}
-{{Ver também|dossie-wikipedia-abusos|investigacao-lgpd-marco-civil-wmf-wikipedia}}
-{{Citação|texto=Open knowledge thrives on verifiable records.|autor=Editorial}}
-{{Info|tipo=project|título=Meu Projeto|Status=Active}}
-{{Ecossistema WazzimaGiygg}}
-
-<!-- English MediaWiki syntax also supported -->
 {{Notice|type=warning|title=Editorial Review|text=Claims undergoing verification.|date=November 2026}}
 {{Stub|Digital Governance}}
+{{Under construction}}
+{{Citation needed|date=November 2026}}
 {{Cleanup|reason=Add citations and convert bullet notes to prose.|date=November 2026}}
 {{Verify|status=verified|reviewer=Editorial Board|date=November 2026}}
 {{Main|ecossistema-wazzimagiygg|WazzimaGiygg Ecosystem Products}}
+{{See also|dossie-wikipedia-abusos|investigacao-lgpd-marco-civil-wmf-wikipedia}}
 {{Distinguish|start|Wiki Home}}
+{{Quote|text=Open knowledge thrives on verifiable records.|author=Editorial}}
+{{Infobox|type=project|title=My Project|Status=Active}}
+{{WazzimaGiygg Ecosystem}}
 {{Cite web|title=A Verdade|url=https://wazzimagiygg.com/averdade/|publisher=wazzimagiygg.com|date=November 2026}}
 \`\`\`
 
-You can also create reusable community templates at slugs starting with \`predefinicao-\` or \`template-\` (for example, [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]] or [[template-welcome|Template:Welcome]]). Use \`<noinclude>...</noinclude>\` for template documentation, \`<includeonly>...</includeonly>\`, and \`{{{parametro|valor padrão}}}\` placeholders. See [[${TEMPLATE_EXAMPLE_PAGE_SLUG}|${TEMPLATE_EXAMPLE_PAGE_TITLE}]] for a full live example article.
+You can also create reusable community templates at slugs starting with \`template-\` or \`predefinicao-\` (for example, [[${STARTER_TEMPLATE_SLUG}|${STARTER_TEMPLATE_TITLE}]] or [[template-welcome|Template:Welcome]]). Use \`<noinclude>...</noinclude>\` for template documentation, \`<includeonly>...</includeonly>\`, and \`{{{parameter|default value}}}\` placeholders. See [[${TEMPLATE_EXAMPLE_PAGE_SLUG}|${TEMPLATE_EXAMPLE_PAGE_TITLE}]] for a full live example article.
 
 ## Bibliographic References (\`<ref>\`)
 
-Cite sources anywhere in your article using \`<ref>...</ref>\` tags. Citations are numbered automatically and collected into a formatted **Referências** section at the bottom of the page with bidirectional jump links:
+Cite sources anywhere in your article using \`<ref>...</ref>\` tags. Citations are numbered automatically and collected into a formatted **References** section at the bottom of the page with bidirectional jump links:
 
 \`\`\`markdown
-Statement grounded in Brazilian law.<ref>Brasil. Lei nº 13.709/2018 (LGPD). https://www.planalto.gov.br</ref>
+Statement grounded in statutory law.<ref>Brazil. Law No. 13.709/2018 (LGPD). https://www.planalto.gov.br</ref>
 
-Named citations can be reused multiple times:<ref name="mci">Lei nº 12.965/2014 (Marco Civil da Internet).</ref>
+Named citations can be reused multiple times:<ref name="mci">Law No. 12.965/2014 (Brazilian Civil Rights Framework for the Internet).</ref>
 Second mention of the same source.<ref name="mci" />
 \`\`\`
 
@@ -1349,7 +1347,7 @@ Second mention of the same source.<ref name="mci" />
 
 - \`Ctrl+E\` — Switch from **Read** to **Edit** mode
 - \`Ctrl+Enter\` / \`Ctrl+S\` — Save revision in the Markdown editor
-- \`Ctrl+Shift+T\` — Open **Predefinições MediaWiki** picker
+- \`Ctrl+Shift+T\` — Open **MediaWiki Templates** picker
 - \`Ctrl+Shift+R\` — Insert a \`<ref>...</ref>\` bibliographic citation
 - \`Ctrl+K\` — Focus the sidebar page filter
 - \`?\` — Open the full keyboard shortcuts guide`,
@@ -1488,13 +1486,15 @@ Return to [[start|Home]] or check the [[markdown-guide|Markdown Guide]].`,
   }
 }
 
-const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v5';
+const BUILTIN_EN_SYNC_FLAG = 'wazzimagiygg-builtin-en-v7';
 
 const LEGACY_PORTUGUESE_TITLES: Record<string, string> = {
   [DOSSIER_PAGE_SLUG]: 'Investigação LGPD e Marco Civil — WMF e Wikipédia',
   [ECOSYSTEM_PAGE_SLUG]: 'Produtos do Ecossistema WazzimaGiygg',
   [WIKIPEDIA_ABUSES_PAGE_SLUG]:
     'Dossiê sobre a Wikipédia — Chronus, LittleSunshine, Conde Edmond Dantès, Teles e Johannnes89',
+  [TEMPLATE_EXAMPLE_PAGE_SLUG]: 'Exemplo de Uso de Pré-definição (MediaWiki)',
+  [STARTER_TEMPLATE_SLUG]: 'Predefinição:Boas-vindas',
 };
 
 /**
@@ -1615,8 +1615,9 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
           existing.version === 1 &&
           (item.slug === STARTER_TEMPLATE_SLUG || item.slug === 'template-welcome') &&
           !existing.content.includes('#/terms');
+        const isLegacyStarterMarkdownGuide = false;
 
-        if (isLegacyPortugueseSeed || isWelcomeTemplateMissingRulesLink) {
+        if (isLegacyPortugueseSeed || isWelcomeTemplateMissingRulesLink || isLegacyStarterMarkdownGuide) {
           const nextVersion = 2;
           const upgradeSummary = isWelcomeTemplateMissingRulesLink
             ? 'Added WikiMaker usage rules link to welcome template'

@@ -1,79 +1,79 @@
 export const TEMPLATE_EXAMPLE_PAGE_SLUG = 'exemplo-uso-predefinicao';
-export const TEMPLATE_EXAMPLE_PAGE_TITLE = 'Exemplo de Uso de Pré-definição (MediaWiki)';
+export const TEMPLATE_EXAMPLE_PAGE_TITLE = 'Practical MediaWiki Template Usage Example';
 export const TEMPLATE_EXAMPLE_PAGE_CATEGORY = 'guides';
-export const TEMPLATE_EXAMPLE_PAGE_TAGS = ['predefinicao', 'template', 'mediawiki', 'exemplo'];
+export const TEMPLATE_EXAMPLE_PAGE_TAGS = ['predefinicao', 'template', 'mediawiki', 'example'];
 export const TEMPLATE_EXAMPLE_PAGE_SUMMARY =
-  'Artigo prático demonstrando o uso de pré-definições MediaWiki com parâmetros nomeados, posicionais e transclusão dinâmica';
+  'Hands-on article demonstrating MediaWiki templates with named parameters, positional arguments, and dynamic transclusion';
 
-export const TEMPLATE_EXAMPLE_PAGE_CONTENT = `{{Info|tipo=project|título=Guia Prático de Pré-definições|subtítulo=Transclusão no Estilo MediaWiki|Situação=Ativo|Sintaxe=\`{{Nome|parâmetros}}\`|Atalho=\`Ctrl+Shift+T\`|Modelo Base=[[predefinicao-boas-vindas|Predefinição:Boas-vindas]]}}
+export const TEMPLATE_EXAMPLE_PAGE_CONTENT = `{{Infobox|type=project|title=Practical Template Guide|subtitle=MediaWiki-Style Transclusion|Status=Active|Syntax=\`{{Name|parameters}}\`|Shortcut=\`Ctrl+Shift+T\`|Starter Template=[[template-welcome|Template:Welcome]]}}
 
-Este artigo demonstra, na prática, como utilizar **pré-definições** (*templates*) no estilo MediaWiki dentro do **WazzimaGiygg Maker**. Cada bloco abaixo exibe primeiro a sintaxe em wikitexto e, logo em seguida, o resultado processado em tempo real pelo \`templateService\` no \`ArticleViewer\`.<ref>MediaWiki Help: Templates — transclusão de páginas com parâmetros posicionais e nomeados. Veja também o [[markdown-guide|Guia de Markdown e Pré-definições]].</ref>
+This article demonstrates in practice how to use MediaWiki-style **templates** inside **WazzimaGiygg Maker**. Each section below shows the wikitext source first and then the live expanded output processed in real time by \`templateService\` inside \`ArticleViewer\`.<ref>MediaWiki Help: Templates — page transclusion with positional and named parameters. See also the [[markdown-guide|Markdown & Templates Guide]].</ref>
 
-{{Principal|predefinicao-boas-vindas|Predefinição:Boas-vindas}}
+{{Main|template-welcome|Template:Welcome}}
 
-## 1. Pré-definição comunitária transcluída (\`{{Predefinição:...}}\`)
+## 1. Transcluded Community Template (\`{{Template:...}}\`)
 
-Pré-definições criadas pela comunidade ficam armazenadas na coleção \`pages\` com identificadores iniciados por \`predefinicao-\` (como [[predefinicao-boas-vindas|Predefinição:Boas-vindas]]). Ao invocá-las em qualquer artigo, os marcadores \`{{{parâmetro|valor padrão}}}\` são substituídos dinamicamente e o conteúdo entre \`<noinclude>\` é omitido automaticamente.
+Community-authored templates are stored in the \`pages\` collection with slugs starting with \`predefinicao-\` or \`template-\` (such as [[template-welcome|Template:Welcome]]). When invoked in any article, \`{{{parameter|default value}}}\` placeholders are dynamically substituted and content wrapped in \`<noinclude>\` is automatically stripped.
 
-### Código no editor
-
-\`\`\`markdown
-{{Predefinição:Boas-vindas|colaborador=Equipe Editorial|tema=Uso Prático de Pré-definições}}
-\`\`\`
-
-### Resultado renderizado no artigo
-
-{{Predefinição:Boas-vindas|colaborador=Equipe Editorial|tema=Uso Prático de Pré-definições}}
-
-## 2. Caixa de aviso com parâmetros e variáveis mágicas
-
-Você pode combinar parâmetros nomeados (\`tipo=\`, \`título=\`, \`texto=\`) com variáveis dinâmicas de contexto como \`{{PAGENAME}}\`, \`{{CURRENTMONTHNAME}}\` e \`{{CURRENTYEAR}}\`:
-
-### Código no editor
+### Editor Source
 
 \`\`\`markdown
-{{Aviso|tipo=cuidado|título=Verificação Editorial em {{PAGENAME}}|texto=Esta demonstração foi expandida automaticamente em {{CURRENTMONTHNAME}} de {{CURRENTYEAR}} para ilustrar parâmetros aninhados.}}
+{{Template:Welcome|contributor=Editorial Team|topic=Practical Template Usage}}
 \`\`\`
 
-### Resultado renderizado no artigo
+### Rendered Article Output
 
-{{Aviso|tipo=cuidado|título=Verificação Editorial em {{PAGENAME}}|texto=Esta demonstração foi expandida automaticamente em {{CURRENTMONTHNAME}} de {{CURRENTYEAR}} para ilustrar parâmetros aninhados.}}
+{{Template:Welcome|contributor=Editorial Team|topic=Practical Template Usage}}
 
-## 3. Citação destacada e remissão cruzada
+## 2. Notice Banner with Parameters & Magic Words
 
-Pré-definições de navegação e citação mantêm a identidade visual uniforme entre verbetes relacionados:
+You can combine named parameters (\`type=\`, \`title=\`, \`text=\`) with dynamic context magic words such as \`{{PAGENAME}}\`, \`{{CURRENTMONTHNAME}}\`, and \`{{CURRENTYEAR}}\`:
 
-### Código no editor
+### Editor Source
 
 \`\`\`markdown
-{{Citação|texto=Modelos reutilizáveis evitam duplicação de marcação e permitem atualizar avisos em dezenas de artigos a partir de um único ponto.|autor=Conselho Editorial|fonte=Manual de Padronização}}
-
-{{Ver também|markdown-guide|ecossistema-wazzimagiygg}}
+{{Notice|type=warning|title=Editorial Review on {{PAGENAME}}|text=This demonstration was expanded automatically in {{CURRENTMONTHNAME}} {{CURRENTYEAR}} to illustrate nested parameters.}}
 \`\`\`
 
-### Resultado renderizado no artigo
+### Rendered Article Output
 
-{{Citação|texto=Modelos reutilizáveis evitam duplicação de marcação e permitem atualizar avisos em dezenas de artigos a partir de um único ponto.|autor=Conselho Editorial|fonte=Manual de Padronização}}
+{{Notice|type=warning|title=Editorial Review on {{PAGENAME}}|text=This demonstration was expanded automatically in {{CURRENTMONTHNAME}} {{CURRENTYEAR}} to illustrate nested parameters.}}
 
-{{Ver também|markdown-guide|ecossistema-wazzimagiygg}}
+## 3. Highlighted Quotation & Cross-Reference
 
-## 4. Marcação de manutenção inline e de rodapé
+Navigation and quotation templates keep visual formatting consistent across related articles:
 
-Quando usada no meio de uma frase, \`{{Carece de fontes}}\` insere uma etiqueta discreta em linha; já \`{{Esboço|Tema}}\` gera o aviso padrão de expansão do artigo:
-
-- **Exemplo inline no texto**: Segundo registros históricos da comunidade, esta técnica foi adotada desde as primeiras revisões da wiki.{{Carece de fontes}}
+### Editor Source
 
 \`\`\`markdown
-{{Esboço|Documentação de Modelos MediaWiki}}
+{{Quote|text=Reusable templates prevent duplicate markup and let maintainers update notices across dozens of articles from a single source.|author=Editorial Board|source=Style Manual}}
+
+{{See also|markdown-guide|ecossistema-wazzimagiygg}}
 \`\`\`
 
-{{Esboço|Documentação de Modelos MediaWiki}}
+### Rendered Article Output
 
-## 5. Como criar sua própria pré-definição
+{{Quote|text=Reusable templates prevent duplicate markup and let maintainers update notices across dozens of articles from a single source.|author=Editorial Board|source=Style Manual}}
 
-1. No editor de qualquer página, pressione \`Ctrl+Shift+T\` (ou clique em **\`{{ }}\` Predefinições**) e selecione a aba **Criar Modelo**.
-2. Defina o nome do modelo (por exemplo, \`Nota Técnica\`, que gera o identificador \`predefinicao-nota-tecnica\`).
-3. Escreva o corpo da pré-definição usando parâmetros como \`{{{titulo|Nota}}}\` e \`{{{1|Texto padrão}}}\` — o editor valida o balanceamento de \`{{}}\` e \`{{{}}}\` em tempo real e exibe uma prévia ao vivo.
-4. Salve o modelo no Firestore e insira \`{{Predefinição:Nota Técnica|titulo=Exemplo|Conteúdo aqui}}\` em qualquer artigo.
+{{See also|markdown-guide|ecossistema-wazzimagiygg}}
 
-{{Ecossistema WazzimaGiygg}}`;
+## 4. Inline Maintenance Tags & Stub Footer
+
+When placed mid-sentence, \`{{Citation needed}}\` renders a compact inline tag, while \`{{Stub|Topic}}\` adds the standard expansion banner:
+
+- **Inline usage example**: According to historical community records, this convention was adopted in the earliest wiki revisions.{{Citation needed}}
+
+\`\`\`markdown
+{{Stub|MediaWiki Template Documentation}}
+\`\`\`
+
+{{Stub|MediaWiki Template Documentation}}
+
+## 5. How to Create Your Own Template
+
+1. Inside any page editor, press \`Ctrl+Shift+T\` (or click **\`{{ }}\` Templates**) and choose **Create Template**.
+2. Enter a template name (for instance, \`Technical Note\`, which generates a compatible slug).
+3. Author the template body using placeholders such as \`{{{title|Note}}}\` and \`{{{1|Default text}}}\` — the editor validates \`{{}}\` and \`{{{}}}\` brace balance in real time with a live preview.
+4. Save the template to Firestore and insert \`{{Template:Technical Note|title=Example|Content here}}\` in any article.
+
+{{WazzimaGiygg Ecosystem}}`;

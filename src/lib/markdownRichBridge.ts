@@ -66,13 +66,13 @@ function summarizeWikiToken(raw: string, kind: ProtectedWikiToken['kind']): stri
   }
   if (kind === 'template') {
     const inner = raw.slice(2, -2).trim();
-    const name = inner.split('|')[0]?.trim() || 'Predefinição';
+    const name = inner.split('|')[0]?.trim() || 'Template';
     return `{{${name}${inner.includes('|') ? '|...' : ''}}}`;
   }
   if (kind === 'ref') {
     const nameMatch = raw.match(/name\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s/>]+))/i);
     const refName = nameMatch?.[1] ?? nameMatch?.[2] ?? nameMatch?.[3];
-    return refName ? `<ref name="${refName}">` : '<ref> citação';
+    return refName ? `<ref name="${refName}">` : '<ref> citation';
   }
   return raw;
 }
@@ -190,10 +190,10 @@ function renderProtectedTokenHtml(
 
   const safeLabel = escapeHtml(token.label);
   if (asBlock || token.kind === 'infobox') {
-    return `<div contenteditable="false" data-wiki-raw="${encodedRaw}" data-wiki-kind="${token.kind}" class="wiki-rich-token-block" title="Bloco wiki preservado — edite no modo Código ou substitua">${safeLabel}</div>`;
+    return `<div contenteditable="false" data-wiki-raw="${encodedRaw}" data-wiki-kind="${token.kind}" class="wiki-rich-token-block" title="Preserved wiki block — edit in Code mode or replace">${safeLabel}</div>`;
   }
 
-  return `<span contenteditable="false" data-wiki-raw="${encodedRaw}" data-wiki-kind="${token.kind}" class="wiki-rich-token-inline" title="Elemento wiki preservado (${safeLabel})">${safeLabel}</span>`;
+  return `<span contenteditable="false" data-wiki-raw="${encodedRaw}" data-wiki-kind="${token.kind}" class="wiki-rich-token-inline" title="Preserved wiki element (${safeLabel})">${safeLabel}</span>`;
 }
 
 function renderTextWithTokens(
@@ -504,7 +504,7 @@ function serializeInlineNode(node: Node): string {
           ? `[[${extractedSlug}|${inner}]]`
           : `[[${extractedSlug}]]`;
       }
-      return `[${inner || href}](${href || 'https://exemplo.com'})`;
+      return `[${inner || href}](${href || 'https://example.com'})`;
     }
     case 'img': {
       const src = el.getAttribute('src') || '';

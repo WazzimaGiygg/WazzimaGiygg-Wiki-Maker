@@ -67,10 +67,10 @@ export const DEFAULT_WIKI_THEME_ID: WikiThemeId = 'classic-slate';
 export const WIKI_THEMES: WikiThemeDefinition[] = [
   {
     id: 'classic-slate',
-    name: 'Clássico Editorial',
-    tagline: 'Base neutra em slate e branco puro com azul técnico de alta precisão.',
+    name: 'Editorial Classic',
+    tagline: 'Neutral slate and pure white base paired with crisp technical blue.',
     typographyLabel: 'Bricolage Grotesque + Plus Jakarta Sans',
-    editionLabel: 'Tema padrão',
+    editionLabel: 'Default theme',
     lightSwatches: ['bg-[#f8f9fa]', 'bg-[#ffffff]', 'bg-[#1d4ed8]'],
     darkSwatches: ['bg-[#0b0f17]', 'bg-[#0f1623]', 'bg-[#60a5fa]'],
     metaThemeColor: {
@@ -112,10 +112,10 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
   },
   {
     id: 'archival-parchment',
-    name: 'Pergaminho Arquivístico',
-    tagline: 'Papel alabastro quente, tinta carvão e acentos em terracota para leitura longa.',
+    name: 'Archival Parchment',
+    tagline: 'Warm alabaster paper, charcoal ink, and terracotta accents for long-form reading.',
     typographyLabel: 'Playfair Display + Lora',
-    editionLabel: 'Coleção Editorial',
+    editionLabel: 'Editorial Collection',
     lightSwatches: ['bg-[#f5f1e8]', 'bg-[#fbf9f5]', 'bg-[#9a3412]'],
     darkSwatches: ['bg-[#12100e]', 'bg-[#1b1815]', 'bg-[#fb923c]'],
     metaThemeColor: {
@@ -157,10 +157,10 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
   },
   {
     id: 'botanical-atlas',
-    name: 'Atlas Botânico',
-    tagline: 'Superfícies em pedra natural suave e verde-floresta para bases enciclopédicas.',
+    name: 'Botanical Atlas',
+    tagline: 'Soft natural stone surfaces and forest green accents for encyclopedic knowledge bases.',
     typographyLabel: 'Bricolage Grotesque + Plus Jakarta Sans',
-    editionLabel: 'Coleção Naturalia',
+    editionLabel: 'Naturalia Collection',
     lightSwatches: ['bg-[#f3f7f4]', 'bg-[#fcfefd]', 'bg-[#15803d]'],
     darkSwatches: ['bg-[#08110c]', 'bg-[#0d1b13]', 'bg-[#4ade80]'],
     metaThemeColor: {
@@ -202,10 +202,10 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
   },
   {
     id: 'cobalt-monograph',
-    name: 'Monografia Cobalto',
-    tagline: 'Estética técnica institucional com tipografia geométrica Outfit e índigo profundo.',
+    name: 'Cobalt Monograph',
+    tagline: 'Institutional technical aesthetic with geometric Outfit headings and deep indigo.',
     typographyLabel: 'Outfit + Plus Jakarta Sans',
-    editionLabel: 'Coleção Técnica',
+    editionLabel: 'Technical Collection',
     lightSwatches: ['bg-[#f4f6fb]', 'bg-[#ffffff]', 'bg-[#4338ca]'],
     darkSwatches: ['bg-[#090c18]', 'bg-[#0f1428]', 'bg-[#818cf8]'],
     metaThemeColor: {
@@ -249,9 +249,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'windows-1',
     name: 'Windows 1.0 (1985)',
     tagline:
-      'Janelas em mosaico sem cantos arredondados, bordas pretas nítidas, papel branco e azul EGA clássico.',
+      'Tiled windows without rounded corners, sharp black borders, crisp white paper, and classic EGA blue.',
     typographyLabel: 'IBM Plex Mono + IBM Plex Sans',
-    editionLabel: 'Coleção Retrô',
+    editionLabel: 'Retro Collection',
     lightSwatches: ['bg-[#c6d3d6]', 'bg-[#ffffff]', 'bg-[#0000aa]'],
     darkSwatches: ['bg-[#04080e]', 'bg-[#0b1220]', 'bg-[#38bdf8]'],
     metaThemeColor: {
@@ -295,9 +295,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'windows-95',
     name: 'Windows 95',
     tagline:
-      'Área de trabalho verde-petróleo (#008080), janelas prateadas com chanfro 3D e barra azul-marinho clássica.',
+      'Classic teal desktop (#008080), 3D-beveled silver window frames, and navy title bars.',
     typographyLabel: 'Public Sans + IBM Plex Mono',
-    editionLabel: 'Coleção Clássica 95',
+    editionLabel: 'Classic 95 Collection',
     lightSwatches: ['bg-[#008080]', 'bg-[#d4d0c8]', 'bg-[#000080]'],
     darkSwatches: ['bg-[#06262a]', 'bg-[#1a202c]', 'bg-[#60a5fa]'],
     metaThemeColor: {
@@ -341,9 +341,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'windows-xp',
     name: 'Windows XP (Luna)',
     tagline:
-      'Estilo Luna em azul-royal (#0054e3), barras em creme clássico (#ece9d8) e cantos suavemente arredondados.',
+      'Royal blue Luna chrome (#0054e3), classic warm cream toolbars (#ece9d8), and softly rounded corners.',
     typographyLabel: 'DM Sans + Plus Jakarta Sans',
-    editionLabel: 'Coleção Luna 2001',
+    editionLabel: 'Luna 2001 Collection',
     lightSwatches: ['bg-[#d6e5f5]', 'bg-[#ece9d8]', 'bg-[#0054e3]'],
     darkSwatches: ['bg-[#0c0f17]', 'bg-[#171c28]', 'bg-[#3b82f6]'],
     metaThemeColor: {
@@ -387,9 +387,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'windows-10',
     name: 'Windows 10 (Fluent)',
     tagline:
-      'Design plano Fluent com azul Windows (#0078d4), superfícies neutras em cinza acrílico, cantos nítidos de 2px e modo escuro grafite.',
+      'Flat Fluent design with Windows blue (#0078d4), neutral acrylic gray surfaces, crisp 2px corners, and graphite dark mode.',
     typographyLabel: 'Public Sans + Plus Jakarta Sans',
-    editionLabel: 'Coleção Fluent 2015',
+    editionLabel: 'Fluent 2015 Collection',
     lightSwatches: ['bg-[#f0f0f0]', 'bg-[#ffffff]', 'bg-[#0078d4]'],
     darkSwatches: ['bg-[#171717]', 'bg-[#202020]', 'bg-[#4cc2ff]'],
     metaThemeColor: {
@@ -433,9 +433,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'fandom',
     name: 'Fandom (Desktop)',
     tagline:
-      'Inspirado no FandomDesktop: coral vibrante (#fa005a), fundo ameixa profundo (#130918) no modo escuro e leitura limpa em cartões claros.',
+      'Inspired by FandomDesktop: vibrant coral (#fa005a), deep plum dark mode (#130918), and crisp light reading cards.',
     typographyLabel: 'Outfit + Plus Jakarta Sans',
-    editionLabel: 'Coleção Comunidades',
+    editionLabel: 'Community Collection',
     lightSwatches: ['bg-[#f3eef6]', 'bg-[#ffffff]', 'bg-[#fa005a]'],
     darkSwatches: ['bg-[#130918]', 'bg-[#1e1126]', 'bg-[#ff4785]'],
     metaThemeColor: {
@@ -479,9 +479,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'google-material',
     name: 'Google (Material)',
     tagline:
-      'Inspirado no Google Workspace e Material 3: superfícies tonais claras (#f0f4f9), azul Google (#1a73e8), grafite #202124 e filete superior quadricolor.',
+      'Inspired by Google Workspace and Material 3: light tonal surfaces (#f0f4f9), Google blue (#1a73e8), #202124 ink, and a four-color top rule.',
     typographyLabel: 'DM Sans + Plus Jakarta Sans',
-    editionLabel: 'Coleção Material',
+    editionLabel: 'Material Collection',
     lightSwatches: ['bg-[#f0f4f9]', 'bg-[#ffffff]', 'bg-[#1a73e8]'],
     darkSwatches: ['bg-[#131314]', 'bg-[#1e1f20]', 'bg-[#8ab4f8]'],
     metaThemeColor: {
@@ -523,16 +523,16 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
   },
   {
     id: 'wikidiota',
-    name: 'Wikidiota (Paródia)',
+    name: 'Wikidiota (Parody)',
     tagline:
-      'Enciclopédia paródica sob tutela da Wikiomite Foundation durante o Reinado do Chronus — humor editorial, carmesim satírico e serifa solene.',
+      'Parody encyclopedia under the Wikiomite Foundation during the Reign of Chronus — satirical editorial humor, crimson accents, and solemn serif headings.',
     typographyLabel: 'Fraunces + Plus Jakarta Sans',
-    editionLabel: 'Wikiomite Foundation · Reinado do Chronus',
+    editionLabel: 'Wikiomite Foundation · Reign of Chronus',
     institutionMeta: {
       organization: 'Wikiomite Foundation',
-      eraLabel: 'Reinado do Chronus',
+      eraLabel: 'Reign of Chronus',
       notice:
-        'Edição paródica e satírica mantida sob os anais da Wikiomite Foundation durante o Reinado do Chronus.',
+        'Parody and satirical edition preserved in the Wikiomite Foundation annals during the Reign of Chronus.',
     },
     lightSwatches: ['bg-[#f6f2e9]', 'bg-[#ffffff]', 'bg-[#b91c1c]'],
     darkSwatches: ['bg-[#120e14]', 'bg-[#1b151e]', 'bg-[#f87171]'],
@@ -577,9 +577,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'android-alpha',
     name: 'Android Alpha (2008)',
     tagline:
-      'Visual inicial do Android (M3/1.0): barra de status com filete verde-droide (#a4c639), aço escovado, grafite fosco e botões chanfrados.',
+      'Early Android look (M3/1.0): Droid green status stripe (#a4c639), brushed steel, matte graphite, and beveled buttons.',
     typographyLabel: 'DM Sans + Plus Jakarta Sans',
-    editionLabel: 'Coleção Mobile 2008',
+    editionLabel: 'Mobile 2008 Collection',
     lightSwatches: ['bg-[#dfe3e8]', 'bg-[#ffffff]', 'bg-[#a4c639]'],
     darkSwatches: ['bg-[#111316]', 'bg-[#191c21]', 'bg-[#a4c639]'],
     metaThemeColor: {
@@ -623,9 +623,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'team-fortress-2',
     name: 'Team Fortress 2',
     tagline:
-      'Inspirado em Mann Co. e Badlands (1968): papel creme envelhecido, metal de guerra #25201d, vermelho RED (#b8383b), azul BLU (#5885a2) e laranja Australium (#cf6a32).',
+      'Inspired by Mann Co. and Badlands (1968): aged cream paper, #25201d gunmetal, RED crimson (#b8383b), BLU slate (#5885a2), and Australium orange (#cf6a32).',
     typographyLabel: 'Oswald + Plus Jakarta Sans',
-    editionLabel: 'Coleção Badlands 1968',
+    editionLabel: 'Badlands 1968 Collection',
     lightSwatches: ['bg-[#e8dfcb]', 'bg-[#fbf7ed]', 'bg-[#b8383b]'],
     darkSwatches: ['bg-[#191614]', 'bg-[#25201d]', 'bg-[#cf6a32]'],
     metaThemeColor: {
@@ -669,9 +669,9 @@ export const WIKI_THEMES: WikiThemeDefinition[] = [
     id: 'stardew-valley',
     name: 'Stardew Valley',
     tagline:
-      'Inspirado na Vila dos Pelicanos: pergaminho de diálogo (#fff8e1), moldura de madeira (#b68453), verde Junimo (#2f7a24) e ouro Carambola (#f5b82e) no modo noturno.',
+      'Inspired by Pelican Town: dialogue parchment (#fff8e1), timber framing (#b68453), Junimo green (#2f7a24), and Starfruit gold (#f5b82e) in dark mode.',
     typographyLabel: 'Pixelify Sans + Plus Jakarta Sans',
-    editionLabel: 'Coleção Vila dos Pelicanos',
+    editionLabel: 'Pelican Town Collection',
     lightSwatches: ['bg-[#efe0b9]', 'bg-[#fff8e1]', 'bg-[#2f7a24]'],
     darkSwatches: ['bg-[#13111c]', 'bg-[#1d192b]', 'bg-[#f5b82e]'],
     metaThemeColor: {

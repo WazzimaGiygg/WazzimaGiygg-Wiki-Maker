@@ -135,7 +135,7 @@ export function applyDynamicSeo({
   const graphNodes: Record<string, unknown>[] = [organizationNode];
 
   if (isBootError) {
-    nextTitle = `Indisponível — ${siteTitle}`;
+    nextTitle = `Unavailable — ${siteTitle}`;
     robotsValue = 'noindex, nofollow';
   } else if (view === 'admin') {
     nextTitle = `Administration Console — ${siteTitle}`;

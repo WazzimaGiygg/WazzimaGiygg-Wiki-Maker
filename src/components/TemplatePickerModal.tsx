@@ -43,15 +43,15 @@ interface TemplatePickerModalProps {
 type FilterTab = 'all' | 'notices' | 'navigation' | 'infobox' | 'ecosystem' | 'community';
 
 const FILTER_TABS: { id: FilterTab; label: string }[] = [
-  { id: 'all', label: 'Todas' },
-  { id: 'notices', label: 'Avisos' },
-  { id: 'navigation', label: 'Navegação & Citação' },
+  { id: 'all', label: 'All' },
+  { id: 'notices', label: 'Notices' },
+  { id: 'navigation', label: 'Navigation & Citation' },
   { id: 'infobox', label: 'Info (Infobox)' },
-  { id: 'ecosystem', label: 'Ecossistema' },
-  { id: 'community', label: 'Comunidade' },
+  { id: 'ecosystem', label: 'Ecosystem' },
+  { id: 'community', label: 'Community' },
 ];
 
-const DEFAULT_TEMPLATE_BUILDER_BODY = `{{Aviso|tipo=cuidado|título={{{título|Nota Editorial}}}|texto={{{1|Conteúdo do modelo de formatação.}}}}}`;
+const DEFAULT_TEMPLATE_BUILDER_BODY = `{{Notice|type=warning|title={{{title|Editorial Note}}}|text={{{1|Reusable formatting template content.}}}}}`;
 
 function buildSnippetFromCatalog(
   item: WikiTemplateCatalogItem,
@@ -95,10 +95,10 @@ function buildSnippetFromCatalog(
 }
 
 const CATEGORY_LABELS: Record<WikiTemplateCatalogItem['category'], string> = {
-  notices: 'Aviso / Política',
-  navigation: 'Navegação & Citação',
+  notices: 'Notice / Policy',
+  navigation: 'Navigation & Citation',
   infobox: 'Infobox',
-  ecosystem: 'Ecossistema',
+  ecosystem: 'Ecosystem',
 };
 
 export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
@@ -144,7 +144,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   // Inline template creation state
   const [createName, setCreateName] = React.useState('');
   const [createDescription, setCreateDescription] = React.useState(
-    'Modelo reutilizável de formatação criado no editor.'
+    'Reusable formatting template created in the editor.'
   );
   const [createBody, setCreateBody] = React.useState(DEFAULT_TEMPLATE_BUILDER_BODY);
   const [createVisibility, setCreateVisibility] = React.useState<PageVisibility>('public');
@@ -271,21 +271,21 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
     setCreateSuccessMsg(null);
 
     if (!currentUser) {
-      setCreateError('Faça login com o Google para salvar novas predefinições no wiki.');
+      setCreateError('Sign in with Google to save new templates to the wiki.');
       return;
     }
 
     const previewSlug = formatTemplateSlug(createName);
     if (!previewSlug) {
-      setCreateError('Informe um nome válido para a predefinição (ex.: Nota Editorial).');
+      setCreateError('Enter a valid template name (e.g., Editorial Note).');
       return;
     }
     if (existingSlugs.has(previewSlug)) {
-      setCreateError(`Já existe uma predefinição em :${previewSlug}. Escolha outro nome ou edite a página existente.`);
+      setCreateError(`A template already exists at :${previewSlug}. Choose another name or edit the existing page.`);
       return;
     }
     if (!createBody.trim()) {
-      setCreateError('Escreva o corpo wikitexto/Markdown do modelo antes de salvar.');
+      setCreateError('Write the template wikitext/Markdown body before saving.');
       return;
     }
 
@@ -307,7 +307,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         return;
       }
 
-      setCreateSuccessMsg(`Modelo "${created.title}" salvo em :${created.slug}!`);
+      setCreateSuccessMsg(`Template "${created.title}" saved at :${created.slug}!`);
       setIsCreatingNew(false);
       setActiveTab('community');
       setSelectedCustomSlug(created.slug);
@@ -319,7 +319,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
       setCreateName('');
     } catch (err) {
       setCreateError(
-        err instanceof Error ? err.message : 'Não foi possível salvar a predefinição no Firestore.'
+        err instanceof Error ? err.message : 'Could not save the template to Firestore.'
       );
     } finally {
       setCreatingSave(false);
@@ -327,11 +327,11 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
   };
 
   const handleOpenDedicatedTemplateEditor = () => {
-    const clean = toWikiSlug(createName || 'nova-predefinicao');
+    const clean = toWikiSlug(createName || 'new-template');
     const slug =
       clean.startsWith('predefinicao-') || clean.startsWith('template-')
         ? clean
-        : `predefinicao-${clean}`;
+        : `template-${clean}`;
     onClose();
     onNavigateSlug(slug);
   };
@@ -360,10 +360,10 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                 id="template-picker-title"
                 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100 truncate"
               >
-                Predefinições MediaWiki
+                MediaWiki Templates
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                Expansão <code className="font-mono">{'{{Nome|parâmetro}}'}</code>, parâmetros <code className="font-mono">{'{{{1}}}'}</code> e modelos salvos no wiki.
+                <code className="font-mono">{'{{Name|param}}'}</code> expansion, <code className="font-mono">{'{{{1}}}'}</code> parameters, and wiki-saved templates.
               </p>
             </div>
           </div>
@@ -384,8 +384,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
               <LayoutList className="w-3.5 h-3.5" />
               <span>
                 {!isCreatingNew && viewMode === 'all-list'
-                  ? 'Modo Configurador'
-                  : `Listar Todas (${WIKI_TEMPLATE_CATALOG.length + communityTemplates.length})`}
+                  ? 'Configurator Mode'
+                  : `List All (${WIKI_TEMPLATE_CATALOG.length + communityTemplates.length})`}
               </span>
             </button>
 
@@ -399,13 +399,13 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Criar Modelo</span>
+              <span>Create Template</span>
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              aria-label="Fechar seletor de predefinições"
+              aria-label="Close template picker"
               className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
@@ -447,7 +447,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar predefinição..."
+                placeholder="Search templates..."
                 className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700"
               />
             </div>
@@ -459,22 +459,22 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
           <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5 bg-white dark:bg-[#0f1623]">
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
               <p className="text-xs text-slate-600 dark:text-slate-300">
-                Catálogo completo exibindo{' '}
+                Complete directory showing{' '}
                 <strong className="font-semibold text-slate-900 dark:text-slate-100">
                   {filteredBuiltin.length + filteredCustom.length}
                 </strong>{' '}
-                de{' '}
+                of{' '}
                 <strong className="font-semibold text-slate-900 dark:text-slate-100">
                   {WIKI_TEMPLATE_CATALOG.length + communityTemplates.length}
                 </strong>{' '}
-                pré-definições disponíveis. Clique em <strong>Inserir</strong> para adicionar direto no artigo ou <strong>Configurar</strong> para preencher parâmetros.
+                available templates. Click <strong>Insert</strong> to add directly to the article or <strong>Configure</strong> to fill in parameters.
               </p>
             </div>
 
             {filteredBuiltin.length > 0 && (
               <div className="space-y-3">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Pré-definições Padrão ({filteredBuiltin.length})
+                  Built-in Templates ({filteredBuiltin.length})
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {filteredBuiltin.map((item) => {
@@ -497,7 +497,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                               <span className="px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                                 {CATEGORY_LABELS[item.category]}
                               </span>
-                              <span>{(item.language ?? 'pt').toUpperCase()}</span>
+                              <span>{(item.language ?? 'en').toUpperCase()}</span>
                             </div>
                           </div>
                           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -519,7 +519,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                             onClick={() => handleSelectBuiltin(item)}
                             className="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                           >
-                            Configurar
+                            Configure
                           </button>
                           <button
                             type="button"
@@ -530,7 +530,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                             className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-blue-700 text-white hover:bg-blue-800 transition-colors cursor-pointer"
                           >
                             <Braces className="w-3 h-3" />
-                            <span>Inserir</span>
+                            <span>Insert</span>
                           </button>
                         </div>
                       </div>
@@ -544,7 +544,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
               <div className="space-y-3">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5" />
-                  <span>Da Comunidade ({filteredCustom.length})</span>
+                  <span>Community ({filteredCustom.length})</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {filteredCustom.map((item) => {
@@ -583,7 +583,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                             onClick={() => handleSelectCustom(item.slug)}
                             className="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                           >
-                            Configurar
+                            Configure
                           </button>
                           <button
                             type="button"
@@ -594,7 +594,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                             className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md bg-blue-700 text-white hover:bg-blue-800 transition-colors cursor-pointer"
                           >
                             <Braces className="w-3 h-3" />
-                            <span>Inserir</span>
+                            <span>Insert</span>
                           </button>
                         </div>
                       </div>
@@ -606,7 +606,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
 
             {filteredBuiltin.length === 0 && filteredCustom.length === 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400 py-10 text-center">
-                Nenhuma pré-definição encontrada para "{searchQuery}".
+                No templates found for &quot;{searchQuery}&quot;.
               </p>
             )}
           </div>
@@ -624,7 +624,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
             {filteredBuiltin.length > 0 && (
               <div className="space-y-1.5">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
-                  Predefinições Padrão ({filteredBuiltin.length})
+                  Built-in Templates ({filteredBuiltin.length})
                 </div>
                 {filteredBuiltin.map((item) => {
                   const isActive = !isCreatingNew && !selectedCustom && selectedBuiltin.id === item.id;
@@ -644,7 +644,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                           {`{{${item.name}}}`}
                         </span>
                         <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                          {(item.language ?? 'pt').toUpperCase()} · {item.params.length} param{item.params.length === 1 ? '' : 's'}
+                          {(item.language ?? 'en').toUpperCase()} · {item.params.length} param{item.params.length === 1 ? '' : 's'}
                         </span>
                       </div>
                       <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
@@ -660,7 +660,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
               <div className="space-y-1.5">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1 flex items-center gap-1.5">
                   <Layers className="w-3 h-3" />
-                  <span>Da Comunidade ({filteredCustom.length})</span>
+                  <span>Community ({filteredCustom.length})</span>
                 </div>
                 {filteredCustom.map((item) => {
                   const isActive = !isCreatingNew && selectedCustom?.slug === item.slug;
@@ -684,7 +684,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        Por {item.page.lastEditorName} · v{item.page.version}
+                        By {item.page.lastEditorName} · v{item.page.version}
                         {item.params.length > 0 ? ` · ${item.params.length} param(s)` : ''}
                       </p>
                     </button>
@@ -695,7 +695,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
 
             {filteredBuiltin.length === 0 && filteredCustom.length === 0 && (
               <p className="text-xs text-slate-500 dark:text-slate-400 py-6 text-center">
-                Nenhuma predefinição encontrada para "{searchQuery}".
+                No templates found for &quot;{searchQuery}&quot;.
               </p>
             )}
           </div>
@@ -707,10 +707,10 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="font-display text-base font-semibold text-slate-900 dark:text-slate-100">
-                      Criar Nova Predefinição Reutilizável
+                      Create New Reusable Template
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      Use parâmetros como <code className="font-mono">{'{{{1|Texto}}}'}</code> ou <code className="font-mono">{'{{{título|Aviso}}}'}</code> para reutilizar em qualquer artigo.
+                      Use parameters such as <code className="font-mono">{'{{{1|Text}}}'}</code> or <code className="font-mono">{'{{{title|Notice}}}'}</code> to reuse across any article.
                     </p>
                   </div>
                   <button
@@ -718,7 +718,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                     onClick={() => setIsCreatingNew(false)}
                     className="text-xs font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
                   >
-                    Voltar ao catálogo
+                    Back to catalog
                   </button>
                 </div>
 
@@ -737,19 +737,19 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       htmlFor="create-template-name"
                       className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1"
                     >
-                      Nome da Predefinição
+                      Template Name
                     </label>
                     <input
                       id="create-template-name"
                       type="text"
                       value={createName}
                       onChange={(e) => setCreateName(e.target.value)}
-                      placeholder="Ex.: Nota Histórica"
+                      placeholder="e.g., Historical Note"
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700"
                     />
                     {candidateCreateSlug && (
                       <p className="mt-1 text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                        Slug: :{candidateCreateSlug} · Chamada: {`{{Predefinição:${createName.trim()}}}`}
+                        Slug: :{candidateCreateSlug} · Call: {`{{Template:${createName.trim()}}}`}
                       </p>
                     )}
                   </div>
@@ -759,7 +759,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       htmlFor="create-template-visibility"
                       className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1"
                     >
-                      Visibilidade
+                      Visibility
                     </label>
                     <select
                       id="create-template-visibility"
@@ -767,8 +767,8 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       onChange={(e) => setCreateVisibility(e.target.value as PageVisibility)}
                       className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100"
                     >
-                      <option value="public">Pública (Wiki)</option>
-                      <option value="private">Privada (Só você)</option>
+                      <option value="public">Public (Wiki)</option>
+                      <option value="private">Private (Only you)</option>
                     </select>
                   </div>
                 </div>
@@ -778,14 +778,14 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                     htmlFor="create-template-desc"
                     className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1"
                   >
-                    Documentação (<code className="font-mono">&lt;noinclude&gt;</code>, opcional)
+                    Documentation (<code className="font-mono">&lt;noinclude&gt;</code>, optional)
                   </label>
                   <input
                     id="create-template-desc"
                     type="text"
                     value={createDescription}
                     onChange={(e) => setCreateDescription(e.target.value)}
-                    placeholder="Explique quando e como usar este modelo..."
+                    placeholder="Explain when and how to use this template..."
                     className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100"
                   />
                 </div>
@@ -796,29 +796,29 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                       htmlFor="create-template-body"
                       className="text-xs font-medium text-slate-600 dark:text-slate-300"
                     >
-                      Corpo Wikitexto / Markdown do Modelo
+                      Template Wikitext / Markdown Body
                     </label>
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setCreateBody((prev) => `${prev} {{{1|parâmetro}}}`)}
+                        onClick={() => setCreateBody((prev) => `${prev} {{{1|parameter}}}`)}
                         className="px-2 py-0.5 text-[10px] font-mono rounded border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                       >
                         + {'{{{1}}}'}
                       </button>
                       <button
                         type="button"
-                        onClick={() => setCreateBody((prev) => `${prev} {{{título|Título}}}`)}
+                        onClick={() => setCreateBody((prev) => `${prev} {{{title|Title}}}`)}
                         className="px-2 py-0.5 text-[10px] font-mono rounded border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                       >
-                        + {'{{{título}}}'}
+                        + {'{{{title}}}'}
                       </button>
                       <button
                         type="button"
                         onClick={handleOpenDedicatedTemplateEditor}
                         className="px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
                       >
-                        Abrir editor completo
+                        Open full editor
                       </button>
                     </div>
                   </div>
@@ -831,10 +831,10 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   />
                   {detectedCreateParams.length > 0 && (
                     <div className="mt-1.5 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                      Parâmetros detectados:{' '}
+                      Detected parameters:{' '}
                       {detectedCreateParams
                         .map((p) =>
-                          p.defaultValue ? `${p.name} (padrão: "${p.defaultValue}")` : p.name
+                          p.defaultValue ? `${p.name} (default: "${p.defaultValue}")` : p.name
                         )
                         .join(' · ')}
                     </div>
@@ -854,7 +854,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                 {/* Live Preview of new template */}
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Pré-visualização do modelo (valores padrão)
+                    Template preview (default values)
                   </div>
                   <div
                     data-wiki-surface="inset"
@@ -901,7 +901,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                     }}
                     className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline shrink-0 cursor-pointer"
                   >
-                    <span>Editar fonte</span>
+                    <span>Edit source</span>
                     <ExternalLink className="w-3 h-3" />
                   </button>
                 </div>
@@ -914,7 +914,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                           htmlFor={`custom-param-${param.name}`}
                           className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1"
                         >
-                          Parâmetro <code className="font-mono">{`{{{${param.name}}}}`}</code>
+                          Parameter <code className="font-mono">{`{{{${param.name}}}}`}</code>
                         </label>
                         <input
                           id={`custom-param-${param.name}`}
@@ -926,7 +926,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                               [param.name]: e.target.value,
                             }))
                           }
-                          placeholder={param.defaultValue || `Valor para ${param.name}`}
+                          placeholder={param.defaultValue || `Value for ${param.name}`}
                           className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100"
                         />
                       </div>
@@ -934,13 +934,13 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Esta predefinição não declara placeholders <code className="font-mono">{'{{{param}}}'}</code>.
+                    This template declares no <code className="font-mono">{'{{{param}}}'}</code> placeholders.
                   </p>
                 )}
 
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Sintaxe gerada
+                    Generated syntax
                   </div>
                   <pre
                     data-wiki-surface="inset"
@@ -952,7 +952,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
 
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Pré-visualização
+                    Preview
                   </div>
                   <div
                     data-wiki-surface="inset"
@@ -1020,13 +1020,13 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Predefinição sem parâmetros — pronta para inserção direta.
+                    Parameterless template — ready for direct insertion.
                   </p>
                 )}
 
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Sintaxe gerada
+                    Generated syntax
                   </div>
                   <pre
                     data-wiki-surface="inset"
@@ -1038,7 +1038,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
 
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Pré-visualização
+                    Preview
                   </div>
                   <div
                     data-wiki-surface="inset"
@@ -1069,7 +1069,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
         {/* Footer */}
         <div className="px-5 py-3.5 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70 dark:bg-[#0b0f17]/70">
           <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-            Palavras mágicas: {'{{CURRENTYEAR}}'}, {'{{CURRENTMONTHNAME}}'}, {'{{SITENAME}}'}
+            Magic words: {'{{CURRENTYEAR}}'}, {'{{CURRENTMONTHNAME}}'}, {'{{SITENAME}}'}
           </span>
           <div className="flex items-center gap-2.5 ml-auto">
             <button
@@ -1077,7 +1077,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              {viewMode === 'all-list' && !isCreatingNew ? 'Fechar' : 'Cancelar'}
+              {viewMode === 'all-list' && !isCreatingNew ? 'Close' : 'Cancel'}
             </button>
             {isCreatingNew ? (
               <>
@@ -1088,7 +1088,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-55 cursor-pointer"
                 >
                   {creatingSave && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Salvar Modelo</span>
+                  <span>Save Template</span>
                 </button>
                 <button
                   type="button"
@@ -1101,7 +1101,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                   ) : (
                     <Braces className="w-3.5 h-3.5" />
                   )}
-                  <span>Salvar e Inserir</span>
+                  <span>Save &amp; Insert</span>
                 </button>
               </>
             ) : viewMode === 'picker' ? (
@@ -1111,7 +1111,7 @@ export const TemplatePickerModal: React.FC<TemplatePickerModalProps> = ({
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors cursor-pointer"
               >
                 <Braces className="w-3.5 h-3.5" />
-                <span>Inserir predefinição</span>
+                <span>Insert template</span>
               </button>
             ) : null}
           </div>

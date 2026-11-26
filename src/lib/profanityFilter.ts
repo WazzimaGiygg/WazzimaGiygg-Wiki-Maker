@@ -25,11 +25,11 @@ export interface ProfanityCheckResult {
 }
 
 const FIELD_LABELS: Record<ProfanityFieldKey, string> = {
-  title: 'Título',
-  slug: 'Identificador (:slug)',
+  title: 'Title',
+  slug: 'Identifier (:slug)',
   tags: 'Tags',
-  summary: 'Resumo da edição',
-  content: 'Conteúdo do artigo',
+  summary: 'Edit summary',
+  content: 'Article content',
 };
 
 /**

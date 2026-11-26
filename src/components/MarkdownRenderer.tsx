@@ -70,7 +70,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   tocDefaultExpanded = true,
   tocMinHeadings = 2,
   enableReferences = true,
-  referencesTitle = 'Referências',
+  referencesTitle = 'References',
   enableInfoboxes = true,
   enableTemplates = true,
   showReferencesFooter = true,
@@ -224,7 +224,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                   columns={segment.reflist.columns ?? 1}
                   title={
                     segment.reflist.title ||
-                    (targetGroup ? `Notas (${targetGroup})` : referencesTitle)
+                    (targetGroup ? `Notes (${targetGroup})` : referencesTitle)
                   }
                   existingSlugs={existingSlugs}
                   onNavigateSlug={onNavigateSlug}

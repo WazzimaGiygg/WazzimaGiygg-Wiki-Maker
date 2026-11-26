@@ -128,20 +128,20 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
     const cleanGroup = sanitizeAttrValue(refGroup);
 
     if (activeTab === 'web') {
-      const title = webTitle.trim() || 'Título da fonte';
+      const title = webTitle.trim() || 'Source title';
       const url = webUrl.trim();
       const author = webAuthor.trim();
       const publisher = webPublisher.trim();
       const date = webDate.trim();
 
       if (syntaxMode === 'template' && enableTemplates && !cleanGroup) {
-        const parts = [`título=${title}`];
+        const parts = [`title=${title}`];
         if (url) parts.push(`url=${url}`);
-        if (author) parts.push(`autor=${author}`);
-        if (publisher) parts.push(`publicado=${publisher}`);
-        if (date) parts.push(`data=${date}`);
+        if (author) parts.push(`author=${author}`);
+        if (publisher) parts.push(`publisher=${publisher}`);
+        if (date) parts.push(`date=${date}`);
         if (cleanName) parts.push(`name=${cleanName}`);
-        return `{{Citar web|${parts.join('|')}}}`;
+        return `{{Cite web|${parts.join('|')}}}`;
       }
 
       const formattedTitle =
@@ -157,7 +157,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
     }
 
     if (activeTab === 'book') {
-      const title = bookTitle.trim() || 'Título do livro';
+      const title = bookTitle.trim() || 'Book title';
       const author = bookAuthor.trim();
       const publisher = bookPublisher.trim();
       const year = bookYear.trim();
@@ -165,14 +165,14 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
       const isbn = bookIsbn.trim();
 
       if (syntaxMode === 'template' && enableTemplates && !cleanGroup) {
-        const parts = [`título=${title}`];
-        if (author) parts.push(`autor=${author}`);
-        if (publisher) parts.push(`editora=${publisher}`);
-        if (year) parts.push(`ano=${year}`);
-        if (pages) parts.push(`paginas=${pages}`);
+        const parts = [`title=${title}`];
+        if (author) parts.push(`author=${author}`);
+        if (publisher) parts.push(`publisher=${publisher}`);
+        if (year) parts.push(`year=${year}`);
+        if (pages) parts.push(`pages=${pages}`);
         if (isbn) parts.push(`isbn=${isbn}`);
         if (cleanName) parts.push(`name=${cleanName}`);
-        return `{{Citar livro|${parts.join('|')}}}`;
+        return `{{Cite book|${parts.join('|')}}}`;
       }
 
       const segments: string[] = [];
@@ -186,20 +186,20 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
     }
 
     if (activeTab === 'news') {
-      const title = newsTitle.trim() || 'Título da reportagem ou artigo';
+      const title = newsTitle.trim() || 'News or article title';
       const url = newsUrl.trim();
       const author = newsAuthor.trim();
       const outlet = newsOutlet.trim();
       const date = newsDate.trim();
 
       if (syntaxMode === 'template' && enableTemplates && !cleanGroup) {
-        const parts = [`título=${title}`];
+        const parts = [`title=${title}`];
         if (url) parts.push(`url=${url}`);
-        if (author) parts.push(`autor=${author}`);
-        if (outlet) parts.push(`jornal=${outlet}`);
-        if (date) parts.push(`data=${date}`);
+        if (author) parts.push(`author=${author}`);
+        if (outlet) parts.push(`work=${outlet}`);
+        if (date) parts.push(`date=${date}`);
         if (cleanName) parts.push(`name=${cleanName}`);
-        return `{{Citar notícia|${parts.join('|')}}}`;
+        return `{{Cite news|${parts.join('|')}}}`;
       }
 
       const formattedTitle =
@@ -215,7 +215,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
     }
 
     if (activeTab === 'free') {
-      const body = freeText.trim() || 'Autor, Título (Ano). https://exemplo.com';
+      const body = freeText.trim() || 'Author, Title (Year). https://example.com';
       return formatRefTag(body, cleanName, cleanGroup);
     }
 
@@ -247,7 +247,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
 
   const previewSampleContent = React.useMemo(() => {
     if (!generatedCitation) return '';
-    return `Texto do artigo apoiado por fonte verificável.${generatedCitation}`;
+    return `Article text supported by a verifiable source.${generatedCitation}`;
   }, [generatedCitation]);
 
   const previewExtracted = React.useMemo(() => {
@@ -271,13 +271,13 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
     let listTag: string;
     if (enableTemplates) {
       const args: string[] = [];
-      if (reflistCols === 2) args.push('colunas=2');
+      if (reflistCols === 2) args.push('columns=2');
       if (cleanGroup) args.push(`group=${cleanGroup}`);
       listTag = args.length > 0 ? `{{Reflist|${args.join('|')}}}` : '{{Reflist}}';
     } else {
       listTag = cleanGroup ? `<references group="${cleanGroup}" />` : '<references />';
     }
-    const heading = cleanGroup ? `## Notas (${cleanGroup})` : '## Referências';
+    const heading = cleanGroup ? `## Notes (${cleanGroup})` : '## References';
     onInsertBlock(`${heading}\n\n${listTag}`);
     setReflistInsertedFeedback(true);
     window.setTimeout(() => setReflistInsertedFeedback(false), 1600);
@@ -296,18 +296,18 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
   };
 
   const TABS: { id: CitationTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: 'web', label: 'Web / Site', icon: Globe },
-    { id: 'book', label: 'Livro', icon: BookOpen },
-    { id: 'news', label: 'Notícia / Artigo', icon: Newspaper },
-    { id: 'free', label: 'Nota Livre', icon: FileText },
-    { id: 'reuse', label: `Reutilizar (${existingRefsInfo.references.length})`, icon: Repeat2 },
+    { id: 'web', label: 'Web / Website', icon: Globe },
+    { id: 'book', label: 'Book', icon: BookOpen },
+    { id: 'news', label: 'News / Article', icon: Newspaper },
+    { id: 'free', label: 'Free Note', icon: FileText },
+    { id: 'reuse', label: `Reuse (${existingRefsInfo.references.length})`, icon: Repeat2 },
   ];
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Sistema de Citação MediaWiki"
+      aria-label="MediaWiki Citation System"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
       onClick={onClose}
     >
@@ -323,10 +323,10 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
             </div>
             <div className="min-w-0">
               <h2 className="font-display text-base font-semibold text-slate-900 dark:text-slate-100">
-                Citar Fonte (Padrão MediaWiki / Wikipédia)
+                Cite Source (MediaWiki / Wikipedia Standard)
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Crie citações numeradas <code className="font-mono">&lt;ref&gt;</code> ligadas automaticamente à lista de referências.
+                Create numbered <code className="font-mono">&lt;ref&gt;</code> citations automatically linked to the reference list.
               </p>
             </div>
           </div>
@@ -334,7 +334,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar janela de citação"
+            aria-label="Close citation modal"
             className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -343,7 +343,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
 
         {/* Category Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0f1623]">
-          <div role="tablist" aria-label="Tipo de fonte" className="flex flex-wrap items-center gap-1">
+          <div role="tablist" aria-label="Source type" className="flex flex-wrap items-center gap-1">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
@@ -378,7 +378,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
                     : 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                {'{{Citar}}'}
+                {'{{Cite}}'}
               </button>
               <button
                 type="button"
@@ -401,13 +401,13 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Título da página ou documento *
+                  Page or document title *
                 </label>
                 <input
                   type="text"
                   value={webTitle}
                   onChange={(e) => setWebTitle(e.target.value)}
-                  placeholder="Ex.: Manual de Estilo da Enciclopédia"
+                  placeholder="e.g., Encyclopedia Style Manual"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
@@ -419,43 +419,43 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
                   type="url"
                   value={webUrl}
                   onChange={(e) => setWebUrl(e.target.value)}
-                  placeholder="https://exemplo.org/artigo"
+                  placeholder="https://example.org/article"
                   className="w-full px-3 py-2 text-sm font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Autor(a)
+                  Author
                 </label>
                 <input
                   type="text"
                   value={webAuthor}
                   onChange={(e) => setWebAuthor(e.target.value)}
-                  placeholder="Sobrenome, Nome"
+                  placeholder="Last, First"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Site / Publicação
+                  Website / Publisher
                 </label>
                 <input
                   type="text"
                   value={webPublisher}
                   onChange={(e) => setWebPublisher(e.target.value)}
-                  placeholder="Ex.: Fundação Wikimedia"
+                  placeholder="e.g., Digital Archive Foundation"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Data de publicação ou acesso
+                  Publication or access date
                 </label>
                 <input
                   type="text"
                   value={webDate}
                   onChange={(e) => setWebDate(e.target.value)}
-                  placeholder="Ex.: 2026-11-26"
+                  placeholder="e.g., 2026-11-26"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
@@ -466,43 +466,43 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Título do livro *
+                  Book title *
                 </label>
                 <input
                   type="text"
                   value={bookTitle}
                   onChange={(e) => setBookTitle(e.target.value)}
-                  placeholder="Ex.: História da Documentação Digital"
+                  placeholder="e.g., History of Digital Documentation"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Autor(a)
+                  Author
                 </label>
                 <input
                   type="text"
                   value={bookAuthor}
                   onChange={(e) => setBookAuthor(e.target.value)}
-                  placeholder="Sobrenome, Nome"
+                  placeholder="Last, First"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Editora
+                  Publisher
                 </label>
                 <input
                   type="text"
                   value={bookPublisher}
                   onChange={(e) => setBookPublisher(e.target.value)}
-                  placeholder="Ex.: Editora Universitária"
+                  placeholder="e.g., University Press"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Ano
+                  Year
                 </label>
                 <input
                   type="text"
@@ -515,7 +515,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Páginas
+                    Pages
                   </label>
                   <input
                     type="text"
@@ -545,13 +545,13 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Título da matéria ou artigo *
+                  Article or report title *
                 </label>
                 <input
                   type="text"
                   value={newsTitle}
                   onChange={(e) => setNewsTitle(e.target.value)}
-                  placeholder="Ex.: Nova biblioteca aberta entra em operação"
+                  placeholder="e.g., New open library launches"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
@@ -563,43 +563,43 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
                   type="url"
                   value={newsUrl}
                   onChange={(e) => setNewsUrl(e.target.value)}
-                  placeholder="https://jornal.exemplo/materia"
+                  placeholder="https://news.example/article"
                   className="w-full px-3 py-2 text-sm font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Autor(a) / Repórter
+                  Author / Reporter
                 </label>
                 <input
                   type="text"
                   value={newsAuthor}
                   onChange={(e) => setNewsAuthor(e.target.value)}
-                  placeholder="Nome do autor"
+                  placeholder="Author name"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Jornal / Periódico
+                  Newspaper / Outlet
                 </label>
                 <input
                   type="text"
                   value={newsOutlet}
                   onChange={(e) => setNewsOutlet(e.target.value)}
-                  placeholder="Ex.: Folha Científica"
+                  placeholder="e.g., Science Daily"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Data
+                  Date
                 </label>
                 <input
                   type="text"
                   value={newsDate}
                   onChange={(e) => setNewsDate(e.target.value)}
-                  placeholder="Ex.: Novembro de 2026"
+                  placeholder="e.g., November 2026"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                 />
               </div>
@@ -609,13 +609,13 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
           {activeTab === 'free' && (
             <div className="space-y-2">
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
-                Texto da referência ou nota explicativa (aceita Markdown e <code className="font-mono">[[links]]</code>)
+                Reference or explanatory note text (supports Markdown and <code className="font-mono">[[links]]</code>)
               </label>
               <textarea
                 rows={3}
                 value={freeText}
                 onChange={(e) => setFreeText(e.target.value)}
-                placeholder="Ex.: SILVA, Maria. *Introdução ao WikiMaker* (2026). [Documento oficial](https://exemplo.com)"
+                placeholder="e.g., SMITH, Maria. *Introduction to WikiMaker* (2026). [Official document](https://example.com)"
                 className="w-full p-3 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
               />
             </div>
@@ -626,10 +626,10 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
               {existingRefsInfo.references.length === 0 ? (
                 <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0f1623] text-center space-y-1.5">
                   <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                    Nenhuma citação encontrada neste artigo ainda.
+                    No citations found in this article yet.
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Crie sua primeira citação nas abas Web, Livro, Notícia ou Nota Livre e defina um identificador (<code className="font-mono">name</code>) para reutilizá-la em vários trechos.
+                    Create your first citation in the Web, Book, News, or Free Note tabs and set an identifier (<code className="font-mono">name</code>) to reuse it across multiple passages.
                   </p>
                 </div>
               ) : (
@@ -650,12 +650,12 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
                             </span>
                           ) : (
                             <span className="text-slate-400 dark:text-slate-500">
-                              · sem name (cópia independente)
+                              · no name (independent copy)
                             </span>
                           )}
                           <span className="text-slate-400 dark:text-slate-500 tabular-nums">
                             · {ref.backlinks.length}{' '}
-                            {ref.backlinks.length === 1 ? 'ocorrência' : 'ocorrências'}
+                            {ref.backlinks.length === 1 ? 'occurrence' : 'occurrences'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-700 dark:text-slate-300 truncate">
@@ -669,7 +669,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-950/70 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         <Repeat2 className="w-3.5 h-3.5" />
-                        <span>{ref.name ? 'Reutilizar' : 'Inserir cópia'}</span>
+                        <span>{ref.name ? 'Reuse' : 'Insert copy'}</span>
                       </button>
                     </div>
                   ))}
@@ -684,25 +684,25 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                    Identificador reutilizável (<code className="font-mono">name</code> — opcional)
+                    Reusable identifier (<code className="font-mono">name</code> — optional)
                   </label>
                   <input
                     type="text"
                     value={refName}
                     onChange={(e) => setRefName(e.target.value)}
-                    placeholder="Ex.: silva-2026 (para reutilizar com <ref name=... />)"
+                    placeholder="e.g., smith-2026 (to reuse via <ref name=... />)"
                     className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                   />
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                    Grupo de notas (<code className="font-mono">group</code> — opcional)
+                    Note group (<code className="font-mono">group</code> — optional)
                   </label>
                   <input
                     type="text"
                     value={refGroup}
                     onChange={(e) => setRefGroup(e.target.value)}
-                    placeholder="Ex.: nota (separa de referências principais)"
+                    placeholder="e.g., note (separates from main references)"
                     className="w-full px-2.5 py-1.5 text-xs font-mono rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
                   />
                 </div>
@@ -711,7 +711,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
               {/* Generated syntax + live preview */}
               <div className="space-y-2 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                  <span>Pré-visualização (no texto e na lista de referências)</span>
+                  <span>Live preview (in prose and reference list)</span>
                 </div>
                 <div className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0f1623] space-y-2.5">
                   <div className="text-xs text-slate-800 dark:text-slate-200">
@@ -755,21 +755,21 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
             <button
               type="button"
               onClick={handleInsertReflistSection}
-              title="Inserir bloco ## Referências com lista interativa ({{Reflist}} / <references />)"
+              title="Insert ## References block with interactive list ({{Reflist}} / <references />)"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-xs font-medium text-slate-700 dark:text-slate-200 hover:border-blue-700 hover:text-blue-700 dark:hover:text-blue-400 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               {reflistInsertedFeedback ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span>Lista inserida</span>
+                  <span>List inserted</span>
                 </>
               ) : (
                 <>
                   <ListOrdered className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
                   <span>
                     {existingRefsInfo.hasInlineReflist
-                      ? 'Inserir outra Lista de Referências'
-                      : 'Inserir Lista de Referências'}
+                      ? 'Insert another Reference List'
+                      : 'Insert Reference List'}
                   </span>
                 </>
               )}
@@ -777,10 +777,10 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
             <button
               type="button"
               onClick={() => setReflistCols((c) => (c === 1 ? 2 : 1))}
-              title="Alternar lista em 1 ou 2 colunas"
+              title="Toggle 1 or 2 columns"
               className="px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] font-mono text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             >
-              {reflistCols === 2 ? '2 colunas' : '1 coluna'}
+              {reflistCols === 2 ? '2 columns' : '1 column'}
             </button>
           </div>
 
@@ -790,7 +790,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              Cancelar
+              Cancel
             </button>
             {activeTab !== 'reuse' && (
               <button
@@ -799,7 +799,7 @@ export const CitationBuilderModal: React.FC<CitationBuilderModalProps> = ({
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-blue-700 text-white text-xs font-medium hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Inserir citação</span>
+                <span>Insert citation</span>
               </button>
             )}
           </div>

@@ -256,14 +256,14 @@ export function extractArticleReferences(markdown: string): ExtractedReferencesR
               if (!item) {
                 const nextIndex = (groupCounters.get(refGroup) ?? 0) + 1;
                 groupCounters.set(refGroup, nextIndex);
-                const groupSlug = refGroup ? `${toWikiSlug(refGroup) || 'grupo'}-` : '';
+                const groupSlug = refGroup ? `${toWikiSlug(refGroup) || 'group'}-` : '';
                 const id = `ref-${groupSlug}${nextIndex}`;
                 item = {
                   index: nextIndex,
                   id,
                   ...(refName ? { name: refName } : {}),
                   ...(refGroup ? { group: refGroup } : {}),
-                  content: resolvedBody || `Referência "${refName}"`,
+                  content: resolvedBody || `Reference "${refName}"`,
                   backlinks: [],
                 };
                 references.push(item);
@@ -484,7 +484,7 @@ function normalizeTemplateVariant(raw?: string): TemplateBlockVariant {
 
 function parsePredefinicaoBody(rawVariant: string | undefined, bodyText: string): PredefinicaoBlock {
   const variant = normalizeTemplateVariant(rawVariant);
-  let kicker = 'Predefinição';
+  let kicker = 'Template';
   let title: string | undefined;
   let body = '';
   let author: string | undefined;

@@ -90,11 +90,11 @@ export const ReadingProgressBar: React.FC<ReadingProgressBarProps> = ({
   return (
     <div
       role="progressbar"
-      aria-label="Progresso de leitura do artigo"
+      aria-label="Article reading progress"
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={percent}
-      title={`${percent}% do artigo visualizado`}
+      title={`${percent}% of article read`}
       className="w-full h-[3px] bg-slate-200/80 dark:bg-slate-800/90 overflow-hidden print:hidden"
     >
       <div

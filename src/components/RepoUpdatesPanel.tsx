@@ -31,12 +31,12 @@ interface RepoUpdatesPanelProps {
 type UpdatesSubView = 'commits' | 'releases';
 
 const FILE_STATUS_LABELS: Record<string, string> = {
-  added: 'adicionado',
-  modified: 'modificado',
-  removed: 'removido',
-  renamed: 'renomeado',
-  copied: 'copiado',
-  changed: 'alterado',
+  added: 'added',
+  modified: 'modified',
+  removed: 'removed',
+  renamed: 'renamed',
+  copied: 'copied',
+  changed: 'changed',
 };
 
 export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat }) => {
@@ -66,7 +66,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
       setErrorMsg(
         err instanceof Error
           ? err.message
-          : 'Não foi possível ler as atualizações do repositório no GitHub.'
+          : 'Could not read repository updates from GitHub.'
       );
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
       setDetailErrorBySha((prev) => ({
         ...prev,
         [commit.sha]:
-          err instanceof Error ? err.message : 'Falha ao carregar arquivos alterados.',
+          err instanceof Error ? err.message : 'Failed to load changed files.',
       }));
     } finally {
       setLoadingDetailSha((curr) => (curr === commit.sha ? null : curr));
@@ -158,7 +158,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
         <div className="space-y-1 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-900 dark:text-slate-100">
             <GitCommitHorizontal className="w-4 h-4 text-blue-700 dark:text-blue-400 shrink-0" />
-            <span>Atualizações do Repositório Oficial</span>
+            <span>Official Repository Updates</span>
             <span aria-hidden="true" className="text-slate-400 font-normal">
               ·
             </span>
@@ -174,7 +174,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
           </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
             {snapshot?.repo.description ||
-              'Leitura direta dos commits e releases mais recentes do repositório fonte do Wiki-site via API pública do GitHub.'}
+              'Direct feed of recent commits and releases from the Wiki-site source repository via the GitHub public API.'}
           </p>
         </div>
 
@@ -183,7 +183,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-xs text-slate-700 dark:text-slate-200">
               <GitBranch className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />
               <label htmlFor="repo-branch-select" className="sr-only">
-                Selecionar branch do repositório
+                Select repository branch
               </label>
               <select
                 id="repo-branch-select"
@@ -215,28 +215,28 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0f1623] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>{loading ? 'Atualizando...' : 'Atualizar'}</span>
+            <span>{loading ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         </div>
       </div>
 
       {!isBureaucrat && (
         <div className="p-3.5 rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/30 text-xs text-amber-900 dark:text-amber-200">
-          Painel informativo de acompanhamento do repositório destinado à supervisão de{' '}
-          <strong>Burocratas</strong> e Administradores.
+          Informational repository tracking panel for{' '}
+          <strong>Bureaucrats</strong> and Administrators.
         </div>
       )}
 
       {/* Repository Summary Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 border border-slate-200 dark:border-slate-800 rounded-xl divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800 bg-slate-50/60 dark:bg-[#0b0f17]">
         <div className="p-3.5">
-          <div className="text-xs text-slate-500 dark:text-slate-400">Branch Ativa</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Active Branch</div>
           <div className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100 mt-1 truncate">
             {loading && !snapshot ? '—' : snapshot?.selectedBranch ?? 'main'}
           </div>
         </div>
         <div className="p-3.5">
-          <div className="text-xs text-slate-500 dark:text-slate-400">Último Push</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Last Push</div>
           <div
             className="font-mono text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100 mt-1 truncate"
             title={snapshot ? formatIsoAbsolutePt(snapshot.repo.pushedAt) : undefined}
@@ -245,15 +245,15 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
           </div>
         </div>
         <div className="p-3.5">
-          <div className="text-xs text-slate-500 dark:text-slate-400">Commits Recentes</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Recent Commits</div>
           <div className="font-mono text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100 mt-1">
             {loading && !snapshot ? '—' : snapshot?.commits.length ?? 0}
           </div>
         </div>
         <div className="p-3.5">
-          <div className="text-xs text-slate-500 dark:text-slate-400">Último Release</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">Latest Release</div>
           <div className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100 mt-1 truncate">
-            {loading && !snapshot ? '—' : latestRelease ? latestRelease.tagName : 'Nenhum'}
+            {loading && !snapshot ? '—' : latestRelease ? latestRelease.tagName : 'None'}
           </div>
         </div>
       </div>
@@ -267,7 +267,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
           <div className="flex items-start gap-2.5 min-w-0">
             <AlertCircle className="w-4 h-4 text-red-700 dark:text-red-400 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <div className="font-semibold">Erro ao consultar atualizações do GitHub</div>
+              <div className="font-semibold">Error querying GitHub updates</div>
               <div>{errorMsg}</div>
             </div>
           </div>
@@ -278,7 +278,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
               onClick={() => void loadUpdates(selectedBranch)}
               className="px-3 py-1.5 text-xs font-medium rounded-lg border border-red-300 dark:border-red-800 bg-white dark:bg-[#0b0f17] text-red-800 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-950/50 whitespace-nowrap cursor-pointer"
             >
-              Tentar novamente
+              Try again
             </button>
             <a
               href={`${WIKI_GITHUB_URL}/commits`}
@@ -286,7 +286,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-red-700 text-white hover:bg-red-800 whitespace-nowrap"
             >
-              <span>Ver no GitHub</span>
+              <span>View on GitHub</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
@@ -328,8 +328,8 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
             onChange={(e) => setSearch(e.target.value)}
             placeholder={
               subView === 'commits'
-                ? 'Filtrar por mensagem, SHA ou autor...'
-                : 'Filtrar releases por tag ou notas...'
+                ? 'Filter by message, SHA, or author...'
+                : 'Filter releases by tag or notes...'
             }
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
           />
@@ -351,8 +351,8 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
           <div className="py-12 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/40 dark:bg-[#0b0f17] space-y-2">
             <p className="text-sm text-slate-600 dark:text-slate-400">
               {snapshot?.commits.length
-                ? 'Nenhum commit encontrado para o filtro informado.'
-                : 'Nenhum commit carregado neste momento.'}
+                ? 'No commits match the current filter.'
+                : 'No commits loaded at this time.'}
             </p>
             {search.trim() && (
               <button
@@ -360,7 +360,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                 onClick={() => setSearch('')}
                 className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
-                Limpar filtro
+                Clear filter
               </button>
             )}
           </div>
@@ -423,7 +423,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                             <>
                               <span aria-hidden="true">·</span>
                               <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                contém notas
+                                has notes
                               </span>
                             </>
                           )}
@@ -435,13 +435,13 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                       <button
                         type="button"
                         onClick={() => void handleCopySha(commit.sha)}
-                        title="Copiar SHA completo do commit"
+                        title="Copy full commit SHA"
                         className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-mono tabular-nums rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0f1623] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 whitespace-nowrap cursor-pointer"
                       >
                         {copiedSha === commit.sha ? (
                           <>
                             <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                            <span>Copiado</span>
+                            <span>Copied</span>
                           </>
                         ) : (
                           <>
@@ -455,7 +455,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                         href={commit.htmlUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Abrir commit no GitHub"
+                        title="Open commit on GitHub"
                         className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f1623] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 whitespace-nowrap"
                       >
                         <span>GitHub</span>
@@ -467,7 +467,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                   {isExpanded && (
                     <div className="px-4 pb-4 pt-2 pl-10 border-t border-slate-100 dark:border-slate-800/70 bg-slate-50/50 dark:bg-[#0f1623]/50 space-y-3">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400 font-mono tabular-nums">
-                        <span>Publicado em {formatIsoAbsolutePt(commit.dateIso)}</span>
+                        <span>Published at {formatIsoAbsolutePt(commit.dateIso)}</span>
                         <span aria-hidden="true">·</span>
                         <span>SHA: {commit.sha}</span>
                       </div>
@@ -492,7 +492,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 dark:text-slate-300 font-mono tabular-nums">
                             <span>
                               {detail.files.length}{' '}
-                              {detail.files.length === 1 ? 'arquivo alterado' : 'arquivos alterados'}
+                              {detail.files.length === 1 ? 'file changed' : 'files changed'}
                             </span>
                             <span aria-hidden="true">·</span>
                             <span className="text-emerald-700 dark:text-emerald-400">
@@ -545,15 +545,15 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
         <div className="py-12 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/40 dark:bg-[#0b0f17] space-y-2.5">
           <p className="text-sm text-slate-600 dark:text-slate-400">
             {snapshot?.releases.length
-              ? 'Nenhum release encontrado para o filtro informado.'
-              : 'Este repositório ainda não possui releases publicados.'}
+              ? 'No releases match the current filter.'
+              : 'This repository has no published releases yet.'}
           </p>
           <button
             type="button"
             onClick={() => setSubView('commits')}
             className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
-            Ver histórico de commits
+            View commit history
           </button>
         </div>
       ) : (
@@ -574,7 +574,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                   <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     {release.authorLogin && (
                       <>
-                        <span>Por {release.authorLogin}</span>
+                        <span>By {release.authorLogin}</span>
                         <span aria-hidden="true">·</span>
                       </>
                     )}
@@ -587,7 +587,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                     {release.prerelease && (
                       <>
                         <span aria-hidden="true">·</span>
-                        <span>pré-lançamento</span>
+                        <span>pre-release</span>
                       </>
                     )}
                   </div>
@@ -599,7 +599,7 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0f1623] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 whitespace-nowrap shrink-0"
                 >
-                  <span>Abrir release</span>
+                  <span>Open release</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
@@ -618,10 +618,10 @@ export const RepoUpdatesPanel: React.FC<RepoUpdatesPanelProps> = ({ isBureaucrat
       {snapshot && (
         <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono tabular-nums">
           <span>
-            Sincronizado em {formatIsoAbsolutePt(snapshot.fetchedAtIso)}
+            Synced on {formatIsoAbsolutePt(snapshot.fetchedAtIso)}
           </span>
           {snapshot.rateLimitRemaining !== null && (
-            <span>Cota GitHub REST restante: {snapshot.rateLimitRemaining} req/h</span>
+            <span>GitHub REST quota remaining: {snapshot.rateLimitRemaining} req/h</span>
           )}
         </div>
       )}
