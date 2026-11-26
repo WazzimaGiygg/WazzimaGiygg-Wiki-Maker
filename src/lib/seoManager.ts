@@ -116,7 +116,8 @@ export function applyDynamicSeo({
   let nextTitle = `${siteTitle} — Collaborative Markdown Wiki`;
   let nextDesc = `Create, edit, and organize collaborative Markdown wiki pages, infoboxes, and revision histories in real time with ${siteTitle}.`;
   let nextKeywords = [...baseKeywords];
-  let robotsValue = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+  let robotsValue =
+    'index, follow, noai, noimageai, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
   let canonicalUrl = baseUrl;
   let ogType = 'website';
 
@@ -136,14 +137,14 @@ export function applyDynamicSeo({
 
   if (isBootError) {
     nextTitle = `Unavailable — ${siteTitle}`;
-    robotsValue = 'noindex, nofollow';
+    robotsValue = 'noindex, nofollow, noai, noimageai';
   } else if (view === 'admin') {
     nextTitle = `Administration Console — ${siteTitle}`;
-    robotsValue = 'noindex, nofollow';
+    robotsValue = 'noindex, nofollow, noai, noimageai';
     canonicalUrl = `${baseUrl}#/admin`;
   } else if (view === 'create') {
     nextTitle = `Create New Page — ${siteTitle}`;
-    robotsValue = 'noindex, follow';
+    robotsValue = 'noindex, follow, noai, noimageai';
     canonicalUrl = `${baseUrl}#/new`;
   } else if (view === 'ecosystem') {
     const subpageHash = getEcosystemSubpageHash(ecosystemSubpage);
@@ -368,7 +369,7 @@ export function applyDynamicSeo({
     }
 
     if (activePage.visibility === 'private') {
-      robotsValue = 'noindex, nofollow';
+      robotsValue = 'noindex, nofollow, noai, noimageai';
     } else {
       nextKeywords = [...baseKeywords, ...activePage.tags];
 

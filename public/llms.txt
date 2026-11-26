@@ -1,0 +1,3 @@
+# WazzimaGiygg Maker — LLM & Chatbot Access Notice
+
+Automated retrieval, link opening, summarization, RAG indexing, and training ingestion by AI chatbots, assistants, and LLM agents are strictly prohibited on this Wiki-site.

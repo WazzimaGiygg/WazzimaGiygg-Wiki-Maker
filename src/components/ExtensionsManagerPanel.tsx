@@ -1,14 +1,23 @@
 import React from 'react';
 import type { User } from 'firebase/auth';
+import JSZip from 'jszip';
 import {
   Check,
   Database,
+  Download,
   Puzzle,
   RotateCcw,
   Save,
   Search,
+  ShieldBan,
   Sparkles,
 } from 'lucide-react';
+import {
+  buildBrowserExtensionBundleFiles,
+  CHATBOT_REFERRER_DOMAINS,
+  CHATBOT_USER_AGENT_RULES,
+  detectChatbotRequest,
+} from '../lib/chatbotBlocker';
 import {
   EXTENSION_CATEGORY_LABELS,
   EXTENSION_SETTING_DESCRIPTORS,
@@ -59,6 +68,47 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
   const [confirmResetOpen, setConfirmResetOpen] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = React.useState<string | null>(null);
+  const [botProbeInput, setBotProbeInput] = React.useState('ChatGPT-User/1.0');
+  const [downloadingBundle, setDownloadingBundle] = React.useState(false);
+
+  const probeResult = React.useMemo(() => {
+    const trimmed = botProbeInput.trim();
+    if (!trimmed) return null;
+    const isUrl = /^https?:\/\//i.test(trimmed);
+    return detectChatbotRequest(
+      isUrl ? { referer: trimmed, url: trimmed } : { userAgent: trimmed }
+    );
+  }, [botProbeInput]);
+
+  const handleDownloadBrowserExtension = async () => {
+    setDownloadingBundle(true);
+    setErrorMsg(null);
+    try {
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : 'https://wikimaker.wazzimagiygg.com';
+      const files = buildBrowserExtensionBundleFiles(origin);
+      const zip = new JSZip();
+      for (const [name, content] of Object.entries(files)) {
+        zip.file(name, content);
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const blobUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = 'wazzimagiygg-anti-chatbot-extension.zip';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(blobUrl);
+      setFeedbackMsg('Downloaded Manifest V3 Anti-Chatbot Shield browser extension (.zip).');
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : 'Failed to generate browser extension archive.'
+      );
+    } finally {
+      setDownloadingBundle(false);
+    }
+  };
 
   // Sync pristine drafts whenever Firestore extension state updates
   React.useEffect(() => {
@@ -715,6 +765,72 @@ export const ExtensionsManagerPanel: React.FC<ExtensionsManagerPanelProps> = ({
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+
+                  {ext.id === 'anti-chatbot-shield' && (
+                    <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
+                          <ShieldBan className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
+                          <span>
+                            HTTP 403 + robots.txt + Runtime Shield
+                          </span>
+                        </span>
+                        <span className="font-mono tabular-nums">
+                          {CHATBOT_USER_AGENT_RULES.length} agents · {CHATBOT_REFERRER_DOMAINS.length}{' '}
+                          origins
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0f1623] space-y-2">
+                        <label
+                          htmlFor="anti-chatbot-probe-input"
+                          className="block text-[11px] font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Test User-Agent or Chatbot Origin URL
+                        </label>
+                        <input
+                          id="anti-chatbot-probe-input"
+                          type="text"
+                          value={botProbeInput}
+                          onChange={(e) => setBotProbeInput(e.target.value)}
+                          placeholder="e.g. ClaudeBot/1.0 or https://chatgpt.com/"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                        />
+                        {probeResult && (
+                          <p
+                            className={`text-[11px] font-medium ${
+                              probeResult.blocked
+                                ? 'text-red-700 dark:text-red-400'
+                                : 'text-emerald-700 dark:text-emerald-400'
+                            }`}
+                          >
+                            {probeResult.blocked
+                              ? `Blocked (HTTP 403): ${probeResult.detail || probeResult.matchedRule}`
+                              : 'Allowed: recognized as standard human browser / non-chatbot'}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                          Companion Chrome / Edge Manifest V3 extension
+                        </span>
+                        <button
+                          type="button"
+                          disabled={downloadingBundle}
+                          onClick={() => void handleDownloadBrowserExtension()}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-50"
+                        >
+                          <Download className="w-3.5 h-3.5 shrink-0" />
+                          <span>
+                            {downloadingBundle
+                              ? 'Packaging...'
+                              : 'Download Browser Extension (.zip)'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

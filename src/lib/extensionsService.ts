@@ -269,6 +269,7 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   'privacy-banner': [],
   'page-header-banner': [],
   watchlist: [],
+  'anti-chatbot-shield': [],
 };
 
 export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
@@ -832,6 +833,22 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     updatedAt: null,
     persisted: false,
   },
+  {
+    id: 'anti-chatbot-shield',
+    scope: 'site',
+    name: 'Anti-Chatbot & AI Blocker Shield',
+    description:
+      'Blocks AI chatbots, LLM crawlers, and automated link fetchers (ChatGPT, Claude, Perplexity, Gemini, Grok, DeepSeek) from opening Wiki-site URLs via HTTP 403, robots.txt, and runtime guards.',
+    category: 'navigation',
+    enabled: true,
+    sortOrder: 33,
+    settings: {},
+    updatedBy: 'system-default',
+    updatedByName: 'Built-in Default',
+    createdAt: null,
+    updatedAt: null,
+    persisted: false,
+  },
 ];
 
 export type SiteExtensionsMap = Record<WikiExtensionId, ResolvedWikiExtension>;
@@ -1000,6 +1017,7 @@ export function sanitizeExtensionSettings(
     case 'privacy-banner':
     case 'page-header-banner':
     case 'watchlist':
+    case 'anti-chatbot-shield':
       return {};
   }
 }

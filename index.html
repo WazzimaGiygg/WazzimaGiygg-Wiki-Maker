@@ -26,8 +26,63 @@
     <meta name="publisher" content="WazzimaGiygg" />
     <meta
       name="robots"
-      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      content="index, follow, noai, noimageai, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
     />
+    <meta name="GPTBot" content="noindex, nofollow, noarchive, noai, noimageai" />
+    <meta name="ChatGPT-User" content="noindex, nofollow, noarchive" />
+    <meta name="OAI-SearchBot" content="noindex, nofollow, noarchive" />
+    <meta name="ClaudeBot" content="noindex, nofollow, noarchive" />
+    <meta name="Claude-User" content="noindex, nofollow, noarchive" />
+    <meta name="Claude-Web" content="noindex, nofollow, noarchive" />
+    <meta name="anthropic-ai" content="noindex, nofollow, noarchive" />
+    <meta name="PerplexityBot" content="noindex, nofollow, noarchive" />
+    <meta name="Perplexity-User" content="noindex, nofollow, noarchive" />
+    <meta name="Google-Extended" content="noindex, nofollow, noarchive" />
+    <meta name="Meta-ExternalAgent" content="noindex, nofollow, noarchive" />
+    <meta name="Meta-ExternalFetcher" content="noindex, nofollow, noarchive" />
+    <meta name="Bytespider" content="noindex, nofollow, noarchive" />
+    <meta name="CCBot" content="noindex, nofollow, noarchive" />
+    <meta name="Applebot-Extended" content="noindex, nofollow, noarchive" />
+    <meta name="cohere-ai" content="noindex, nofollow, noarchive" />
+    <script>
+      (function () {
+        try {
+          var ua = navigator.userAgent || '';
+          var botPattern = /(ChatGPT-User|OAI-SearchBot|GPTBot|ClaudeBot|Claude-User|Claude-Web|anthropic-ai|PerplexityBot|Perplexity-User|Google-Extended|Meta-ExternalAgent|Meta-ExternalFetcher|Bytespider|DeepSeekBot|MistralAI-User|DuckAssistBot|PhindBot|PoeBot|YouBot|cohere-ai|Applebot-Extended|HeadlessChrome|Playwright|Puppeteer|PhantomJS|Selenium|WebDriver)/i;
+          var refHosts = ['chatgpt.com','chat.openai.com','claude.ai','perplexity.ai','gemini.google.com','copilot.microsoft.com','grok.com','x.ai','poe.com','you.com','character.ai','deepseek.com','chat.deepseek.com','meta.ai','chat.mistral.ai'];
+          var ref = (document.referrer || '').toLowerCase();
+          var matchedRef = '';
+          for (var i = 0; i < refHosts.length; i++) {
+            if (ref.indexOf('://' + refHosts[i]) !== -1 || ref.indexOf('.' + refHosts[i]) !== -1) {
+              matchedRef = refHosts[i];
+              break;
+            }
+          }
+          if (botPattern.test(ua)) {
+            window.__WAZZIMA_CHATBOT_BLOCKED__ = {
+              blocked: true,
+              reason: 'user-agent',
+              matchedRule: 'head-ua-guard',
+              detail: 'Automated chatbot user-agent blocked at entry'
+            };
+          } else if (navigator.webdriver === true) {
+            window.__WAZZIMA_CHATBOT_BLOCKED__ = {
+              blocked: true,
+              reason: 'automation',
+              matchedRule: 'head-webdriver-guard',
+              detail: 'Automated WebDriver session'
+            };
+          } else if (matchedRef) {
+            window.__WAZZIMA_CHATBOT_BLOCKED__ = {
+              blocked: true,
+              reason: 'referrer',
+              matchedRule: 'head-referrer-guard',
+              detail: 'Chatbot origin (' + matchedRef + ')'
+            };
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="WazzimaGiygg Maker" />
     <meta property="og:locale" content="en_US" />

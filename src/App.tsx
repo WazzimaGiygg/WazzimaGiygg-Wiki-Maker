@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
 import { ArticleViewer } from './components/ArticleViewer';
+import { ChatbotBlockedScreen } from './components/ChatbotBlockedScreen';
 import { EcosystemProductsView } from './components/EcosystemProductsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FooterBadges } from './components/FooterBadges';
@@ -67,6 +68,7 @@ import {
   type SiteExtensionsState,
 } from './lib/extensionsService';
 import { ADMIN_EMAIL, auth, db, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
+import { evaluateChatbotClientContext } from './lib/chatbotBlocker';
 import { evaluateFrameContext } from './lib/frameGuard';
 import { sanitizeHeaderImageUrl } from './lib/headerImageService';
 import {
@@ -3837,6 +3839,11 @@ const BlockedEmbedScreen: React.FC = () => {
 
 export default function App() {
   const frameCheck = React.useMemo(() => evaluateFrameContext(), []);
+  const chatbotCheck = React.useMemo(() => evaluateChatbotClientContext(), []);
+
+  if (chatbotCheck.blocked) {
+    return <ChatbotBlockedScreen detection={chatbotCheck} />;
+  }
 
   if (!frameCheck.allowed) {
     return <BlockedEmbedScreen />;

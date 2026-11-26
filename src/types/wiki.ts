@@ -83,7 +83,8 @@ export type WikiExtensionId =
   | 'page-index-views'
   | 'privacy-banner'
   | 'page-header-banner'
-  | 'watchlist';
+  | 'watchlist'
+  | 'anti-chatbot-shield';
 
 export type WikiExtensionCategory =
   | 'appearance'

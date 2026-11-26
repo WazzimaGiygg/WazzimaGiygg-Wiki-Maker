@@ -1,0 +1,6 @@
+# Anti-Chatbot & AI Access Policy — WazzimaGiygg Maker
+User-Agent: *
+Disallow: /
+
+# Automated retrieval, URL opening, link summarization, RAG indexing,
+# and AI model ingestion by chatbots or LLM agents are strictly prohibited.
