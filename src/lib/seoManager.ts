@@ -376,6 +376,10 @@ export function applyDynamicSeo({
     canonicalUrl = `${baseUrl}#/tags`;
     nextTitle = `Tag Management — ${siteTitle}`;
     nextDesc = `View, filter, and bulk-manage wiki pages by their associated tags on ${siteTitle}.`;
+  } else if (view === 'special') {
+    canonicalUrl = `${baseUrl}#/special`;
+    nextTitle = `Special Pages Hub — ${siteTitle}`;
+    nextDesc = `Explore categories and associated articles, manage tags, and browse special maintenance indexes on ${siteTitle}.`;
   } else if (view === 'page' && activePage) {
     canonicalUrl = activePage.slug === 'start' ? baseUrl : `${baseUrl}#/page/${activePage.slug}`;
     nextTitle = `${activePage.title} — ${siteTitle}`;

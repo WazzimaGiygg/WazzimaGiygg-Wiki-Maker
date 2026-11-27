@@ -256,4 +256,4 @@ export interface WatchlistItem {
 }
 
 export type PageTab = 'read' | 'edit' | 'history' | 'comments' | 'source';
-export type WorkspaceView = 'page' | 'index' | 'recent' | 'tags' | 'categories' | 'create' | 'admin' | 'legal' | 'ecosystem';
+export type WorkspaceView = 'page' | 'index' | 'recent' | 'tags' | 'categories' | 'special' | 'create' | 'admin' | 'legal' | 'ecosystem';

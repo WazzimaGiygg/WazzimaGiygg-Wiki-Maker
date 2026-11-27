@@ -53,6 +53,7 @@ import { ReferencesFooter } from './components/ReferencesFooter';
 import { RevisionHistory } from './components/RevisionHistory';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { Sidebar } from './components/Sidebar';
+import { SpecialPagesHub, type SpecialPagesTab } from './components/SpecialPagesHub';
 import { ToastContainer, type ToastNotification } from './components/ToastContainer';
 import { UserEditsPanel } from './components/UserEditsPanel';
 import { WatchlistProfilePanel } from './components/WatchlistProfilePanel';
@@ -181,6 +182,7 @@ function parseHashRoute(): {
   legalSection?: LegalSectionTab;
   ecosystemSubpage?: EcosystemSubpage;
   categorySlug?: string | null;
+  specialTab?: SpecialPagesTab;
 } {
   const rawHash = window.location.hash.replace(/^#\/?/, '');
   const hash = rawHash.toLowerCase();
@@ -214,6 +216,21 @@ function parseHashRoute(): {
       ecosystemSubpage = 'administrators';
     }
     return { view: 'ecosystem', slug: 'start', ecosystemSubpage };
+  }
+  if (
+    hash === 'special' ||
+    hash === 'special-pages' ||
+    hash === 'especial' ||
+    hash.startsWith('special/') ||
+    hash.startsWith('special-pages/') ||
+    hash.startsWith('especial/')
+  ) {
+    const subSegment = hash.split('/')[1] ?? '';
+    let specialTab: SpecialPagesTab = 'categories';
+    if (subSegment === 'tags') specialTab = 'tags';
+    else if (subSegment === 'directory' || subSegment === 'all') specialTab = 'directory';
+    else if (subSegment === 'recent') specialTab = 'recent';
+    return { view: 'special', slug: 'start', specialTab };
   }
   if (hash === 'categories' || hash === 'categorias' || hash === 'special:categories') {
     return { view: 'categories', slug: 'start', categorySlug: null };
@@ -280,6 +297,9 @@ function WikiWorkspace() {
   );
   const [selectedCategorySlug, setSelectedCategorySlug] = React.useState<string | null>(
     initialRoute.categorySlug ?? null
+  );
+  const [specialTab, setSpecialTab] = React.useState<SpecialPagesTab>(
+    initialRoute.specialTab ?? 'categories'
   );
   const [activeSlug, setActiveSlug] = React.useState<string>(initialRoute.slug || 'start');
   const [createPresetSlug, setCreatePresetSlug] = React.useState<string>(
@@ -611,6 +631,9 @@ function WikiWorkspace() {
       }
       if (next.view === 'categories') {
         setSelectedCategorySlug(next.categorySlug ?? null);
+      }
+      if (next.view === 'special') {
+        setSpecialTab(next.specialTab ?? 'categories');
       }
       if (next.view === 'create') {
         setCreatePresetSlug(next.slug);
@@ -1314,6 +1337,27 @@ function WikiWorkspace() {
         currentRouteHashRef.current = nextHash;
         setSelectedCategorySlug(normalizedCat);
         setView('categories');
+        setSaveError(null);
+        setConfirmDeleteOpen(false);
+        if (autoExitPrintOnNavigate) {
+          setIsPrintView(false);
+        }
+        window.location.hash = nextHash;
+      });
+    },
+    [autoExitPrintOnNavigate, guardUnsavedLeave]
+  );
+
+  const navigateToSpecialPages = React.useCallback(
+    (tab: SpecialPagesTab = 'categories', categorySlug?: string) => {
+      guardUnsavedLeave(() => {
+        const nextHash = tab === 'categories' ? '#/special' : `#/special/${tab}`;
+        currentRouteHashRef.current = nextHash;
+        setSpecialTab(tab);
+        if (typeof categorySlug === 'string' && categorySlug.trim()) {
+          setSelectedCategorySlug(normalizeCategorySlug(categorySlug));
+        }
+        setView('special');
         setSaveError(null);
         setConfirmDeleteOpen(false);
         if (autoExitPrintOnNavigate) {
@@ -2536,6 +2580,8 @@ function WikiWorkspace() {
           isEcosystemViewActive={view === 'ecosystem'}
           isCategoriesViewActive={view === 'categories'}
           isTagsViewActive={view === 'tags'}
+          isSpecialViewActive={view === 'special'}
+          isAllPagesViewActive={view === 'index'}
           isDark={effectiveIsDark}
           canToggleTheme={themeColorScheme === 'user'}
           forcedColorMode={themeColorScheme === 'user' ? undefined : themeColorScheme}
@@ -2569,6 +2615,12 @@ function WikiWorkspace() {
           onOpenEcosystem={ecosystemExt.enabled ? navigateToEcosystem : undefined}
           onOpenCategories={navigateToCategories}
           onOpenTags={() => navigateToIndex('tags')}
+          onOpenSpecialPages={() => navigateToSpecialPages('categories')}
+          onOpenAllPages={() =>
+            pageIndexExt.enabled
+              ? navigateToIndex('index')
+              : navigateToSpecialPages('directory')
+          }
           onOpenShortcuts={shortcutsExt.enabled ? () => setShortcutsOpen(true) : undefined}
           onSignOut={() => void handleSignOut()}
           onSignIn={() => void handleSignIn()}
@@ -2842,6 +2894,48 @@ function WikiWorkspace() {
                 onSelectPage={navigateToPage}
                 onCreateCategoryDescription={(descSlug) => navigateToCreate(descSlug)}
                 onNewPage={() => navigateToCreate('')}
+              />
+            </div>
+          ) : view === 'special' ? (
+            <div
+              data-wiki-surface="panel"
+              className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
+            >
+              <SpecialPagesHub
+                siteTitle={siteTitle}
+                pages={allPages}
+                user={user}
+                isAdmin={isAdmin}
+                isBlocked={isBlocked}
+                enableTemplates={templatesExt.enabled}
+                enablePageIndex={pageIndexExt.enabled}
+                enableRandomArticle={randomExt.enabled}
+                enableEcosystem={ecosystemExt.enabled}
+                initialTab={specialTab}
+                initialCategorySlug={selectedCategorySlug}
+                onTabChange={(nextTab) => {
+                  const nextHash = nextTab === 'categories' ? '#/special' : `#/special/${nextTab}`;
+                  currentRouteHashRef.current = nextHash;
+                  setSpecialTab(nextTab);
+                  window.location.hash = nextHash;
+                }}
+                onSelectPage={navigateToPage}
+                onOpenCategoryPage={(catSlug) => navigateToCategories(catSlug)}
+                onOpenPageIndex={(mode) => navigateToIndex(mode)}
+                onRandomPage={randomExt.enabled ? navigateToRandomPage : undefined}
+                onOpenEcosystem={ecosystemExt.enabled ? () => navigateToEcosystem() : undefined}
+                onOpenAdmin={isAdmin ? navigateToAdmin : undefined}
+                onOpenLegal={navigateToLegal}
+                onCreatePage={(presetSlug) => navigateToCreate(presetSlug ?? '')}
+                onSignIn={() => void handleSignIn()}
+                onNotify={(notice) =>
+                  pushToast({
+                    tone: notice.tone,
+                    title: notice.title,
+                    description: notice.description,
+                    durationMs: 4200,
+                  })
+                }
               />
             </div>
           ) : view === 'index' || view === 'recent' || view === 'tags' ? (
