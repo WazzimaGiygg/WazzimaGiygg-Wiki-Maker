@@ -17,6 +17,11 @@ import {
   UserX,
 } from 'lucide-react';
 import {
+  fetchAdminDiscussionThreads,
+  fetchAllLgpdRequests,
+  fetchSockpuppetCases,
+} from '../lib/adminGovernanceService';
+import {
   type AdminDashboardSnapshot,
   type AdminEditEntry,
   type AdminUserRow,
@@ -32,15 +37,24 @@ import {
   unblockUserAccount,
 } from '../lib/adminService';
 import { exportPublicWikiArchiveZip } from '../lib/archiveExportService';
-import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
 import {
   resolveExternalLinkConfig,
   type SiteExtensionsState,
 } from '../lib/extensionsService';
-import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
+import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
 import { updateWikiPage } from '../lib/wikiService';
 import { isTemplatePage } from '../services/templateService';
-import type { GovernanceRole, LgpdErasureMode, WikiPage } from '../types/wiki';
+import type {
+  AdminDiscussionThread,
+  GovernanceRole,
+  LgpdErasureMode,
+  LgpdRequest,
+  SockpuppetCase,
+  WikiPage,
+} from '../types/wiki';
+import { AdminDiscussionPanel } from './AdminDiscussionPanel';
+import { AdminLgpdRequestsPanel } from './AdminLgpdRequestsPanel';
+import { AdminSockpuppetPanel } from './AdminSockpuppetPanel';
 import { AdminTemplatesPanel } from './AdminTemplatesPanel';
 import { ExtensionsManagerPanel } from './ExtensionsManagerPanel';
 import { RepoUpdatesPanel } from './RepoUpdatesPanel';
@@ -48,11 +62,13 @@ import { TagManagementPanel } from './TagManagementPanel';
 
 type AdminTab =
   | 'users'
+  | 'sockpuppets'
   | 'edits'
   | 'pages'
   | 'tags'
   | 'templates'
   | 'lgpd'
+  | 'discussions'
   | 'extensions'
   | 'updates';
 
@@ -83,6 +99,9 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
 
   const [tab, setTab] = React.useState<AdminTab>('users');
   const [snapshot, setSnapshot] = React.useState<AdminDashboardSnapshot | null>(null);
+  const [sockpuppetCases, setSockpuppetCases] = React.useState<SockpuppetCase[]>([]);
+  const [lgpdRequests, setLgpdRequests] = React.useState<LgpdRequest[]>([]);
+  const [adminThreads, setAdminThreads] = React.useState<AdminDiscussionThread[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = React.useState<string | null>(null);
@@ -125,13 +144,43 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
     setLoading(true);
     setErrorMsg(null);
     try {
-      const data = await fetchAdminDashboardData();
+      const [data, cases, requests, threads] = await Promise.all([
+        fetchAdminDashboardData(),
+        fetchSockpuppetCases(),
+        fetchAllLgpdRequests(),
+        fetchAdminDiscussionThreads(),
+      ]);
       setSnapshot(data);
+      setSockpuppetCases(cases);
+      setLgpdRequests(requests);
+      setAdminThreads(threads);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Failed to load administration data.');
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const reloadCases = React.useCallback(async () => {
+    const cases = await fetchSockpuppetCases();
+    setSockpuppetCases(cases);
+  }, []);
+
+  const reloadThreads = React.useCallback(async () => {
+    const threads = await fetchAdminDiscussionThreads();
+    setAdminThreads(threads);
+  }, []);
+
+  const handlePanelFeedback = React.useCallback((msg: string) => {
+    setErrorMsg(null);
+    setFeedbackDiscussionSlug(null);
+    setFeedbackMsg(msg);
+  }, []);
+
+  const handlePanelError = React.useCallback((msg: string) => {
+    setFeedbackMsg(null);
+    setFeedbackDiscussionSlug(null);
+    setErrorMsg(msg);
   }, []);
 
   React.useEffect(() => {
@@ -592,6 +641,18 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
           </button>
           <button
             type="button"
+            onClick={() => setTab('sockpuppets')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+              tab === 'sockpuppets'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Account Verification (
+            {sockpuppetCases.filter((c) => c.status === 'open').length})
+          </button>
+          <button
+            type="button"
             onClick={() => setTab('edits')}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
               tab === 'edits'
@@ -643,7 +704,19 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
-            LGPD Audit Log ({snapshot?.lgpdLogs.length ?? 0})
+            LGPD Requests (
+            {lgpdRequests.filter((r) => r.status === 'pending' || r.status === 'in-review').length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('discussions')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+              tab === 'discussions'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Admin Discussion ({adminThreads.filter((t) => t.status === 'open').length})
           </button>
           <button
             type="button"
@@ -968,6 +1041,25 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {/* TAB 1B: ACCOUNT VERIFICATION & SOCKPUPPET INVESTIGATION */}
+          {tab === 'sockpuppets' && (
+            <AdminSockpuppetPanel
+              currentUser={currentUser}
+              isBureaucrat={isBureaucrat}
+              users={snapshot?.users ?? []}
+              recentEdits={snapshot?.recentEdits ?? []}
+              cases={sockpuppetCases}
+              onSelectPage={onSelectPage}
+              onBlockUser={(target) => {
+                setBlockModalUser(target);
+                setBlockReason('');
+              }}
+              onReloadCases={reloadCases}
+              onFeedback={handlePanelFeedback}
+              onError={handlePanelError}
+            />
           )}
 
           {/* TAB 2: RECENT EDITS MODERATION */}
@@ -1337,75 +1429,30 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
             />
           )}
 
-          {/* TAB 4: LGPD AUDIT LOG */}
+          {/* TAB 4: LGPD REQUESTS QUEUE & AUDIT LOG */}
           {tab === 'lgpd' && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0b0f17] text-xs">
-                <p className="text-slate-600 dark:text-slate-300 max-w-2xl">
-                  Immutable compliance log recording LGPD (Art. 18, VI) personal data erasure and
-                  anonymization executions without storing deleted PII, aligned with{' '}
-                  {LEGAL_GOVERNANCE.marcoCivilLaw}.
-                </p>
-                <div className="text-slate-600 dark:text-slate-300 shrink-0">
-                  DPO: <strong>{LEGAL_GOVERNANCE.dpoName}</strong> (
-                  <a
-                    href={`mailto:${LEGAL_GOVERNANCE.dpoEmail}`}
-                    className="font-mono text-blue-700 dark:text-blue-400 hover:underline"
-                  >
-                    {LEGAL_GOVERNANCE.dpoEmail}
-                  </a>
-                  )
-                </div>
-              </div>
+            <AdminLgpdRequestsPanel
+              currentUser={currentUser}
+              isBureaucrat={isBureaucrat}
+              users={snapshot?.users ?? []}
+              requests={lgpdRequests}
+              lgpdLogs={snapshot?.lgpdLogs ?? []}
+              onReloadData={loadData}
+              onFeedback={handlePanelFeedback}
+              onError={handlePanelError}
+            />
+          )}
 
-              {(snapshot?.lgpdLogs.length ?? 0) === 0 ? (
-                <div className="py-12 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/40 dark:bg-[#0b0f17]">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    No LGPD data erasure requests have been executed yet.
-                  </p>
-                </div>
-              ) : (
-                <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-[#0b0f17]">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0f1623] text-xs font-semibold text-slate-600 dark:text-slate-400">
-                          <th className="py-2.5 px-4">Target UID</th>
-                          <th className="py-2.5 px-4">Mode</th>
-                          <th className="py-2.5 px-4">Execution Summary</th>
-                          <th className="py-2.5 px-4">Executed By</th>
-                          <th className="py-2.5 px-4 text-right">Timestamp</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
-                        {(snapshot?.lgpdLogs ?? []).map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                            <td className="py-3 px-4 font-mono text-xs text-slate-600 dark:text-slate-300">
-                              {log.targetUid}
-                            </td>
-                            <td className="py-3 px-4 text-xs font-medium text-slate-800 dark:text-slate-200">
-                              {log.mode === 'purge' ? 'Full Purge' : 'Anonymize + Erase PII'}
-                            </td>
-                            <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-300">
-                              {log.summary}
-                            </td>
-                            <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-300">
-                              {log.executedByName}
-                            </td>
-                            <td
-                              className="py-3 px-4 text-right font-mono text-xs tabular-nums text-slate-500 dark:text-slate-400 whitespace-nowrap"
-                              title={formatAbsoluteTime(log.createdAt)}
-                            >
-                              {formatRelativeTime(log.createdAt)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* TAB 4B: ADMINISTRATORS & BUREAUCRATS DISCUSSION AREA */}
+          {tab === 'discussions' && (
+            <AdminDiscussionPanel
+              currentUser={currentUser}
+              isBureaucrat={isBureaucrat}
+              threads={adminThreads}
+              onReloadThreads={reloadThreads}
+              onFeedback={handlePanelFeedback}
+              onError={handlePanelError}
+            />
           )}
 
           {/* TAB 5: EXTENSIONS MANAGEMENT (Bureaucrat Config) */}

@@ -654,6 +654,290 @@
         "pageVisibility",
         "createdAt"
       ]
+    },
+    "SockpuppetCase": {
+      "title": "SockpuppetCase",
+      "description": "Account verification and sockpuppet investigation case managed by wiki administrators and bureaucrats.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "masterUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "suspectedUids": {
+          "type": "array",
+          "description": "Bounded list of up to 8 suspected sockpuppet UIDs."
+        },
+        "evidenceSummary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "confirmed", "inconclusive", "dismissed"]
+        },
+        "resolutionNotes": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 1000
+        },
+        "createdBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdByName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "updatedByName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "masterUid",
+        "suspectedUids",
+        "evidenceSummary",
+        "status",
+        "resolutionNotes",
+        "createdBy",
+        "createdByName",
+        "updatedBy",
+        "updatedByName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LgpdRequest": {
+      "title": "LgpdRequest",
+      "description": "Formal LGPD data subject request tracked through intake, review, and execution.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "requesterUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "requesterName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "requestType": {
+          "type": "string",
+          "enum": ["anonymize", "purge", "access", "correction"]
+        },
+        "details": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in-review", "completed", "rejected"]
+        },
+        "resolutionNote": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "reviewedBy": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "reviewedByName": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 80
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "requesterUid",
+        "requesterName",
+        "requestType",
+        "details",
+        "status",
+        "resolutionNote",
+        "reviewedBy",
+        "reviewedByName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminDiscussionThread": {
+      "title": "AdminDiscussionThread",
+      "description": "Private governance discussion thread accessible exclusively to verified wiki administrators and bureaucrats.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "category": {
+          "type": "string",
+          "enum": ["general", "sockpuppets", "lgpd", "policy", "incident"]
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "resolved", "archived"]
+        },
+        "isPinned": {
+          "type": "boolean"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "authorRole": {
+          "type": "string",
+          "enum": ["admin", "bureaucrat"]
+        },
+        "replyCount": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastActivityAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "body",
+        "status",
+        "isPinned",
+        "authorId",
+        "authorName",
+        "authorRole",
+        "replyCount",
+        "createdAt",
+        "updatedAt",
+        "lastActivityAt"
+      ]
+    },
+    "AdminDiscussionPost": {
+      "title": "AdminDiscussionPost",
+      "description": "Reply post within a private administrator/bureaucrat discussion thread.",
+      "type": "object",
+      "properties": {
+        "threadId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "authorRole": {
+          "type": "string",
+          "enum": ["admin", "bureaucrat"]
+        },
+        "body": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "threadId",
+        "authorId",
+        "authorName",
+        "authorRole",
+        "body",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -704,6 +988,22 @@
     "/extensions/{extensionId}": {
       "schema": { "$ref": "#/entities/WikiExtension" },
       "description": "Site-wide wiki extension configurations determined by Bureaucrats and loaded at site boot."
+    },
+    "/sockpuppet_cases/{caseId}": {
+      "schema": { "$ref": "#/entities/SockpuppetCase" },
+      "description": "Sockpuppet investigation and account verification case files managed by Admins and Bureaucrats."
+    },
+    "/lgpd_requests/{requestId}": {
+      "schema": { "$ref": "#/entities/LgpdRequest" },
+      "description": "Formal LGPD requests submitted by users or logged by DPO/administration."
+    },
+    "/admin_discussions/{threadId}": {
+      "schema": { "$ref": "#/entities/AdminDiscussionThread" },
+      "description": "Private governance discussion threads for verified Administrators and Bureaucrats."
+    },
+    "/admin_discussions/{threadId}/posts/{postId}": {
+      "schema": { "$ref": "#/entities/AdminDiscussionPost" },
+      "description": "Replies inside private administrator/bureaucrat discussion threads."
     }
   }
 }

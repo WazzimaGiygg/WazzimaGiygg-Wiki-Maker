@@ -373,6 +373,111 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidUidList(uids) {
+      return uids is list
+        && uids.size() >= 1
+        && uids.size() <= 8
+        && (uids.size() <= 0 || isValidId(uids[0]))
+        && (uids.size() <= 1 || isValidId(uids[1]))
+        && (uids.size() <= 2 || isValidId(uids[2]))
+        && (uids.size() <= 3 || isValidId(uids[3]))
+        && (uids.size() <= 4 || isValidId(uids[4]))
+        && (uids.size() <= 5 || isValidId(uids[5]))
+        && (uids.size() <= 6 || isValidId(uids[6]))
+        && (uids.size() <= 7 || isValidId(uids[7]));
+    }
+
+    function isValidSockpuppetCase(data, caseId) {
+      return data.keys().hasAll([
+          'id', 'title', 'masterUid', 'suspectedUids', 'evidenceSummary',
+          'status', 'resolutionNotes', 'createdBy', 'createdByName',
+          'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'title', 'masterUid', 'suspectedUids', 'evidenceSummary',
+          'status', 'resolutionNotes', 'createdBy', 'createdByName',
+          'updatedBy', 'updatedByName', 'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id == caseId && isValidId(data.id)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
+        && data.masterUid is string && isValidId(data.masterUid)
+        && isValidUidList(data.suspectedUids)
+        && data.evidenceSummary is string && data.evidenceSummary.size() >= 1 && data.evidenceSummary.size() <= 2000
+        && data.status in ['open', 'confirmed', 'inconclusive', 'dismissed']
+        && data.resolutionNotes is string && data.resolutionNotes.size() <= 1000
+        && data.createdBy is string && isValidId(data.createdBy)
+        && data.createdByName is string && data.createdByName.size() >= 1 && data.createdByName.size() <= 80
+        && data.updatedBy is string && isValidId(data.updatedBy)
+        && data.updatedByName is string && data.updatedByName.size() >= 1 && data.updatedByName.size() <= 80
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidLgpdRequest(data, requestId) {
+      return data.keys().hasAll([
+          'id', 'requesterUid', 'requesterName', 'requestType', 'details',
+          'status', 'resolutionNote', 'reviewedBy', 'reviewedByName',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'requesterUid', 'requesterName', 'requestType', 'details',
+          'status', 'resolutionNote', 'reviewedBy', 'reviewedByName',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id is string && data.id == requestId && isValidId(data.id)
+        && data.requesterUid is string && isValidId(data.requesterUid)
+        && data.requesterName is string && data.requesterName.size() >= 1 && data.requesterName.size() <= 80
+        && data.requestType in ['anonymize', 'purge', 'access', 'correction']
+        && data.details is string && data.details.size() >= 1 && data.details.size() <= 1000
+        && data.status in ['pending', 'in-review', 'completed', 'rejected']
+        && data.resolutionNote is string && data.resolutionNote.size() <= 500
+        && data.reviewedBy is string && (data.reviewedBy == '' || isValidId(data.reviewedBy))
+        && data.reviewedByName is string && data.reviewedByName.size() <= 80
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminDiscussionThread(data, threadId) {
+      return data.keys().hasAll([
+          'id', 'title', 'category', 'body', 'status', 'isPinned',
+          'authorId', 'authorName', 'authorRole', 'replyCount',
+          'createdAt', 'updatedAt', 'lastActivityAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'title', 'category', 'body', 'status', 'isPinned',
+          'authorId', 'authorName', 'authorRole', 'replyCount',
+          'createdAt', 'updatedAt', 'lastActivityAt'
+        ])
+        && data.id is string && data.id == threadId && isValidId(data.id)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 160
+        && data.category in ['general', 'sockpuppets', 'lgpd', 'policy', 'incident']
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 4000
+        && data.status in ['open', 'resolved', 'archived']
+        && data.isPinned is bool
+        && data.authorId is string && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
+        && data.authorRole in ['admin', 'bureaucrat']
+        && data.replyCount is int && data.replyCount >= 0 && data.replyCount <= 10000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && data.lastActivityAt is timestamp;
+    }
+
+    function isValidAdminDiscussionPost(data, threadId) {
+      return data.keys().hasAll([
+          'threadId', 'authorId', 'authorName', 'authorRole', 'body', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'threadId', 'authorId', 'authorName', 'authorRole', 'body', 'createdAt'
+        ])
+        && data.threadId is string && data.threadId == threadId && isValidId(data.threadId)
+        && data.authorId is string && isValidId(data.authorId)
+        && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
+        && data.authorRole in ['admin', 'bureaucrat']
+        && data.body is string && data.body.size() >= 1 && data.body.size() <= 2000
+        && data.createdAt is timestamp;
+    }
+
     // Collection: /pages/{slug}
     match /pages/{slug} {
       allow get: if isValidId(slug) && (
@@ -914,6 +1019,152 @@ service cloud.firestore {
         && isBureaucrat();
 
       allow delete: if isValidId(extensionId) && isBureaucrat();
+    }
+
+    // Collection: /sockpuppet_cases/{caseId} (Account verification & sockpuppet investigation files)
+    match /sockpuppet_cases/{caseId} {
+      allow get: if isValidId(caseId) && isAdmin();
+      allow list: if isAdmin();
+
+      allow create: if isVerified()
+        && isValidId(caseId)
+        && isValidSockpuppetCase(incoming(), caseId)
+        && incoming().createdBy == request.auth.uid
+        && incoming().updatedBy == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow update: if isVerified()
+        && isValidId(caseId)
+        && isValidSockpuppetCase(incoming(), caseId)
+        && incoming().id == existing().id
+        && incoming().createdBy == existing().createdBy
+        && incoming().createdByName == existing().createdByName
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedBy == request.auth.uid
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'masterUid', 'suspectedUids', 'evidenceSummary',
+          'status', 'resolutionNotes', 'updatedBy', 'updatedByName', 'updatedAt'
+        ])
+        && isAdmin();
+
+      allow delete: if isValidId(caseId) && isBureaucrat();
+    }
+
+    // Collection: /lgpd_requests/{requestId} (Formal LGPD data subject requests queue)
+    match /lgpd_requests/{requestId} {
+      allow get: if isValidId(requestId) && (
+        (resource != null && (isOwner(existing().requesterUid) || isAdmin())) ||
+        isAdmin()
+      );
+      allow list: if isSignedIn() && (resource.data.requesterUid == request.auth.uid || isAdmin());
+
+      allow create: if isVerified()
+        && isValidId(requestId)
+        && isValidLgpdRequest(incoming(), requestId)
+        && incoming().status == 'pending'
+        && incoming().resolutionNote == ''
+        && incoming().reviewedBy == ''
+        && incoming().reviewedByName == ''
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && isNotBlocked()
+        && (incoming().requesterUid == request.auth.uid || isAdmin());
+
+      allow update: if isVerified()
+        && isValidId(requestId)
+        && isValidLgpdRequest(incoming(), requestId)
+        && incoming().id == existing().id
+        && incoming().requesterUid == existing().requesterUid
+        && incoming().requesterName == existing().requesterName
+        && incoming().requestType == existing().requestType
+        && incoming().details == existing().details
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().reviewedBy == request.auth.uid
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'status', 'resolutionNote', 'reviewedBy', 'reviewedByName', 'updatedAt'
+        ])
+        && isAdmin()
+        && (existing().status in ['pending', 'in-review'] || isBureaucrat());
+
+      allow delete: if isValidId(requestId) && isBureaucrat();
+    }
+
+    // Collection: /admin_discussions/{threadId} (Staff-only governance discussion area)
+    match /admin_discussions/{threadId} {
+      allow get: if isValidId(threadId) && isAdmin();
+      allow list: if isAdmin();
+
+      allow create: if isVerified()
+        && isValidId(threadId)
+        && isValidAdminDiscussionThread(incoming(), threadId)
+        && incoming().authorId == request.auth.uid
+        && incoming().status == 'open'
+        && incoming().replyCount == 0
+        && (!incoming().isPinned || isBureaucrat())
+        && incoming().authorRole == (isBureaucrat() ? 'bureaucrat' : 'admin')
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && incoming().lastActivityAt == request.time
+        && isAdmin();
+
+      allow update: if isVerified()
+        && isValidId(threadId)
+        && isValidAdminDiscussionThread(incoming(), threadId)
+        && incoming().id == existing().id
+        && incoming().authorId == existing().authorId
+        && incoming().authorName == existing().authorName
+        && incoming().authorRole == existing().authorRole
+        && incoming().createdAt == existing().createdAt
+        && isAdmin()
+        && (
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['replyCount', 'lastActivityAt'])
+            && incoming().replyCount == existing().replyCount + 1
+            && incoming().lastActivityAt == request.time
+          ) ||
+          (
+            (existing().authorId == request.auth.uid || isBureaucrat())
+            && incoming().replyCount == existing().replyCount
+            && incoming().updatedAt == request.time
+            && (incoming().isPinned == existing().isPinned || isBureaucrat())
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'title', 'category', 'body', 'status', 'isPinned', 'updatedAt'
+            ])
+          ) ||
+          (
+            incoming().replyCount == existing().replyCount
+            && incoming().updatedAt == request.time
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isValidId(threadId) && isAdmin() && (existing().authorId == request.auth.uid || isBureaucrat());
+
+      // Subcollection: /admin_discussions/{threadId}/posts/{postId}
+      match /posts/{postId} {
+        allow get: if isValidId(threadId) && isValidId(postId) && isAdmin();
+        allow list: if isAdmin();
+
+        allow create: if isVerified()
+          && isValidId(threadId)
+          && isValidId(postId)
+          && isValidAdminDiscussionPost(incoming(), threadId)
+          && incoming().authorId == request.auth.uid
+          && incoming().authorRole == (isBureaucrat() ? 'bureaucrat' : 'admin')
+          && incoming().createdAt == request.time
+          && isAdmin()
+          && exists(/databases/$(database)/documents/admin_discussions/$(threadId))
+          && getAfter(/databases/$(database)/documents/admin_discussions/$(threadId)).data.replyCount == get(/databases/$(database)/documents/admin_discussions/$(threadId)).data.replyCount + 1
+          && getAfter(/databases/$(database)/documents/admin_discussions/$(threadId)).data.lastActivityAt == request.time;
+
+        allow update: if false;
+
+        allow delete: if isValidId(threadId) && isValidId(postId) && isAdmin() && (existing().authorId == request.auth.uid || isBureaucrat());
+      }
     }
   }
 }

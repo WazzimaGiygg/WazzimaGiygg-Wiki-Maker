@@ -3,18 +3,29 @@ import type { User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import {
   CheckCircle2,
+  Clock,
   Download,
   FileText,
   Lock,
   Mail,
   Scale,
+  Send,
   ShieldCheck,
 } from 'lucide-react';
+import { fetchMyLgpdRequests, submitLgpdRequest } from '../lib/adminGovernanceService';
 import { DOSSIER_PAGE_SLUG, DOSSIER_PAGE_TITLE } from '../lib/dossierArticle';
 import { db } from '../lib/firebase';
 import { LEGAL_GOVERNANCE } from '../lib/legalConfig';
+import { formatRelativeTime } from '../lib/markdownUtils';
 import { fetchUserEdits } from '../lib/wikiService';
-import type { CollaboratorProfile, WikiPage } from '../types/wiki';
+import {
+  type CollaboratorProfile,
+  type LgpdRequest,
+  type LgpdRequestStatus,
+  type LgpdRequestType,
+  VALIDATION_LIMITS,
+  type WikiPage,
+} from '../types/wiki';
 
 export type LegalSectionTab = 'privacy' | 'terms';
 
@@ -28,6 +39,24 @@ interface LegalComplianceViewProps {
   onSignIn: () => void;
 }
 
+const LGPD_STATUS_STYLE: Record<LgpdRequestStatus, string> = {
+  pending:
+    'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/35 text-amber-800 dark:text-amber-300',
+  'in-review':
+    'border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/35 text-blue-800 dark:text-blue-300',
+  completed:
+    'border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/35 text-emerald-700 dark:text-emerald-300',
+  rejected:
+    'border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/35 text-red-700 dark:text-red-300',
+};
+
+const LGPD_TYPE_LABELS: Record<LgpdRequestType, string> = {
+  anonymize: 'Anonymize + Erase PII',
+  purge: 'Complete Account & Content Purge',
+  access: 'Data Access / Export Verification',
+  correction: 'Personal Data Correction',
+};
+
 export const LegalComplianceView: React.FC<LegalComplianceViewProps> = ({
   section,
   user,
@@ -39,6 +68,64 @@ export const LegalComplianceView: React.FC<LegalComplianceViewProps> = ({
 }) => {
   const [exporting, setExporting] = React.useState(false);
   const [exportDone, setExportDone] = React.useState(false);
+
+  const [myRequests, setMyRequests] = React.useState<LgpdRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = React.useState(false);
+  const [requestType, setRequestType] = React.useState<LgpdRequestType>('anonymize');
+  const [requestDetails, setRequestDetails] = React.useState('');
+  const [submittingRequest, setSubmittingRequest] = React.useState(false);
+  const [requestSuccess, setRequestSuccess] = React.useState<string | null>(null);
+  const [requestError, setRequestError] = React.useState<string | null>(null);
+
+  const loadMyRequests = React.useCallback(async () => {
+    if (!user) {
+      setMyRequests([]);
+      return;
+    }
+    setLoadingRequests(true);
+    try {
+      const items = await fetchMyLgpdRequests(user.uid);
+      setMyRequests(items);
+    } catch {
+      // Ignore silent read failures for unverified or offline sessions
+    } finally {
+      setLoadingRequests(false);
+    }
+  }, [user]);
+
+  React.useEffect(() => {
+    void loadMyRequests();
+  }, [loadMyRequests]);
+
+  const handleSubmitLgpdRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !requestDetails.trim()) return;
+    setSubmittingRequest(true);
+    setRequestError(null);
+    setRequestSuccess(null);
+    try {
+      const requesterName =
+        collaboratorProfile?.displayName ||
+        user.displayName ||
+        user.email?.split('@')[0] ||
+        'Collaborator';
+      await submitLgpdRequest({
+        requesterUid: user.uid,
+        requesterName,
+        requestType,
+        details: requestDetails,
+      });
+      setRequestDetails('');
+      setRequestSuccess(
+        'Formal LGPD request submitted to the DPO & Bureaucrats queue. You can track its status below.'
+      );
+      await loadMyRequests();
+    } catch (err) {
+      setRequestError(err instanceof Error ? err.message : 'Failed to submit LGPD request.');
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
 
   const handleExportMyData = async () => {
     if (!user) return;
@@ -318,6 +405,157 @@ export const LegalComplianceView: React.FC<LegalComplianceViewProps> = ({
                   <span>Contact DPO ({LEGAL_GOVERNANCE.dpoEmail})</span>
                 </a>
               </div>
+            </div>
+
+            {/* Formal In-App LGPD Request Submission & Status Tracker */}
+            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f17] space-y-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Submit Formal LGPD Request (In-App DPO Queue)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    File an Art. 18 request directly to platform administrators and bureaucrats, and
+                    monitor review progress in real time.
+                  </p>
+                </div>
+              </div>
+
+              {!user ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-[#0f1623] text-xs">
+                  <span className="text-slate-600 dark:text-slate-300">
+                    Sign in with your verified Google account to submit and track formal LGPD
+                    requests in-app.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onSignIn}
+                    className="px-3 py-1.5 font-medium rounded-md border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  >
+                    Sign in
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {requestError && (
+                    <div className="p-3 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/30 text-xs text-red-800 dark:text-red-300">
+                      {requestError}
+                    </div>
+                  )}
+                  {requestSuccess && (
+                    <div className="p-3 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-950/30 text-xs text-emerald-800 dark:text-emerald-300">
+                      {requestSuccess}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSubmitLgpdRequest} className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <label
+                          htmlFor="user-lgpd-type"
+                          className="block text-xs font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Request type
+                        </label>
+                        <select
+                          id="user-lgpd-type"
+                          value={requestType}
+                          onChange={(e) => setRequestType(e.target.value as LgpdRequestType)}
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                        >
+                          <option value="anonymize">Anonymize + Erase PII</option>
+                          <option value="purge">Complete Account &amp; Content Purge</option>
+                          <option value="access">Data Access / Export Review</option>
+                          <option value="correction">Data Correction</option>
+                        </select>
+                      </div>
+
+                      <div className="sm:col-span-2 space-y-1">
+                        <label
+                          htmlFor="user-lgpd-details"
+                          className="block text-xs font-medium text-slate-700 dark:text-slate-300"
+                        >
+                          Request details
+                        </label>
+                        <textarea
+                          id="user-lgpd-details"
+                          required
+                          rows={2}
+                          maxLength={VALIDATION_LIMITS.LGPD_REQUEST_DETAILS_MAX_LENGTH}
+                          value={requestDetails}
+                          onChange={(e) => setRequestDetails(e.target.value)}
+                          placeholder="Describe your LGPD data request (e.g., anonymize contributions or correct account metadata)..."
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0f1623] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={submittingRequest || !requestDetails.trim()}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors disabled:opacity-50 cursor-pointer"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>
+                          {submittingRequest ? 'Submitting...' : 'Submit LGPD Request'}
+                        </span>
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* User Request History */}
+                  <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                    <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      My Submitted LGPD Requests ({myRequests.length})
+                    </div>
+                    {loadingRequests ? (
+                      <div className="h-12 rounded-lg bg-slate-100 dark:bg-slate-800/60 animate-pulse" />
+                    ) : myRequests.length === 0 ? (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        You have not filed any formal LGPD requests yet.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {myRequests.map((req) => (
+                          <div
+                            key={req.id}
+                            className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0f1623] space-y-1.5 text-xs"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span
+                                  className={`px-2 py-0.5 text-[10px] font-semibold uppercase rounded border ${LGPD_STATUS_STYLE[req.status]}`}
+                                >
+                                  {req.status}
+                                </span>
+                                <span className="font-medium text-slate-800 dark:text-slate-200">
+                                  {LGPD_TYPE_LABELS[req.requestType]}
+                                </span>
+                              </div>
+                              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                                <Clock className="w-3 h-3" />
+                                {formatRelativeTime(req.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
+                              {req.details}
+                            </p>
+                            {req.resolutionNote && (
+                              <div className="text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-800">
+                                <strong className="text-slate-700 dark:text-slate-200">
+                                  Resolution ({req.reviewedByName || 'Administration'}):
+                                </strong>{' '}
+                                {req.resolutionNote}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 

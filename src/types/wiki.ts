@@ -45,6 +45,13 @@ export const VALIDATION_LIMITS = {
   RATING_MIN_SCORE: 1,
   RATING_MAX_SCORE: 5,
   RECENT_EDITORS_MAX_COUNT: 3,
+  SOCKPUPPET_SUSPECTS_MAX_COUNT: 8,
+  SOCKPUPPET_EVIDENCE_MAX_LENGTH: 2000,
+  SOCKPUPPET_RESOLUTION_MAX_LENGTH: 1000,
+  LGPD_REQUEST_DETAILS_MAX_LENGTH: 1000,
+  LGPD_REQUEST_RESOLUTION_MAX_LENGTH: 500,
+  ADMIN_THREAD_BODY_MAX_LENGTH: 4000,
+  ADMIN_POST_BODY_MAX_LENGTH: 2000,
 } as const;
 
 export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
@@ -160,6 +167,75 @@ export interface LgpdErasureLog {
   summary: string;
   executedBy: string;
   executedByName: string;
+  createdAt: Timestamp | null;
+}
+
+export type SockpuppetCaseStatus = 'open' | 'confirmed' | 'inconclusive' | 'dismissed';
+
+export interface SockpuppetCase {
+  id: string;
+  title: string;
+  masterUid: string;
+  suspectedUids: string[];
+  evidenceSummary: string;
+  status: SockpuppetCaseStatus;
+  resolutionNotes: string;
+  createdBy: string;
+  createdByName: string;
+  updatedBy: string;
+  updatedByName: string;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
+}
+
+export type LgpdRequestType = 'anonymize' | 'purge' | 'access' | 'correction';
+export type LgpdRequestStatus = 'pending' | 'in-review' | 'completed' | 'rejected';
+
+export interface LgpdRequest {
+  id: string;
+  requesterUid: string;
+  requesterName: string;
+  requestType: LgpdRequestType;
+  details: string;
+  status: LgpdRequestStatus;
+  resolutionNote: string;
+  reviewedBy: string;
+  reviewedByName: string;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
+}
+
+export type AdminDiscussionCategory =
+  | 'general'
+  | 'sockpuppets'
+  | 'lgpd'
+  | 'policy'
+  | 'incident';
+export type AdminDiscussionStatus = 'open' | 'resolved' | 'archived';
+
+export interface AdminDiscussionThread {
+  id: string;
+  title: string;
+  category: AdminDiscussionCategory;
+  body: string;
+  status: AdminDiscussionStatus;
+  isPinned: boolean;
+  authorId: string;
+  authorName: string;
+  authorRole: 'admin' | 'bureaucrat';
+  replyCount: number;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
+  lastActivityAt: Timestamp | null;
+}
+
+export interface AdminDiscussionPost {
+  id: string;
+  threadId: string;
+  authorId: string;
+  authorName: string;
+  authorRole: 'admin' | 'bureaucrat';
+  body: string;
   createdAt: Timestamp | null;
 }
 
