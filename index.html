@@ -81,6 +81,19 @@
             };
           }
         } catch (e) {}
+        try {
+          var storedTheme = window.localStorage.getItem('wazzimagiygg-theme');
+          var prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var shouldUseDark =
+            storedTheme === 'dark' ||
+            ((storedTheme === 'system' || !storedTheme) && prefersDark);
+          if (shouldUseDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
       })();
     </script>
     <meta property="og:type" content="website" />

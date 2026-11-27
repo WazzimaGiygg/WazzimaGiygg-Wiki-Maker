@@ -15,7 +15,9 @@ import {
   Lock,
   LogOut,
   MessageSquare,
+  Monitor,
   Moon,
+  Palette,
   Plus,
   Search,
   Shield,
@@ -28,6 +30,7 @@ import {
 import type { User } from 'firebase/auth';
 import {
   type GovernanceRole,
+  type ThemePreference,
   WIKI_CATEGORIES,
   type WatchlistItem,
   type WikiPage,
@@ -51,7 +54,9 @@ interface SidebarProps {
   isTagsViewActive?: boolean;
   isSpecialViewActive?: boolean;
   isAllPagesViewActive?: boolean;
+  isAppearanceViewActive?: boolean;
   isDark: boolean;
+  themePreference?: ThemePreference;
   canToggleTheme?: boolean;
   forcedColorMode?: 'light' | 'dark';
   showQuickCreate?: boolean;
@@ -78,6 +83,7 @@ interface SidebarProps {
   onOpenTags?: () => void;
   onOpenSpecialPages?: () => void;
   onOpenAllPages?: () => void;
+  onOpenAppearance?: () => void;
   onOpenShortcuts?: () => void;
   onSignOut: () => void;
   onSignIn: () => void;
@@ -142,7 +148,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isTagsViewActive = false,
   isSpecialViewActive = false,
   isAllPagesViewActive = false,
+  isAppearanceViewActive = false,
   isDark,
+  themePreference = 'system',
   canToggleTheme = true,
   forcedColorMode,
   showQuickCreate = true,
@@ -169,6 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenTags,
   onOpenSpecialPages,
   onOpenAllPages,
+  onOpenAppearance,
   onOpenShortcuts,
   onSignOut,
   onSignIn,
@@ -1309,13 +1318,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {showPwaInstall && <PWAInstallButton siteTitle={siteTitle} />}
 
-        <div className="flex items-center justify-between gap-2 pt-1">
+        <div className="flex items-center justify-between gap-1.5 pt-1">
           {onOpenShortcuts ? (
             <button
               type="button"
               onClick={onOpenShortcuts}
               title="Keyboard shortcuts (?)"
-              className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0"
+              className="inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Keyboard className="w-3.5 h-3.5" />
               <span>Shortcuts</span>
@@ -1323,31 +1332,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             <span className="text-[11px] text-slate-500 dark:text-slate-400">Theme</span>
           )}
-          <button
-            type="button"
-            disabled={!canToggleTheme}
-            onClick={onToggleTheme}
-            title={
-              !canToggleTheme
-                ? `${forcedColorMode === 'dark' ? 'Dark' : 'Light'} color scheme enforced by site extensions`
-                : isDark
-                ? 'Switch to Light mode'
-                : 'Switch to Dark mode'
-            }
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 disabled:opacity-55 disabled:cursor-not-allowed"
-          >
-            {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            <span>
-              {!canToggleTheme
-                ? forcedColorMode === 'dark'
-                  ? 'Dark (locked)'
-                  : 'Light (locked)'
-                : isDark
-                ? 'Light mode'
-                : 'Dark mode'}
-            </span>
-          </button>
+
+          <div className="flex items-center gap-1 shrink-0">
+            {onOpenAppearance && (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenAppearance();
+                  onCloseMobile();
+                }}
+                title="Appearance & theme settings"
+                className={`inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                  isAppearanceViewActive
+                    ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Palette className="w-3.5 h-3.5 shrink-0" />
+                <span>Appearance</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              disabled={!canToggleTheme}
+              onClick={onToggleTheme}
+              aria-label={
+                !canToggleTheme
+                  ? `${forcedColorMode === 'dark' ? 'Dark' : 'Light'} color scheme enforced by site extensions`
+                  : isDark
+                  ? 'Switch to Light mode'
+                  : 'Switch to Dark mode'
+              }
+              title={
+                !canToggleTheme
+                  ? `${forcedColorMode === 'dark' ? 'Dark' : 'Light'} color scheme enforced by site extensions`
+                  : themePreference === 'system'
+                  ? `Following System (${isDark ? 'Dark' : 'Light'}) — click to override`
+                  : isDark
+                  ? 'Dark mode — click to switch to Light'
+                  : 'Light mode — click to switch to Dark'
+              }
+              className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed"
+            >
+              {themePreference === 'system' && canToggleTheme ? (
+                <Monitor className="w-3.5 h-3.5" />
+              ) : isDark ? (
+                <Sun className="w-3.5 h-3.5" />
+              ) : (
+                <Moon className="w-3.5 h-3.5" />
+              )}
+              {!onOpenAppearance && (
+                <span>
+                  {!canToggleTheme
+                    ? forcedColorMode === 'dark'
+                      ? 'Dark (locked)'
+                      : 'Light (locked)'
+                    : themePreference === 'system'
+                    ? `System (${isDark ? 'Dark' : 'Light'})`
+                    : isDark
+                    ? 'Light mode'
+                    : 'Dark mode'}
+                </span>
+              )}
+            </button>
           </div>
+        </div>
         </div>
       </div>
     );

@@ -255,5 +255,18 @@ export interface WatchlistItem {
   createdAt: Timestamp | null;
 }
 
+export type ThemePreference = 'light' | 'dark' | 'system';
+
 export type PageTab = 'read' | 'edit' | 'history' | 'comments' | 'source';
-export type WorkspaceView = 'page' | 'index' | 'recent' | 'tags' | 'categories' | 'special' | 'create' | 'admin' | 'legal' | 'ecosystem';
+export type WorkspaceView =
+  | 'page'
+  | 'index'
+  | 'recent'
+  | 'tags'
+  | 'categories'
+  | 'special'
+  | 'appearance'
+  | 'create'
+  | 'admin'
+  | 'legal'
+  | 'ecosystem';

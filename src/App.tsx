@@ -34,6 +34,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
+import { AppearanceSettingsView } from './components/AppearanceSettingsView';
 import { ArticleViewer } from './components/ArticleViewer';
 import { CategoriesFooter } from './components/CategoriesFooter';
 import { CategoryView } from './components/CategoryView';
@@ -166,12 +167,20 @@ import {
   type PageTab,
   type PageVisibility,
   type RecentEditorEntry,
+  type ThemePreference,
   type UserEdit,
   type WatchlistItem,
   WIKI_CATEGORIES,
   type WikiPage,
   type WorkspaceView,
 } from './types/wiki';
+import {
+  getNextThemePreference,
+  getSystemPrefersDark,
+  readStoredThemePreference,
+  resolveEffectiveDarkMode,
+  writeStoredThemePreference,
+} from './lib/themePreference';
 
 const EMPTY_TAGS: string[] = [];
 const TEMPLATE_PRESET_TAGS: string[] = ['predefinicao', 'template'];
@@ -228,9 +237,19 @@ function parseHashRoute(): {
     const subSegment = hash.split('/')[1] ?? '';
     let specialTab: SpecialPagesTab = 'categories';
     if (subSegment === 'tags') specialTab = 'tags';
-    else if (subSegment === 'directory' || subSegment === 'all') specialTab = 'directory';
+    else if (subSegment === 'appearance' || subSegment === 'aparencia' || subSegment === 'theme') {
+      specialTab = 'appearance';
+    } else if (subSegment === 'directory' || subSegment === 'all') specialTab = 'directory';
     else if (subSegment === 'recent') specialTab = 'recent';
     return { view: 'special', slug: 'start', specialTab };
+  }
+  if (
+    hash === 'appearance' ||
+    hash === 'aparencia' ||
+    hash === 'settings/appearance' ||
+    hash === 'special:appearance'
+  ) {
+    return { view: 'appearance', slug: 'start' };
   }
   if (hash === 'categories' || hash === 'categorias' || hash === 'special:categories') {
     return { view: 'categories', slug: 'start', categorySlug: null };
@@ -351,10 +370,12 @@ function WikiWorkspace() {
   const [isOnline, setIsOnline] = React.useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
-  const [isDark, setIsDark] = React.useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('wazzimagiygg-theme') === 'dark';
-  });
+  const [themePreference, setThemePreference] = React.useState<ThemePreference>(() =>
+    readStoredThemePreference()
+  );
+  const [systemPrefersDark, setSystemPrefersDark] = React.useState<boolean>(() =>
+    getSystemPrefersDark()
+  );
 
   const pushToast = React.useCallback((toast: Omit<ToastNotification, 'id'>) => {
     const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -435,8 +456,36 @@ function WikiWorkspace() {
     [extensionsState]
   );
 
-  const effectiveIsDark =
-    themeColorScheme === 'dark' ? true : themeColorScheme === 'light' ? false : isDark;
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const syncPreference = (matches: boolean) => {
+      setSystemPrefersDark(matches);
+    };
+    syncPreference(mediaQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      syncPreference(event.matches);
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
+  const effectiveIsDark = resolveEffectiveDarkMode(
+    themePreference,
+    systemPrefersDark,
+    themeColorScheme
+  );
+
+  const handleChangeThemePreference = React.useCallback((next: ThemePreference) => {
+    writeStoredThemePreference(next);
+    setThemePreference(next);
+  }, []);
 
   // Sync dark mode preference, active theme attribute, and browser theme-color on <html>
   React.useEffect(() => {
@@ -449,9 +498,7 @@ function WikiWorkspace() {
       root.classList.remove('dark');
     }
 
-    if (themeColorScheme === 'user') {
-      localStorage.setItem('wazzimagiygg-theme', isDark ? 'dark' : 'light');
-    }
+    writeStoredThemePreference(themePreference);
 
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
     if (themeColorMeta) {
@@ -460,7 +507,7 @@ function WikiWorkspace() {
         effectiveIsDark ? activeTheme.metaThemeColor.dark : activeTheme.metaThemeColor.light
       );
     }
-  }, [activeTheme, effectiveIsDark, isDark, themeColorScheme]);
+  }, [activeTheme, effectiveIsDark, themePreference]);
 
   // Dynamically generate and mount the CSS print stylesheet when Print View is active
   React.useEffect(() => {
@@ -1368,6 +1415,20 @@ function WikiWorkspace() {
     },
     [autoExitPrintOnNavigate, guardUnsavedLeave]
   );
+
+  const navigateToAppearance = React.useCallback(() => {
+    guardUnsavedLeave(() => {
+      const nextHash = '#/appearance';
+      currentRouteHashRef.current = nextHash;
+      setView('appearance');
+      setSaveError(null);
+      setConfirmDeleteOpen(false);
+      if (autoExitPrintOnNavigate) {
+        setIsPrintView(false);
+      }
+      window.location.hash = nextHash;
+    });
+  }, [autoExitPrintOnNavigate, guardUnsavedLeave]);
 
   React.useEffect(() => {
     if (!isWikiBootReady) return;
@@ -2582,7 +2643,9 @@ function WikiWorkspace() {
           isTagsViewActive={view === 'tags'}
           isSpecialViewActive={view === 'special'}
           isAllPagesViewActive={view === 'index'}
+          isAppearanceViewActive={view === 'appearance'}
           isDark={effectiveIsDark}
+          themePreference={themePreference}
           canToggleTheme={themeColorScheme === 'user'}
           forcedColorMode={themeColorScheme === 'user' ? undefined : themeColorScheme}
           showQuickCreate={quickCreateExt.enabled}
@@ -2621,10 +2684,15 @@ function WikiWorkspace() {
               ? navigateToIndex('index')
               : navigateToSpecialPages('directory')
           }
+          onOpenAppearance={navigateToAppearance}
           onOpenShortcuts={shortcutsExt.enabled ? () => setShortcutsOpen(true) : undefined}
           onSignOut={() => void handleSignOut()}
           onSignIn={() => void handleSignIn()}
-          onToggleTheme={() => setIsDark((prev) => !prev)}
+          onToggleTheme={() =>
+            handleChangeThemePreference(
+              getNextThemePreference(themePreference, systemPrefersDark)
+            )
+          }
         />
 
         <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10">
@@ -2896,6 +2964,21 @@ function WikiWorkspace() {
                 onNewPage={() => navigateToCreate('')}
               />
             </div>
+          ) : view === 'appearance' ? (
+            <div
+              data-wiki-surface="panel"
+              className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
+            >
+              <AppearanceSettingsView
+                themePreference={themePreference}
+                effectiveIsDark={effectiveIsDark}
+                systemPrefersDark={systemPrefersDark}
+                activeTheme={activeTheme}
+                colorSchemePolicy={themeColorScheme}
+                onChangeThemePreference={handleChangeThemePreference}
+                onBackToWiki={() => navigateToPage('start')}
+              />
+            </div>
           ) : view === 'special' ? (
             <div
               data-wiki-surface="panel"
@@ -2913,6 +2996,12 @@ function WikiWorkspace() {
                 enableEcosystem={ecosystemExt.enabled}
                 initialTab={specialTab}
                 initialCategorySlug={selectedCategorySlug}
+                themePreference={themePreference}
+                effectiveIsDark={effectiveIsDark}
+                systemPrefersDark={systemPrefersDark}
+                activeTheme={activeTheme}
+                colorSchemePolicy={themeColorScheme}
+                onChangeThemePreference={handleChangeThemePreference}
                 onTabChange={(nextTab) => {
                   const nextHash = nextTab === 'categories' ? '#/special' : `#/special/${nextTab}`;
                   currentRouteHashRef.current = nextHash;

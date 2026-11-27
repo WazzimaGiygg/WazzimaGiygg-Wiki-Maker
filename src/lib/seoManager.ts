@@ -380,6 +380,11 @@ export function applyDynamicSeo({
     canonicalUrl = `${baseUrl}#/special`;
     nextTitle = `Special Pages Hub — ${siteTitle}`;
     nextDesc = `Explore categories and associated articles, manage tags, and browse special maintenance indexes on ${siteTitle}.`;
+  } else if (view === 'appearance') {
+    canonicalUrl = `${baseUrl}#/appearance`;
+    nextTitle = `Appearance Settings — ${siteTitle}`;
+    nextDesc = `Switch between Light, Dark, and System color modes on ${siteTitle}.`;
+    robotsValue = 'noindex, follow, noai, noimageai';
   } else if (view === 'page' && activePage) {
     canonicalUrl = activePage.slug === 'start' ? baseUrl : `${baseUrl}#/page/${activePage.slug}`;
     nextTitle = `${activePage.title} — ${siteTitle}`;

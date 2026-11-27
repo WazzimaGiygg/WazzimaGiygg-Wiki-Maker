@@ -8,13 +8,15 @@ import {
   Layers,
   List,
   Lock,
+  Palette,
   Plus,
   Search,
   Shield,
   Shuffle,
   Tag,
 } from 'lucide-react';
-import type { WikiPage } from '../types/wiki';
+import type { ThemePreference, WikiColorSchemePolicy, WikiPage } from '../types/wiki';
+import type { WikiThemeDefinition } from '../lib/wikiThemes';
 import {
   buildWikiCategoryDirectory,
   formatCategoryDisplayName,
@@ -22,10 +24,11 @@ import {
 } from '../lib/categoryUtils';
 import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
 import { buildTagDirectory } from '../lib/tagUtils';
+import { AppearanceSettingsView } from './AppearanceSettingsView';
 import { CategoryExplorer } from './CategoryExplorer';
 import { TagManagementPanel } from './TagManagementPanel';
 
-export type SpecialPagesTab = 'categories' | 'tags' | 'directory' | 'recent';
+export type SpecialPagesTab = 'categories' | 'tags' | 'appearance' | 'directory' | 'recent';
 
 type MaintenanceSlice = 'locked' | 'private' | 'untagged' | 'category-docs';
 
@@ -41,6 +44,12 @@ interface SpecialPagesHubProps {
   enableEcosystem?: boolean;
   initialTab?: SpecialPagesTab;
   initialCategorySlug?: string | null;
+  themePreference?: ThemePreference;
+  effectiveIsDark?: boolean;
+  systemPrefersDark?: boolean;
+  activeTheme?: WikiThemeDefinition;
+  colorSchemePolicy?: WikiColorSchemePolicy;
+  onChangeThemePreference?: (next: ThemePreference) => void;
   onTabChange?: (tab: SpecialPagesTab) => void;
   onSelectPage: (slug: string) => void;
   onOpenCategoryPage: (categorySlug?: string) => void;
@@ -70,6 +79,12 @@ export const SpecialPagesHub: React.FC<SpecialPagesHubProps> = ({
   enableEcosystem = true,
   initialTab = 'categories',
   initialCategorySlug = null,
+  themePreference = 'system',
+  effectiveIsDark = false,
+  systemPrefersDark = false,
+  activeTheme,
+  colorSchemePolicy = 'user',
+  onChangeThemePreference,
   onTabChange,
   onSelectPage,
   onOpenCategoryPage,
@@ -140,6 +155,7 @@ export const SpecialPagesHub: React.FC<SpecialPagesHubProps> = ({
   const tabItems: Array<{ id: SpecialPagesTab; label: string; count?: number }> = [
     { id: 'categories', label: 'Category Explorer', count: categoryCount },
     { id: 'tags', label: 'Tag Management', count: tagStats.tags.length },
+    ...(onChangeThemePreference ? [{ id: 'appearance' as const, label: 'Appearance' }] : []),
     { id: 'directory', label: 'Special Directory' },
     { id: 'recent', label: 'Recent Activity', count: pages.length },
   ];
@@ -212,6 +228,9 @@ export const SpecialPagesHub: React.FC<SpecialPagesHubProps> = ({
             {item.id === 'tags' && (
               <Tag className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
             )}
+            {item.id === 'appearance' && (
+              <Palette className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
+            )}
             {item.id === 'directory' && (
               <Compass className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" />
             )}
@@ -255,7 +274,20 @@ export const SpecialPagesHub: React.FC<SpecialPagesHubProps> = ({
         />
       )}
 
-      {/* Tab 3: Special Directory & Maintenance Lists */}
+      {/* Tab 3: Appearance Settings */}
+      {activeTab === 'appearance' && onChangeThemePreference && (
+        <AppearanceSettingsView
+          embedded
+          themePreference={themePreference}
+          effectiveIsDark={effectiveIsDark}
+          systemPrefersDark={systemPrefersDark}
+          activeTheme={activeTheme}
+          colorSchemePolicy={colorSchemePolicy}
+          onChangeThemePreference={onChangeThemePreference}
+        />
+      )}
+
+      {/* Tab 4: Special Directory & Maintenance Lists */}
       {activeTab === 'directory' && (
         <div className="space-y-6">
           {/* Quick Links Grid */}
@@ -297,6 +329,27 @@ export const SpecialPagesHub: React.FC<SpecialPagesHubProps> = ({
                 Filter pages by tag combinations and run bulk tag renames, removals, or additions.
               </p>
             </button>
+
+            {onChangeThemePreference && (
+              <button
+                type="button"
+                onClick={() => handleSelectTab('appearance')}
+                className="text-left p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0b0f17] hover:border-blue-700/60 dark:hover:border-blue-500/60 transition-colors cursor-pointer space-y-1"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    <Palette className="w-4 h-4 text-blue-700 dark:text-blue-400" />
+                    <span>Appearance Settings</span>
+                  </span>
+                  <span className="font-mono text-xs text-slate-500 dark:text-slate-400 capitalize">
+                    {themePreference}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Switch between Light, Dark, or OS System theme modes stored locally.
+                </p>
+              </button>
+            )}
 
             {enablePageIndex && (
               <button
