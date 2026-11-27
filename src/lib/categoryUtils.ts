@@ -2,6 +2,7 @@ import { expandTemplatesInWikitext } from '../services/templateService';
 import { WIKI_CATEGORIES, type WikiPage } from '../types/wiki';
 import {
   extractArticleCategories,
+  extractCategoryLinks,
   normalizeCategoryName,
   normalizeCategorySlug,
   slugToTitle,
@@ -9,6 +10,7 @@ import {
 } from './markdownUtils';
 
 export const CATEGORY_PAGE_PREFIX = 'category-';
+export const CATEGORY_PAGE_PREFIXES = ['category-', 'categoria-'] as const;
 
 export interface WikiCategoryPageItem {
   page: WikiPage;
@@ -38,13 +40,32 @@ export interface AlphabeticalPageGroup {
 }
 
 export function isCategoryDescriptionSlug(slug: string): boolean {
-  return slug.startsWith(CATEGORY_PAGE_PREFIX) && slug.length > CATEGORY_PAGE_PREFIX.length;
+  return CATEGORY_PAGE_PREFIXES.some(
+    (prefix) => slug.startsWith(prefix) && slug.length > prefix.length
+  );
 }
 
 export function getCategorySlugFromPageSlug(pageSlug: string): string {
-  return isCategoryDescriptionSlug(pageSlug)
-    ? pageSlug.slice(CATEGORY_PAGE_PREFIX.length)
-    : pageSlug;
+  for (const prefix of CATEGORY_PAGE_PREFIXES) {
+    if (pageSlug.startsWith(prefix) && pageSlug.length > prefix.length) {
+      return pageSlug.slice(prefix.length);
+    }
+  }
+  return pageSlug;
+}
+
+export function getCategorySlugFromPage(
+  page: Pick<WikiPage, 'slug' | 'title'>
+): string | null {
+  if (isCategoryDescriptionSlug(page.slug)) {
+    return getCategorySlugFromPageSlug(page.slug);
+  }
+  const titleMatch = /^\s*(?:Category|Categoria)\s*:\s*(.+)$/i.exec(page.title);
+  if (titleMatch) {
+    const clean = normalizeCategorySlug(titleMatch[1]);
+    return clean && clean !== 'uncategorized' ? clean : null;
+  }
+  return null;
 }
 
 export function getCategoryDescriptionPageSlug(categorySlug: string): string {
@@ -78,7 +99,7 @@ export function resolvePageCategories(
   expandedContent?: string
 ): WikiCategoryTag[] {
   const bySlug = new Map<string, WikiCategoryTag>();
-  const isCategoryDesc = isCategoryDescriptionSlug(page.slug);
+  const isCategoryDesc = getCategorySlugFromPage(page) !== null;
 
   if (!isCategoryDesc && page.category) {
     const primarySlug = normalizeCategorySlug(page.category);
@@ -110,13 +131,15 @@ export function resolvePageCategories(
 /**
  * Aggregates every category across all visible wiki pages, resolving:
  * - Built-in primary categories (`WIKI_CATEGORIES`)
- * - Dynamic `[[Category:...]]` tags (including template-emitted categories)
- * - Category description pages (`category-<slug>`)
- * - Subcategories (when a `category-<slug>` page itself declares `[[Category:Parent]]`)
+ * - Dynamic `[[Category:...]]` / `[[Categoria:...]]` tags (including template-emitted categories)
+ * - Category links inside articles (`[[:Category:...]]`, `[[category-...]]`, `#/category/...`)
+ * - Article tags (`page.tags`) matching any existing or created category
+ * - Category description pages (`category-<slug>` / `categoria-<slug>` / `Category:...`)
+ * - Subcategories (when a category page itself declares `[[Category:Parent]]`)
  */
 export function buildWikiCategoryDirectory(
   pages: WikiPage[],
-  options?: { enableTemplates?: boolean }
+  options?: { enableTemplates?: boolean; ensureCategorySlugs?: string[] }
 ): WikiCategorySummary[] {
   const enableTemplates = options?.enableTemplates !== false;
 
@@ -169,19 +192,34 @@ export function buildWikiCategoryDirectory(
     ensureBucket(builtin.id, builtin.label, true);
   }
 
+  for (const extraSlug of options?.ensureCategorySlugs ?? []) {
+    const cleanExtra = normalizeCategorySlug(extraSlug);
+    if (cleanExtra && cleanExtra !== 'uncategorized') {
+      ensureBucket(cleanExtra, undefined, Boolean(getBuiltinCategoryLabel(cleanExtra)));
+    }
+  }
+
+  // First pass: register all created category pages (`category-*`, `categoria-*`, `Category:*`)
   for (const page of pages) {
-    if (isCategoryDescriptionSlug(page.slug)) {
-      const targetCatSlug = getCategorySlugFromPageSlug(page.slug);
+    const targetCatSlug = getCategorySlugFromPage(page);
+    if (targetCatSlug) {
       const rawTitleName = normalizeCategoryName(page.title);
       const bucket = ensureBucket(
         targetCatSlug,
         rawTitleName && rawTitleName.toLowerCase() !== targetCatSlug ? rawTitleName : undefined,
         Boolean(getBuiltinCategoryLabel(targetCatSlug))
       );
-      bucket.descriptionPage = page;
+      if (
+        !bucket.descriptionPage ||
+        (!bucket.descriptionPage.slug.startsWith(CATEGORY_PAGE_PREFIX) &&
+          page.slug.startsWith(CATEGORY_PAGE_PREFIX))
+      ) {
+        bucket.descriptionPage = page;
+      }
     }
   }
 
+  // Second pass: collect `page.category`, `[[Category:...]]`, and inline category links
   for (const page of pages) {
     const expanded = enableTemplates
       ? expandTemplatesInWikitext(page.content, pages, {
@@ -190,25 +228,63 @@ export function buildWikiCategoryDirectory(
         })
       : page.content;
 
+    const selfCatSlug = getCategorySlugFromPage(page);
     const attached = resolvePageCategories(page, expanded);
-    const isCatDesc = isCategoryDescriptionSlug(page.slug);
+    const linkedCategories = extractCategoryLinks(expanded);
 
+    if (selfCatSlug !== null) {
+      // Category description page: explicit [[Category:Parent]] links define subcategories
+      for (const cat of attached) {
+        if (selfCatSlug !== cat.slug) {
+          const bucket = ensureBucket(
+            cat.slug,
+            cat.name,
+            Boolean(getBuiltinCategoryLabel(cat.slug))
+          );
+          bucket.subcategoriesBySlug.set(selfCatSlug, page);
+        }
+      }
+      continue;
+    }
+
+    const combinedBySlug = new Map<string, WikiCategoryTag>();
     for (const cat of attached) {
+      combinedBySlug.set(cat.slug, cat);
+    }
+    for (const linked of linkedCategories) {
+      if (!combinedBySlug.has(linked.slug)) {
+        combinedBySlug.set(linked.slug, linked);
+      }
+    }
+
+    for (const cat of combinedBySlug.values()) {
       const bucket = ensureBucket(
         cat.slug,
         cat.name,
         Boolean(getBuiltinCategoryLabel(cat.slug))
       );
+      bucket.pagesBySlug.set(page.slug, {
+        page,
+        sortKey: (cat.sortKey || page.title).trim(),
+      });
+    }
+  }
 
-      if (isCatDesc) {
-        const subSlug = getCategorySlugFromPageSlug(page.slug);
-        if (subSlug !== cat.slug) {
-          bucket.subcategoriesBySlug.set(subSlug, page);
-        }
-      } else {
+  // Third pass: attach pages whose `tags` match any existing/created category
+  for (const page of pages) {
+    if (getCategorySlugFromPage(page) !== null) continue;
+    for (const rawTag of page.tags ?? []) {
+      const trimmedTag = rawTag.trim();
+      if (!trimmedTag) continue;
+      const tagSlug = normalizeCategorySlug(trimmedTag);
+      if (!tagSlug || (tagSlug === 'uncategorized' && trimmedTag.toLowerCase() !== 'uncategorized')) {
+        continue;
+      }
+      const bucket = buckets.get(tagSlug);
+      if (bucket && !bucket.pagesBySlug.has(page.slug)) {
         bucket.pagesBySlug.set(page.slug, {
           page,
-          sortKey: (cat.sortKey || page.title).trim(),
+          sortKey: page.title.trim(),
         });
       }
     }
@@ -218,9 +294,9 @@ export function buildWikiCategoryDirectory(
 
   for (const bucket of buckets.values()) {
     const sortedPages = Array.from(bucket.pagesBySlug.values()).sort((a, b) => {
-      const cmp = a.sortKey.localeCompare(b.sortKey, 'en-US', { sensitivity: 'base' });
+      const cmp = a.sortKey.localeCompare(b.sortKey, undefined, { sensitivity: 'base' });
       if (cmp !== 0) return cmp;
-      return a.page.title.localeCompare(b.page.title, 'en-US', { sensitivity: 'base' });
+      return a.page.title.localeCompare(b.page.title, undefined, { sensitivity: 'base' });
     });
 
     const subcategories: WikiCategorySubcategoryItem[] = Array.from(
@@ -235,7 +311,7 @@ export function buildWikiCategoryDirectory(
           descriptionPage: descPage,
         };
       })
-      .sort((a, b) => a.name.localeCompare(b.name, 'en-US', { sensitivity: 'base' }));
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
     summaries.push({
       slug: bucket.slug,
@@ -249,7 +325,7 @@ export function buildWikiCategoryDirectory(
   }
 
   return summaries.sort((a, b) =>
-    a.name.localeCompare(b.name, 'en-US', { sensitivity: 'base' })
+    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   );
 }
 

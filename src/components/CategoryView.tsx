@@ -3,10 +3,8 @@ import {
   ArrowLeft,
   Edit3,
   FilePlus2,
-  FileText,
   FolderOpen,
   FolderTree,
-  Lock,
   Search,
 } from 'lucide-react';
 import type { WikiPage } from '../types/wiki';
@@ -14,10 +12,10 @@ import {
   buildWikiCategoryDirectory,
   formatCategoryDisplayName,
   getCategoryDescriptionPageSlug,
-  groupPagesAlphabetically,
 } from '../lib/categoryUtils';
 import { formatRelativeTime } from '../lib/markdownUtils';
 import { ArticleViewer } from './ArticleViewer';
+import { CategoryMembersSection } from './CategoryMembersSection';
 
 interface CategoryViewProps {
   siteTitle?: string;
@@ -62,15 +60,14 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   const [directorySearch, setDirectorySearch] = React.useState('');
   const [directoryFilter, setDirectoryFilter] = React.useState<DirectoryFilter>('all');
   const [directorySort, setDirectorySort] = React.useState<DirectorySort>('alpha');
-  const [pageSearch, setPageSearch] = React.useState('');
-
-  React.useEffect(() => {
-    setPageSearch('');
-  }, [selectedCategorySlug]);
 
   const directory = React.useMemo(
-    () => buildWikiCategoryDirectory(pages, { enableTemplates }),
-    [pages, enableTemplates]
+    () =>
+      buildWikiCategoryDirectory(pages, {
+        enableTemplates,
+        ensureCategorySlugs: selectedCategorySlug ? [selectedCategorySlug] : undefined,
+      }),
+    [pages, enableTemplates, selectedCategorySlug]
   );
 
   const selectedCategory = React.useMemo(() => {
@@ -79,22 +76,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   }, [directory, selectedCategorySlug]);
 
   const categoryPages = selectedCategory?.pages ?? [];
-
-  const filteredCategoryPages = React.useMemo(() => {
-    const q = pageSearch.trim().toLowerCase();
-    if (!q) return categoryPages;
-    return categoryPages.filter(
-      (item) =>
-        item.page.title.toLowerCase().includes(q) ||
-        item.page.slug.toLowerCase().includes(q) ||
-        item.sortKey.toLowerCase().includes(q)
-    );
-  }, [categoryPages, pageSearch]);
-
-  const groupedByLetter = React.useMemo(
-    () => groupPagesAlphabetically(filteredCategoryPages),
-    [filteredCategoryPages]
-  );
 
   const filteredDirectory = React.useMemo(() => {
     const q = directorySearch.trim().toLowerCase();
@@ -217,129 +198,20 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           </div>
         ) : (
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Pages below are listed in <strong>Category:{displayName}</strong> via their primary
-            folder or <code className="font-mono">[[Category:{displayName}]]</code> wikitext tags.
+            Pages below are listed alphabetically in <strong>Category:{displayName}</strong> via
+            their page tags, primary folder, <code className="font-mono">[[Category:{displayName}]]</code>{' '}
+            tags, or category links inside articles.
           </p>
         )}
 
-        {/* Subcategories Section */}
-        {subcategories.length > 0 && (
-          <section aria-label="Subcategories" className="space-y-3 pb-4 border-b border-slate-200 dark:border-slate-800">
-            <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Subcategories
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              This category has the following {subcategories.length}{' '}
-              {subcategories.length === 1 ? 'subcategory' : 'subcategories'}.
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {subcategories.map((sub) => (
-                <li key={sub.slug}>
-                  <button
-                    type="button"
-                    onClick={() => onSelectCategory(sub.slug)}
-                    className="w-full flex items-center justify-between gap-2 px-3 py-2 text-left text-xs rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0b0f17] hover:border-blue-700/60 dark:hover:border-blue-500/60 transition-colors cursor-pointer"
-                  >
-                    <span className="inline-flex items-center gap-2 min-w-0 font-medium text-blue-700 dark:text-blue-400">
-                      <FolderOpen className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{sub.name}</span>
-                    </span>
-                    <span className="font-mono text-[11px] tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
-                      ({sub.pageCount})
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* Pages in Category (Alphabetical Multi-Column Index) */}
-        <section aria-label={`Pages in category ${displayName}`} className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-display text-xl font-semibold text-slate-900 dark:text-slate-100">
-                Pages in category &ldquo;{displayName}&rdquo;
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {categoryPages.length === 0
-                  ? 'No articles are currently assigned to this category.'
-                  : `The following ${categoryPages.length} ${
-                      categoryPages.length === 1 ? 'page is' : 'pages are'
-                    } in this category.`}
-              </p>
-            </div>
-
-            {categoryPages.length > 6 && (
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={pageSearch}
-                  onChange={(e) => setPageSearch(e.target.value)}
-                  placeholder="Filter pages in category..."
-                  aria-label="Filter pages in this category"
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-700"
-                />
-              </div>
-            )}
-          </div>
-
-          {groupedByLetter.length === 0 ? (
-            <div className="py-10 px-4 text-center border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-[#0b0f17]/60 space-y-2">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {pageSearch.trim()
-                  ? `No pages match "${pageSearch.trim()}" inside Category:${displayName}.`
-                  : `No pages belong to Category:${displayName} yet.`}
-              </p>
-              {!pageSearch.trim() && (
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Add <code className="font-mono">[[Category:{displayName}]]</code> to any article
-                  to include it here automatically.
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-7 pt-1">
-              {groupedByLetter.map((group) => (
-                <div key={group.letter} className="break-inside-avoid mb-6 space-y-2">
-                  <h3 className="font-display text-base font-semibold text-slate-900 dark:text-slate-100 pb-1 border-b border-slate-200 dark:border-slate-800">
-                    {group.letter}
-                  </h3>
-                  <ul className="space-y-1.5 text-sm">
-                    {group.items.map(({ page, sortKey }) => (
-                      <li key={page.slug} className="flex items-start gap-1.5">
-                        <FileText className="w-3.5 h-3.5 mt-1 text-slate-400 shrink-0" />
-                        <div className="min-w-0">
-                          <button
-                            type="button"
-                            onClick={() => onSelectPage(page.slug)}
-                            title={
-                              sortKey !== page.title
-                                ? `Sorted under "${sortKey}" · :${page.slug}`
-                                : `:${page.slug}`
-                            }
-                            className="text-left text-blue-700 dark:text-blue-400 hover:underline font-medium cursor-pointer break-words"
-                          >
-                            {page.title}
-                          </button>
-                          {(page.isLocked || page.visibility === 'private') && (
-                            <Lock
-                              className="w-3 h-3 inline ml-1.5 text-slate-400 align-baseline"
-                              aria-label={
-                                page.visibility === 'private' ? 'Private page' : 'Editing locked'
-                              }
-                            />
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        <CategoryMembersSection
+          displayName={displayName}
+          categorySlug={selectedCategorySlug}
+          pages={categoryPages}
+          subcategories={subcategories}
+          onSelectPage={onSelectPage}
+          onSelectCategory={(slug) => onSelectCategory(slug)}
+        />
       </div>
     );
   }

@@ -37,6 +37,7 @@ import { AdminConsoleView } from './components/AdminConsoleView';
 import { AppearanceSettingsView } from './components/AppearanceSettingsView';
 import { ArticleViewer } from './components/ArticleViewer';
 import { CategoriesFooter } from './components/CategoriesFooter';
+import { CategoryMembersSection } from './components/CategoryMembersSection';
 import { CategoryView } from './components/CategoryView';
 import { ChatbotBlockedScreen } from './components/ChatbotBlockedScreen';
 import { EcosystemProductsView } from './components/EcosystemProductsView';
@@ -67,6 +68,9 @@ import {
 import {
   buildWikiCategoryDirectory,
   formatCategoryDisplayName,
+  getCategorySlugFromPage,
+  getCategorySlugFromPageSlug,
+  isCategoryDescriptionSlug,
   resolvePageCategories,
   upsertCategoryTagInMarkdown,
 } from './lib/categoryUtils';
@@ -2305,6 +2309,18 @@ function WikiWorkspace() {
       }).map((c) => c.name),
     [allPages, templatesExt.enabled]
   );
+  const activePageCategorySlug = React.useMemo(
+    () => (activePage ? getCategorySlugFromPage(activePage) : null),
+    [activePage]
+  );
+  const activeCategorySummary = React.useMemo(() => {
+    if (!activePageCategorySlug) return null;
+    const directory = buildWikiCategoryDirectory(allPages, {
+      enableTemplates: templatesExt.enabled,
+      ensureCategorySlugs: [activePageCategorySlug],
+    });
+    return directory.find((c) => c.slug === activePageCategorySlug) ?? null;
+  }, [activePageCategorySlug, allPages, templatesExt.enabled]);
   const activeBannerUrl =
     activePage && headerBannerExt.enabled
       ? sanitizeHeaderImageUrl(activePage.headerImageUrl)
@@ -2857,8 +2873,8 @@ function WikiWorkspace() {
                       ? `Template:${slugToTitle(createPresetSlug.slice('predefinicao-'.length))}`
                       : createPresetSlug.startsWith('template-')
                       ? `Template:${slugToTitle(createPresetSlug.slice('template-'.length))}`
-                      : createPresetSlug.startsWith('category-')
-                      ? `Category:${formatCategoryDisplayName(createPresetSlug.slice('category-'.length))}`
+                      : isCategoryDescriptionSlug(createPresetSlug)
+                      ? `Category:${formatCategoryDisplayName(getCategorySlugFromPageSlug(createPresetSlug))}`
                       : createPresetSlug
                       ? slugToTitle(createPresetSlug)
                       : ''
@@ -2869,16 +2885,16 @@ function WikiWorkspace() {
                       ? `<noinclude>\nDocumentation for this template. Usage: \`{{${
                           createPresetSlug.replace(/^(predefinicao-|template-)/, '')
                         }|text=...}}\`\n</noinclude>{{Notice|type=notice|title=Template|text={{{text|{{{texto|Template content.}}}}}}}}`
-                      : createPresetSlug.startsWith('category-')
+                      : isCategoryDescriptionSlug(createPresetSlug)
                       ? `Overview and inclusion criteria for articles belonging to **Category:${formatCategoryDisplayName(
-                          createPresetSlug.slice('category-'.length)
+                          getCategorySlugFromPageSlug(createPresetSlug)
                         )}**.\n\n<!-- Optional: add [[Category:Parent Category]] to make this a subcategory. -->`
                       : ''
                   }
                   initialCategory={
                     createPresetSlug.startsWith('predefinicao-') ||
                     createPresetSlug.startsWith('template-') ||
-                    createPresetSlug.startsWith('category-')
+                    isCategoryDescriptionSlug(createPresetSlug)
                       ? 'reference'
                       : 'general'
                   }
@@ -3766,6 +3782,20 @@ function WikiWorkspace() {
                         externalLinkPrefix={externalLinkConfig.prefix}
                         encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
                       />
+                    )}
+
+                    {activeCategorySummary && (
+                      <div className="mt-7 pt-6 border-t border-slate-200 dark:border-slate-800">
+                        <CategoryMembersSection
+                          displayName={activeCategorySummary.name}
+                          categorySlug={activeCategorySummary.slug}
+                          pages={activeCategorySummary.pages}
+                          subcategories={activeCategorySummary.subcategories}
+                          onSelectPage={navigateToPage}
+                          onSelectCategory={(slug) => navigateToCategories(slug)}
+                          onOpenAllCategories={() => navigateToCategories()}
+                        />
+                      </div>
                     )}
 
                     <CategoriesFooter

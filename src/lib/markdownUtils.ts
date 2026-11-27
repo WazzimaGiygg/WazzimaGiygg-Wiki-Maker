@@ -128,6 +128,89 @@ export function extractArticleCategories(markdown: string): ExtractedCategoriesR
 }
 
 /**
+ * Extracts explicit category links inserted inside article prose/templates outside fenced
+ * or inline code blocks:
+ * - `[[:Category:Name]]` / `[[:Category:Name|Label]]` / `[[:Categoria:Nome]]`
+ * - `[[category-<slug>]]` / `[[categoria-<slug>]]` (or `[[:category-<slug>]]`)
+ * - Markdown links targeting `#/category/<slug>`, `#/categoria/<slug>`,
+ *   `#/page/category-<slug>`, `#/page/categoria-<slug>`, `https://wiki.category/<slug>`,
+ *   or `https://wiki.internal/category-<slug>`.
+ */
+export function extractCategoryLinks(markdown: string): WikiCategoryTag[] {
+  if (!markdown) return [];
+
+  const codeParts = markdown.split(/(```[\s\S]*?```|~~~[\s\S]*~~~|`[^`\n]+`)/g);
+  const bySlug = new Map<string, WikiCategoryTag>();
+
+  const register = (rawNameOrSlug: string) => {
+    const cleanName = normalizeCategoryName(rawNameOrSlug).replace(/^(?:category|categoria)-/i, '');
+    if (!cleanName) return;
+    const slug = normalizeCategorySlug(cleanName);
+    if (!slug || slug === 'uncategorized') return;
+    if (!bySlug.has(slug)) {
+      bySlug.set(slug, { name: cleanName, slug });
+    }
+  };
+
+  for (let i = 0; i < codeParts.length; i += 1) {
+    if (i % 2 === 1) continue;
+    const segment = codeParts[i];
+
+    // 1. Wikilinks: [[:Category:Name]], [[:Categoria:Nome]], [[category-slug]], [[categoria-slug]]
+    const wikiLinkRegex = /\[\[([^\]|]+?)(?:\|[^\]]*)?\]\]/g;
+    let m: RegExpExecArray | null;
+    while ((m = wikiLinkRegex.exec(segment)) !== null) {
+      const target = m[1].trim();
+      const inlineCat = /^:\s*(?:Category|Categoria)\s*:\s*(.+)$/i.exec(target);
+      if (inlineCat) {
+        register(inlineCat[1]);
+        continue;
+      }
+
+      const bareTarget = target.replace(/^:\s*/, '');
+      const catSlugMatch = /^(?:category|categoria)-([a-z0-9_-]+)$/i.exec(bareTarget);
+      if (catSlugMatch) {
+        register(catSlugMatch[1].replace(/-/g, ' '));
+      }
+    }
+
+    // 2. Markdown URL links pointing to category views or category pages
+    const mdLinkRegex = /\[[^\]]*\]\(([^)\s]+)\)/g;
+    while ((m = mdLinkRegex.exec(segment)) !== null) {
+      const url = m[1].trim();
+      const hashCat = /^#\/(?:category|categoria)\/([^/?#]+)/i.exec(url);
+      if (hashCat) {
+        try {
+          register(decodeURIComponent(hashCat[1]));
+        } catch {
+          register(hashCat[1]);
+        }
+        continue;
+      }
+
+      const hashPageCat = /^#\/page\/(?:category|categoria)-([a-z0-9_-]+)/i.exec(url);
+      if (hashPageCat) {
+        register(hashPageCat[1].replace(/-/g, ' '));
+        continue;
+      }
+
+      const internalCat = /^https:\/\/wiki\.category\/([^/?#]+)/i.exec(url);
+      if (internalCat) {
+        register(internalCat[1].replace(/-/g, ' '));
+        continue;
+      }
+
+      const internalPageCat = /^https:\/\/wiki\.internal\/(?:category|categoria)-([a-z0-9_-]+)/i.exec(url);
+      if (internalPageCat) {
+        register(internalPageCat[1].replace(/-/g, ' '));
+      }
+    }
+  }
+
+  return Array.from(bySlug.values());
+}
+
+/**
  * Converts a slug into a readable fallback title (e.g., "guia-markdown" -> "Guia Markdown").
  */
 export function slugToTitle(slug: string): string {
