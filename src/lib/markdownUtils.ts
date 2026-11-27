@@ -24,6 +24,17 @@ export interface ExtractedReferencesResult {
   inlineReflistGroups: string[];
 }
 
+export interface WikiCategoryTag {
+  name: string;
+  slug: string;
+  sortKey?: string;
+}
+
+export interface ExtractedCategoriesResult {
+  processedMarkdown: string;
+  categories: WikiCategoryTag[];
+}
+
 /**
  * Normalizes arbitrary user text into a Firestore-safe wiki slug matching ^[a-zA-Z0-9_-]+$.
  */
@@ -38,6 +49,82 @@ export function toWikiSlug(input: string): string {
     .replace(/-{2,}/g, '-');
 
   return cleaned.slice(0, VALIDATION_LIMITS.SLUG_MAX_LENGTH);
+}
+
+/**
+ * Normalizes a Wikipedia-style category display name (stripping optional namespace prefix).
+ */
+export function normalizeCategoryName(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^(?:Category|Categoria)\s*:\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Normalizes a category name or slug into a canonical URL/slug identifier.
+ */
+export function normalizeCategorySlug(raw: string): string {
+  return toWikiSlug(normalizeCategoryName(raw)) || 'uncategorized';
+}
+
+/**
+ * Extracts MediaWiki-style category declarations (`[[Category:Name]]`, `[[Category:Name|SortKey]]`,
+ * `[[Categoria:Nome]]`) outside fenced/inline code blocks and `:::infobox`/`:::predefinicao`/`:::reflist`
+ * directives, stripping the declarations from prose while preserving escaped `[[:Category:Name]]` links.
+ */
+export function extractArticleCategories(markdown: string): ExtractedCategoriesResult {
+  if (!markdown || !/\[\[\s*(?:Category|Categoria)\s*:/i.test(markdown)) {
+    return {
+      processedMarkdown: markdown,
+      categories: [],
+    };
+  }
+
+  const codeParts = markdown.split(/(```[\s\S]*?```|~~~[\s\S]*~~~|`[^`\n]+`)/g);
+  const bySlug = new Map<string, WikiCategoryTag>();
+
+  const processedParts = codeParts.map((segment, i) => {
+    if (i % 2 === 1) return segment;
+    const subParts = segment.split(INFOBOX_SKIP_REGEX);
+    return subParts
+      .map((sub, j) => {
+        if (j % 2 === 1) return sub;
+        const stripped = sub.replace(
+          /\[\[\s*(?:Category|Categoria)\s*:\s*([^\]|]+?)(?:\|([^\]]*))?\]\]/gi,
+          (_full, rawName: string, rawSortKey?: string) => {
+            const name = normalizeCategoryName(rawName);
+            if (!name) return '';
+            const slug = normalizeCategorySlug(name);
+            const sortKey = rawSortKey ? rawSortKey.trim() : undefined;
+            const existing = bySlug.get(slug);
+            if (!existing) {
+              bySlug.set(slug, {
+                name,
+                slug,
+                ...(sortKey ? { sortKey } : {}),
+              });
+            } else if (!existing.sortKey && sortKey) {
+              bySlug.set(slug, { ...existing, sortKey });
+            }
+            return '';
+          }
+        );
+
+        return stripped
+          .replace(/[ \t]+\n/g, '\n')
+          .replace(/\n{3,}/g, '\n\n');
+      })
+      .join('');
+  });
+
+  const processedMarkdown = processedParts.join('').replace(/\n{3,}/g, '\n\n').trimEnd();
+
+  return {
+    processedMarkdown,
+    categories: Array.from(bySlug.values()),
+  };
 }
 
 /**
@@ -60,8 +147,9 @@ export function isValidWikiSlug(slug: string): boolean {
 }
 
 /**
- * Transforms Wikidot-style internal links [[slug]] or [[slug|Label]] into
- * markdown links targeting `https://wiki.internal/<slug>` outside fenced code blocks.
+ * Transforms Wikidot-style internal links [[slug]] or [[slug|Label]] and
+ * MediaWiki inline category links [[:Category:Name]] / [[:Category:Name|Label]]
+ * into markdown links outside fenced/inline code blocks.
  */
 export function preprocessWikiLinks(markdown: string): string {
   const parts = markdown.split(/(```[\s\S]*?```|`[^`\n]+`)/g);
@@ -71,9 +159,18 @@ export function preprocessWikiLinks(markdown: string): string {
       if (index % 2 === 1) {
         return segment;
       }
-      return segment.replace(/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, (_match, rawSlug: string, rawLabel?: string) => {
-        const slug = toWikiSlug(rawSlug) || 'start';
-        const label = (rawLabel ?? rawSlug).trim();
+      return segment.replace(/\[\[([^\]|]+?)(?:\|([^\]]+?))?\]\]/g, (_match, rawTarget: string, rawLabel?: string) => {
+        const trimmedTarget = rawTarget.trim();
+        const catInlineMatch = /^:\s*(?:Category|Categoria)\s*:\s*(.+)$/i.exec(trimmedTarget);
+        if (catInlineMatch) {
+          const catName = normalizeCategoryName(catInlineMatch[1]);
+          const catSlug = normalizeCategorySlug(catName);
+          const label = (rawLabel ?? `Category:${catName}`).trim();
+          return `[${label}](https://wiki.category/${catSlug})`;
+        }
+
+        const slug = toWikiSlug(trimmedTarget.replace(/^:/, '')) || 'start';
+        const label = (rawLabel ?? trimmedTarget).trim();
         return `[${label}](https://wiki.internal/${slug})`;
       });
     })

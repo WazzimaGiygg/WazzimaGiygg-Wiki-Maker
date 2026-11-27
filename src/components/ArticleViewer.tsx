@@ -11,6 +11,8 @@ export interface ArticleViewerProps {
   currentTitle?: string;
   dynamicParams?: Record<string, string>;
   onNavigateSlug: (slug: string) => void;
+  onSelectCategory?: (slug: string) => void;
+  onOpenAllCategories?: () => void;
   showToc?: boolean;
   tocDefaultExpanded?: boolean;
   tocMinHeadings?: number;
@@ -19,6 +21,8 @@ export interface ArticleViewerProps {
   enableInfoboxes?: boolean;
   enableTemplates?: boolean;
   showReferencesFooter?: boolean;
+  showCategoriesFooter?: boolean;
+  primaryCategory?: string;
   externalLinkPrefix?: string;
   encodeExternalLinkTarget?: boolean;
 }
@@ -35,6 +39,8 @@ export const ArticleViewer: React.FC<ArticleViewerProps> = ({
   currentTitle,
   dynamicParams,
   onNavigateSlug,
+  onSelectCategory,
+  onOpenAllCategories,
   showToc = true,
   tocDefaultExpanded = true,
   tocMinHeadings = 2,
@@ -43,6 +49,8 @@ export const ArticleViewer: React.FC<ArticleViewerProps> = ({
   enableInfoboxes = true,
   enableTemplates = true,
   showReferencesFooter = true,
+  showCategoriesFooter = false,
+  primaryCategory,
   externalLinkPrefix,
   encodeExternalLinkTarget = false,
 }) => {
@@ -65,6 +73,8 @@ export const ArticleViewer: React.FC<ArticleViewerProps> = ({
       wikiPages={wikiPages}
       currentSlug={currentSlug}
       onNavigateSlug={onNavigateSlug}
+      onSelectCategory={onSelectCategory}
+      onOpenAllCategories={onOpenAllCategories}
       showToc={showToc}
       tocDefaultExpanded={tocDefaultExpanded}
       tocMinHeadings={tocMinHeadings}
@@ -73,6 +83,8 @@ export const ArticleViewer: React.FC<ArticleViewerProps> = ({
       enableInfoboxes={enableInfoboxes}
       enableTemplates={false}
       showReferencesFooter={showReferencesFooter}
+      showCategoriesFooter={showCategoriesFooter}
+      primaryCategory={primaryCategory}
       externalLinkPrefix={externalLinkPrefix}
       encodeExternalLinkTarget={encodeExternalLinkTarget}
     />

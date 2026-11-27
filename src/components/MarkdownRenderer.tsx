@@ -4,18 +4,21 @@ import remarkGfm from 'remark-gfm';
 import { ExternalLink, FilePlus2 } from 'lucide-react';
 import {
   createHeadingIdAllocator,
+  extractArticleCategories,
   extractArticleReferences,
   extractToc,
   parseMarkdownWithInfoboxes,
   preprocessWikiLinks,
   scrollToWikiAnchor,
 } from '../lib/markdownUtils';
+import { formatCategoryDisplayName } from '../lib/categoryUtils';
 import type { WikiPage } from '../types/wiki';
 import { expandTemplatesInWikitext } from '../services/templateService';
 import {
   applyExternalLinkPrefix,
   DEFAULT_EXTERNAL_LINK_PREFIX,
 } from '../lib/extensionsService';
+import { CategoriesFooter } from './CategoriesFooter';
 import { ReferencesFooter } from './ReferencesFooter';
 import { TableOfContents } from './TableOfContents';
 import { WikiCitationBadge } from './WikiCitationBadge';
@@ -28,6 +31,8 @@ interface MarkdownRendererProps {
   wikiPages?: WikiPage[];
   currentSlug?: string;
   onNavigateSlug: (slug: string) => void;
+  onSelectCategory?: (slug: string) => void;
+  onOpenAllCategories?: () => void;
   showToc?: boolean;
   tocDefaultExpanded?: boolean;
   tocMinHeadings?: number;
@@ -36,6 +41,8 @@ interface MarkdownRendererProps {
   enableInfoboxes?: boolean;
   enableTemplates?: boolean;
   showReferencesFooter?: boolean;
+  showCategoriesFooter?: boolean;
+  primaryCategory?: string;
   externalLinkPrefix?: string;
   encodeExternalLinkTarget?: boolean;
 }
@@ -66,6 +73,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   wikiPages,
   currentSlug,
   onNavigateSlug,
+  onSelectCategory,
+  onOpenAllCategories,
   showToc = true,
   tocDefaultExpanded = true,
   tocMinHeadings = 2,
@@ -74,6 +83,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   enableInfoboxes = true,
   enableTemplates = true,
   showReferencesFooter = true,
+  showCategoriesFooter = false,
+  primaryCategory,
   externalLinkPrefix = DEFAULT_EXTERNAL_LINK_PREFIX,
   encodeExternalLinkTarget = false,
 }) => {
@@ -85,17 +96,31 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     [content, wikiPages, currentSlug, enableTemplates]
   );
 
+  const { processedMarkdown: contentWithoutCategoryTags, categories: extractedCategories } =
+    React.useMemo(() => extractArticleCategories(expandedContent), [expandedContent]);
+
+  const combinedPreviewCategories = React.useMemo(() => {
+    const map = new Map(extractedCategories.map((c) => [c.slug, c]));
+    if (primaryCategory) {
+      const slug = primaryCategory.trim().toLowerCase();
+      if (slug && !map.has(slug)) {
+        return [{ slug, name: formatCategoryDisplayName(slug) }, ...extractedCategories];
+      }
+    }
+    return extractedCategories;
+  }, [extractedCategories, primaryCategory]);
+
   const { processedMarkdown, references, inlineReflistGroups } = React.useMemo(
     () =>
       enableReferences
-        ? extractArticleReferences(expandedContent)
+        ? extractArticleReferences(contentWithoutCategoryTags)
         : {
-            processedMarkdown: expandedContent,
+            processedMarkdown: contentWithoutCategoryTags,
             references: [],
             hasInlineReflist: false,
             inlineReflistGroups: [],
           },
-    [expandedContent, enableReferences]
+    [contentWithoutCategoryTags, enableReferences]
   );
 
   const inlineReflistGroupSet = React.useMemo(
@@ -278,6 +303,26 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                       );
                     }
 
+                    if (href && href.startsWith('https://wiki.category/')) {
+                      const catSlug = href.replace('https://wiki.category/', '');
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onSelectCategory) {
+                              onSelectCategory(catSlug);
+                            } else {
+                              window.location.hash = `#/category/${catSlug}`;
+                            }
+                          }}
+                          title={`Browse Category:${formatCategoryDisplayName(catSlug)}`}
+                          className="inline font-medium text-blue-700 dark:text-blue-400 underline decoration-blue-700/30 dark:decoration-blue-400/40 underline-offset-4 hover:decoration-blue-700 dark:hover:decoration-blue-400 transition-colors cursor-pointer"
+                        >
+                          {children}
+                        </button>
+                      );
+                    }
+
                     if (href && href.startsWith('https://wiki.internal/')) {
                       const targetSlug = href.replace('https://wiki.internal/', '');
                       const exists = existingSlugs.has(targetSlug);
@@ -351,6 +396,25 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           onNavigateSlug={onNavigateSlug}
           externalLinkPrefix={externalLinkPrefix}
           encodeExternalLinkTarget={encodeExternalLinkTarget}
+        />
+      )}
+      {showCategoriesFooter && combinedPreviewCategories.length > 0 && (
+        <CategoriesFooter
+          categories={combinedPreviewCategories}
+          onSelectCategory={(slug) => {
+            if (onSelectCategory) {
+              onSelectCategory(slug);
+            } else {
+              window.location.hash = `#/category/${slug}`;
+            }
+          }}
+          onOpenAllCategories={() => {
+            if (onOpenAllCategories) {
+              onOpenAllCategories();
+            } else {
+              window.location.hash = '#/categories';
+            }
+          }}
         />
       )}
     </div>

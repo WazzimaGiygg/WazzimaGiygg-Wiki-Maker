@@ -31,9 +31,12 @@ import {
   Users,
   WifiOff,
   X,
+  Zap,
 } from 'lucide-react';
 import { AdminConsoleView } from './components/AdminConsoleView';
 import { ArticleViewer } from './components/ArticleViewer';
+import { CategoriesFooter } from './components/CategoriesFooter';
+import { CategoryView } from './components/CategoryView';
 import { ChatbotBlockedScreen } from './components/ChatbotBlockedScreen';
 import { EcosystemProductsView } from './components/EcosystemProductsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -44,6 +47,7 @@ import { PageComments } from './components/PageComments';
 import { PageIndexView } from './components/PageIndexView';
 import { PageRatingPanel } from './components/PageRatingPanel';
 import { PrivacyNoticeBanner } from './components/PrivacyNoticeBanner';
+import { QuickEditModal } from './components/QuickEditModal';
 import { ReadingProgressBar } from './components/ReadingProgressBar';
 import { ReferencesFooter } from './components/ReferencesFooter';
 import { RevisionHistory } from './components/RevisionHistory';
@@ -58,6 +62,12 @@ import {
   notifyAuthorSpeedyDeletion,
   notifyUserDiscussionPage,
 } from './lib/adminService';
+import {
+  buildWikiCategoryDirectory,
+  formatCategoryDisplayName,
+  resolvePageCategories,
+  upsertCategoryTagInMarkdown,
+} from './lib/categoryUtils';
 import {
   applyExternalLinkPrefix,
   bootAndSubscribeSiteExtensions,
@@ -97,6 +107,8 @@ import {
   extractToc,
   formatAbsoluteTime,
   formatRelativeTime,
+  normalizeCategoryName,
+  normalizeCategorySlug,
   parseMarkdownWithInfoboxes,
   scrollToWikiAnchor,
   slugToTitle,
@@ -168,8 +180,10 @@ function parseHashRoute(): {
   slug: string;
   legalSection?: LegalSectionTab;
   ecosystemSubpage?: EcosystemSubpage;
+  categorySlug?: string | null;
 } {
-  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  const rawHash = window.location.hash.replace(/^#\/?/, '');
+  const hash = rawHash.toLowerCase();
   if (hash === 'privacy' || hash === 'lgpd') {
     return { view: 'legal', slug: 'start', legalSection: 'privacy' };
   }
@@ -201,9 +215,25 @@ function parseHashRoute(): {
     }
     return { view: 'ecosystem', slug: 'start', ecosystemSubpage };
   }
+  if (hash === 'categories' || hash === 'categorias' || hash === 'special:categories') {
+    return { view: 'categories', slug: 'start', categorySlug: null };
+  }
+  if (hash.startsWith('category/') || hash.startsWith('categoria/')) {
+    const slashIdx = rawHash.indexOf('/');
+    const rawCat = slashIdx >= 0 ? rawHash.slice(slashIdx + 1) : '';
+    let decodedCat = rawCat;
+    try {
+      decodedCat = decodeURIComponent(rawCat);
+    } catch {
+      // Keep raw segment if malformed URI component
+    }
+    const normalizedCat = decodedCat ? normalizeCategorySlug(decodedCat) : null;
+    return { view: 'categories', slug: 'start', categorySlug: normalizedCat };
+  }
   if (hash === 'admin') return { view: 'admin', slug: 'start' };
   if (hash === 'pages' || hash === 'paginas') return { view: 'index', slug: 'start' };
   if (hash === 'recent' || hash === 'recentes') return { view: 'recent', slug: 'start' };
+  if (hash === 'tags' || hash === 'special:tags') return { view: 'tags', slug: 'start' };
   if (hash.startsWith('new') || hash.startsWith('nova')) {
     const [, rawSlug] = hash.split('/');
     return { view: 'create', slug: rawSlug ? toWikiSlug(rawSlug) : '' };
@@ -248,6 +278,9 @@ function WikiWorkspace() {
   const [ecosystemSubpage, setEcosystemSubpage] = React.useState<EcosystemSubpage>(
     initialRoute.ecosystemSubpage ?? 'overview'
   );
+  const [selectedCategorySlug, setSelectedCategorySlug] = React.useState<string | null>(
+    initialRoute.categorySlug ?? null
+  );
   const [activeSlug, setActiveSlug] = React.useState<string>(initialRoute.slug || 'start');
   const [createPresetSlug, setCreatePresetSlug] = React.useState<string>(
     initialRoute.view === 'create' ? initialRoute.slug : ''
@@ -270,6 +303,9 @@ function WikiWorkspace() {
 
   const [isSaving, setIsSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [quickEditOpen, setQuickEditOpen] = React.useState(false);
+  const [quickEditSaving, setQuickEditSaving] = React.useState(false);
+  const [quickEditError, setQuickEditError] = React.useState<string | null>(null);
   const [restoringVersion, setRestoringVersion] = React.useState<number | null>(null);
   const [seeding, setSeeding] = React.useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
@@ -573,6 +609,9 @@ function WikiWorkspace() {
       if (next.view === 'ecosystem') {
         setEcosystemSubpage(next.ecosystemSubpage ?? 'overview');
       }
+      if (next.view === 'categories') {
+        setSelectedCategorySlug(next.categorySlug ?? null);
+      }
       if (next.view === 'create') {
         setCreatePresetSlug(next.slug);
       } else if (next.slug) {
@@ -580,6 +619,8 @@ function WikiWorkspace() {
       }
       setActiveTab('read');
       setSaveError(null);
+      setQuickEditOpen(false);
+      setQuickEditError(null);
       setConfirmDeleteOpen(false);
       if (autoExitPrintOnNavigate) {
         setIsPrintView(false);
@@ -600,6 +641,8 @@ function WikiWorkspace() {
         setView('page');
         setActiveTab('read');
         setSaveError(null);
+        setQuickEditOpen(false);
+        setQuickEditError(null);
         setConfirmDeleteOpen(false);
         if (autoExitPrintOnNavigate) {
           setIsPrintView(false);
@@ -1204,9 +1247,10 @@ function WikiWorkspace() {
     });
   };
 
-  const navigateToIndex = (mode: 'index' | 'recent') => {
+  const navigateToIndex = (mode: 'index' | 'recent' | 'tags') => {
     guardUnsavedLeave(() => {
-      const nextHash = mode === 'recent' ? '#/recent' : '#/pages';
+      const nextHash =
+        mode === 'recent' ? '#/recent' : mode === 'tags' ? '#/tags' : '#/pages';
       currentRouteHashRef.current = nextHash;
       setView(mode);
       setSaveError(null);
@@ -1258,6 +1302,28 @@ function WikiWorkspace() {
       window.location.hash = nextHash;
     });
   };
+
+  const navigateToCategories = React.useCallback(
+    (categorySlug?: string) => {
+      guardUnsavedLeave(() => {
+        const normalizedCat =
+          typeof categorySlug === 'string' && categorySlug.trim()
+            ? normalizeCategorySlug(categorySlug)
+            : null;
+        const nextHash = normalizedCat ? `#/category/${normalizedCat}` : '#/categories';
+        currentRouteHashRef.current = nextHash;
+        setSelectedCategorySlug(normalizedCat);
+        setView('categories');
+        setSaveError(null);
+        setConfirmDeleteOpen(false);
+        if (autoExitPrintOnNavigate) {
+          setIsPrintView(false);
+        }
+        window.location.hash = nextHash;
+      });
+    },
+    [autoExitPrintOnNavigate, guardUnsavedLeave]
+  );
 
   React.useEffect(() => {
     if (!isWikiBootReady) return;
@@ -1599,6 +1665,128 @@ function WikiWorkspace() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleQuickEditSave = async (data: {
+    title: string;
+    content: string;
+    summary: string;
+  }) => {
+    if (!user || !activePage) return;
+    setQuickEditSaving(true);
+    setQuickEditError(null);
+    try {
+      const payload = {
+        slug: activePage.slug,
+        title: data.title,
+        content: data.content,
+        category: activePage.category,
+        tags: activePage.tags,
+        visibility: activePage.visibility,
+        isLocked: activePage.isLocked,
+        headerImageUrl: activePage.headerImageUrl ?? '',
+        summary: data.summary,
+      };
+
+      if (activePage.authorId === 'builtin-editorial') {
+        await createWikiPage(payload, user);
+      } else {
+        await updateWikiPage(activePage, payload, user, canManageActiveMeta);
+
+        const prevSpeedy = extractSpeedyDeletionTemplate(activePage.content);
+        const nextSpeedy = extractSpeedyDeletionTemplate(data.content);
+        if (
+          nextSpeedy &&
+          !prevSpeedy &&
+          !isPersonalDiscussionPage &&
+          activePage.authorId !== user.uid &&
+          activePage.authorId !== 'builtin-editorial' &&
+          activePage.authorId !== 'lgpd-anonymized'
+        ) {
+          const speedyNotice = await notifyAuthorSpeedyDeletion({
+            targetUid: activePage.authorId,
+            targetDisplayName: activePage.authorName,
+            actor: user,
+            actorIsAdmin: isAdmin,
+            pageSlug: activePage.slug,
+            pageTitle: data.title,
+            version: activePage.version + 1,
+            reason: nextSpeedy.reason,
+            rule: nextSpeedy.rule,
+          });
+
+          if (speedyNotice.notified && speedyNotice.discussionPageSlug) {
+            const targetDiscussionSlug = speedyNotice.discussionPageSlug;
+            pushToast({
+              tone: 'info',
+              title: 'Speedy Deletion alert sent',
+              description: `Author ${activePage.authorName} was notified at :${targetDiscussionSlug}.`,
+              actionLabel: 'Open discussion',
+              onAction: () => navigateToPage(targetDiscussionSlug),
+            });
+          }
+        }
+      }
+
+      setQuickEditOpen(false);
+      pushToast({
+        tone: 'success',
+        title: 'Quick edit saved',
+        description: `Published updated content for "${data.title}".`,
+        meta: `:${activePage.slug} · v${
+          activePage.authorId === 'builtin-editorial' ? 1 : activePage.version + 1
+        }`,
+        durationMs: 3200,
+      });
+    } catch (err) {
+      setQuickEditError(err instanceof Error ? err.message : 'Failed to save changes.');
+    } finally {
+      setQuickEditSaving(false);
+    }
+  };
+
+  const handleQuickAddCategory = async (rawCategoryName: string) => {
+    if (!user || !activePage || isBlocked) return;
+    const cleanName = normalizeCategoryName(rawCategoryName);
+    if (!cleanName) return;
+
+    const nextContent = upsertCategoryTagInMarkdown(activePage.content, cleanName);
+    if (nextContent === activePage.content) {
+      pushToast({
+        tone: 'info',
+        title: 'Category already attached',
+        description: `"${activePage.title}" is already listed under Category:${cleanName}.`,
+        durationMs: 3000,
+      });
+      return;
+    }
+
+    const payload = {
+      slug: activePage.slug,
+      title: activePage.title,
+      content: nextContent,
+      category: activePage.category,
+      tags: activePage.tags,
+      visibility: activePage.visibility,
+      isLocked: activePage.isLocked,
+      headerImageUrl: activePage.headerImageUrl ?? '',
+      summary: `Added Wikipedia category: Category:${cleanName}`,
+    };
+
+    if (activePage.authorId === 'builtin-editorial') {
+      await createWikiPage(payload, user);
+    } else {
+      await updateWikiPage(activePage, payload, user, canManageActiveMeta);
+    }
+
+    pushToast({
+      tone: 'success',
+      title: 'Category added',
+      description: `Added Category:${cleanName} to "${activePage.title}".`,
+      actionLabel: 'Open category',
+      onAction: () => navigateToCategories(normalizeCategorySlug(cleanName)),
+      durationMs: 3600,
+    });
   };
 
   const handleRestoreRevision = async (rev: PageRevision) => {
@@ -2001,6 +2189,17 @@ function WikiWorkspace() {
   const activeCategoryLabel = activePage
     ? WIKI_CATEGORIES.find((c) => c.id === activePage.category)?.label ?? activePage.category
     : '';
+  const activePageCategories = React.useMemo(
+    () => (activePage ? resolvePageCategories(activePage, expandedActiveContent) : []),
+    [activePage, expandedActiveContent]
+  );
+  const availableWikiCategoryNames = React.useMemo(
+    () =>
+      buildWikiCategoryDirectory(allPages, {
+        enableTemplates: templatesExt.enabled,
+      }).map((c) => c.name),
+    [allPages, templatesExt.enabled]
+  );
   const activeBannerUrl =
     activePage && headerBannerExt.enabled
       ? sanitizeHeaderImageUrl(activePage.headerImageUrl)
@@ -2017,6 +2216,7 @@ function WikiWorkspace() {
       view,
       ecosystemSubpage,
       legalSection,
+      selectedCategorySlug,
       activePage,
       isBootError: !isWikiBootReady && extensionsBootStatus === 'error',
     });
@@ -2027,6 +2227,7 @@ function WikiWorkspace() {
     view,
     ecosystemSubpage,
     legalSection,
+    selectedCategorySlug,
     activePage,
   ]);
 
@@ -2215,7 +2416,9 @@ function WikiWorkspace() {
                     navigateToIndex('index');
                   }}
                   className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
-                    view === 'index' ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8' : ''
+                    view === 'index' || view === 'tags'
+                      ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
+                      : ''
                   }`}
                 >
                   Pages
@@ -2236,6 +2439,20 @@ function WikiWorkspace() {
                 </a>
               </>
             )}
+            <a
+              href="#/categories"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateToCategories();
+              }}
+              className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 ${
+                view === 'categories'
+                  ? 'text-blue-700 dark:text-blue-400 underline underline-offset-8'
+                  : ''
+              }`}
+            >
+              Categories
+            </a>
             {ecosystemExt.enabled && (
               <a
                 href="#/ecosystem"
@@ -2317,6 +2534,8 @@ function WikiWorkspace() {
           governanceRole={governanceRole}
           isAdminViewActive={view === 'admin'}
           isEcosystemViewActive={view === 'ecosystem'}
+          isCategoriesViewActive={view === 'categories'}
+          isTagsViewActive={view === 'tags'}
           isDark={effectiveIsDark}
           canToggleTheme={themeColorScheme === 'user'}
           forcedColorMode={themeColorScheme === 'user' ? undefined : themeColorScheme}
@@ -2348,6 +2567,8 @@ function WikiWorkspace() {
           onQuickCreateSlug={navigateToCreate}
           onOpenAdmin={navigateToAdmin}
           onOpenEcosystem={ecosystemExt.enabled ? navigateToEcosystem : undefined}
+          onOpenCategories={navigateToCategories}
+          onOpenTags={() => navigateToIndex('tags')}
           onOpenShortcuts={shortcutsExt.enabled ? () => setShortcutsOpen(true) : undefined}
           onSignOut={() => void handleSignOut()}
           onSignIn={() => void handleSignIn()}
@@ -2516,6 +2737,8 @@ function WikiWorkspace() {
                       ? `Template:${slugToTitle(createPresetSlug.slice('predefinicao-'.length))}`
                       : createPresetSlug.startsWith('template-')
                       ? `Template:${slugToTitle(createPresetSlug.slice('template-'.length))}`
+                      : createPresetSlug.startsWith('category-')
+                      ? `Category:${formatCategoryDisplayName(createPresetSlug.slice('category-'.length))}`
                       : createPresetSlug
                       ? slugToTitle(createPresetSlug)
                       : ''
@@ -2526,11 +2749,16 @@ function WikiWorkspace() {
                       ? `<noinclude>\nDocumentation for this template. Usage: \`{{${
                           createPresetSlug.replace(/^(predefinicao-|template-)/, '')
                         }|text=...}}\`\n</noinclude>{{Notice|type=notice|title=Template|text={{{text|{{{texto|Template content.}}}}}}}}`
+                      : createPresetSlug.startsWith('category-')
+                      ? `Overview and inclusion criteria for articles belonging to **Category:${formatCategoryDisplayName(
+                          createPresetSlug.slice('category-'.length)
+                        )}**.\n\n<!-- Optional: add [[Category:Parent Category]] to make this a subcategory. -->`
                       : ''
                   }
                   initialCategory={
                     createPresetSlug.startsWith('predefinicao-') ||
-                    createPresetSlug.startsWith('template-')
+                    createPresetSlug.startsWith('template-') ||
+                    createPresetSlug.startsWith('category-')
                       ? 'reference'
                       : 'general'
                   }
@@ -2567,6 +2795,8 @@ function WikiWorkspace() {
                   onSave={handleCreateSave}
                   onCancel={() => navigateToPage('start')}
                   onNavigateSlug={navigateToPage}
+                  onSelectCategory={navigateToCategories}
+                  onOpenAllCategories={() => navigateToCategories()}
                   onDirtyChange={setHasUnsavedChanges}
                 />
               ) : user && isBlocked ? (
@@ -2590,19 +2820,56 @@ function WikiWorkspace() {
                 </div>
               )}
             </div>
-          ) : view === 'index' || view === 'recent' ? (
+          ) : view === 'categories' ? (
             <div
               data-wiki-surface="panel"
               className="max-w-5xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
+            >
+              <CategoryView
+                siteTitle={siteTitle}
+                selectedCategorySlug={selectedCategorySlug}
+                pages={allPages}
+                existingSlugs={existingSlugs}
+                isSignedIn={Boolean(user)}
+                isBlocked={isBlocked}
+                enableInfoboxes={infoboxExt.enabled}
+                enableReferences={refsExt.enabled}
+                enableTemplates={templatesExt.enabled}
+                referencesTitle={referencesSectionTitle}
+                externalLinkPrefix={externalLinkConfig.prefix}
+                encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
+                onSelectCategory={(slug) => navigateToCategories(slug ?? undefined)}
+                onSelectPage={navigateToPage}
+                onCreateCategoryDescription={(descSlug) => navigateToCreate(descSlug)}
+                onNewPage={() => navigateToCreate('')}
+              />
+            </div>
+          ) : view === 'index' || view === 'recent' || view === 'tags' ? (
+            <div
+              data-wiki-surface="panel"
+              className="max-w-6xl bg-white dark:bg-[#0f1623] border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8"
             >
               <PageIndexView
                 mode={view}
                 siteTitle={siteTitle}
                 pages={allPages}
                 isSignedIn={Boolean(user && !isBlocked)}
+                user={user}
+                isAdmin={isAdmin}
+                isBlocked={isBlocked}
                 enableZipExport={zipArchiveExt.enabled}
                 onSelectPage={navigateToPage}
+                onOpenCategories={navigateToCategories}
                 onNewPage={() => navigateToCreate('')}
+                onSignIn={() => void handleSignIn()}
+                onNotify={(notice) =>
+                  pushToast({
+                    tone: notice.tone,
+                    title: notice.title,
+                    description: notice.description,
+                    durationMs: 4200,
+                  })
+                }
               />
             </div>
           ) : !activePage ? (
@@ -2729,8 +2996,19 @@ function WikiWorkspace() {
                 {/* Page Header & Clean Unboxed Metadata */}
                 <div className="space-y-3 pb-5 border-b border-slate-200 dark:border-slate-800">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <div className="font-mono">
-                      wiki / {activeCategoryLabel.toLowerCase()} / :{activePage.slug}
+                    <div className="font-mono flex flex-wrap items-center gap-1">
+                      <span>wiki</span>
+                      <span>/</span>
+                      <button
+                        type="button"
+                        onClick={() => navigateToCategories(activePage.category)}
+                        title={`Browse Category:${activeCategoryLabel}`}
+                        className="text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        {activeCategoryLabel.toLowerCase()}
+                      </button>
+                      <span>/</span>
+                      <span>:{activePage.slug}</span>
                     </div>
                     {pageMetadataExt.enabled && (
                       <div className="font-mono tabular-nums">
@@ -2750,6 +3028,45 @@ function WikiWorkspace() {
                       data-wiki-chrome="edit-tools"
                       className="print:hidden flex flex-wrap items-center gap-2 shrink-0"
                     >
+                      {activeTab === 'read' && !isPrintView && (
+                        <button
+                          type="button"
+                          disabled={Boolean(user && !canEditActivePage)}
+                          onClick={() => {
+                            if (!user) {
+                              void handleSignIn();
+                              return;
+                            }
+                            if (canEditActivePage) {
+                              setQuickEditError(null);
+                              setQuickEditOpen(true);
+                            }
+                          }}
+                          title={
+                            !user
+                              ? 'Sign in with Google to quick-edit this page'
+                              : isBlocked
+                              ? 'Your account is currently blocked from editing'
+                              : !canEditActivePage
+                              ? isActiveUserOrDiscussionPage
+                                ? 'Only the page owner or an administrator can edit user and discussion pages'
+                                : 'This page is locked by the author'
+                              : 'Open quick editor modal without leaving this view'
+                          }
+                          data-wiki-surface="accent"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-700 text-white hover:bg-blue-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        >
+                          {user &&
+                          (activePage.isLocked || isActiveUserOrDiscussionPage || isBlocked) &&
+                          !canEditActivePage ? (
+                            <Lock className="w-3.5 h-3.5 shrink-0" />
+                          ) : (
+                            <Zap className="w-3.5 h-3.5 shrink-0" />
+                          )}
+                          <span>Quick Edit</span>
+                        </button>
+                      )}
+
                       {watchlistExt.enabled && (
                         <button
                           type="button"
@@ -3242,6 +3559,8 @@ function WikiWorkspace() {
                         currentSlug={activePage.slug}
                         currentTitle={activePage.title}
                         onNavigateSlug={navigateToPage}
+                        onSelectCategory={navigateToCategories}
+                        onOpenAllCategories={() => navigateToCategories()}
                         showToc={tocExt.enabled}
                         tocDefaultExpanded={tocExt.settings.defaultExpanded !== false}
                         tocMinHeadings={tocMinHeadings}
@@ -3265,6 +3584,15 @@ function WikiWorkspace() {
                         encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
                       />
                     )}
+
+                    <CategoriesFooter
+                      categories={activePageCategories}
+                      availableCategoryNames={availableWikiCategoryNames}
+                      canQuickAdd={canEditActivePage}
+                      onSelectCategory={navigateToCategories}
+                      onOpenAllCategories={() => navigateToCategories()}
+                      onQuickAddCategory={handleQuickAddCategory}
+                    />
 
                     {ratingsExt.enabled && (
                       <PageRatingPanel
@@ -3503,6 +3831,8 @@ function WikiWorkspace() {
                   onSave={handleEditSave}
                   onCancel={() => requestTabChange('read')}
                   onNavigateSlug={navigateToPage}
+                  onSelectCategory={navigateToCategories}
+                  onOpenAllCategories={() => navigateToCategories()}
                   onDirtyChange={setHasUnsavedChanges}
                 />
               )}
@@ -3769,6 +4099,28 @@ function WikiWorkspace() {
             </div>
           </div>
         </div>
+      )}
+      {view === 'page' && activePage && user && canEditActivePage && (
+        <QuickEditModal
+          isOpen={quickEditOpen}
+          page={activePage}
+          existingSlugs={existingSlugs}
+          wikiPages={allPages}
+          isSaving={quickEditSaving}
+          errorMessage={quickEditError}
+          enableInfoboxPreview={infoboxExt.enabled}
+          enableReferencesPreview={refsExt.enabled}
+          enableTemplatesPreview={templatesExt.enabled}
+          referencesTitle={referencesSectionTitle}
+          externalLinkPrefix={externalLinkConfig.prefix}
+          encodeExternalLinkTarget={externalLinkConfig.encodeTargetUrl}
+          onSave={handleQuickEditSave}
+          onClose={() => {
+            setQuickEditOpen(false);
+            setQuickEditError(null);
+          }}
+          onNavigateSlug={navigateToPage}
+        />
       )}
       {shortcutsExt.enabled && (
         <ShortcutsModal isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />

@@ -10,6 +10,7 @@ import {
   WMF_DOSSIER_PILLARS,
 } from './ecosystemContent';
 import { LEGAL_GOVERNANCE } from './legalConfig';
+import { formatCategoryDisplayName } from './categoryUtils';
 import type { WikiPage, WorkspaceView } from '../types/wiki';
 import type { LegalSectionTab } from '../components/LegalComplianceView';
 
@@ -86,6 +87,7 @@ export interface DynamicSeoParams {
   view: WorkspaceView;
   ecosystemSubpage: EcosystemSubpage;
   legalSection: LegalSectionTab;
+  selectedCategorySlug?: string | null;
   activePage: WikiPage | null;
   isBootError: boolean;
 }
@@ -95,6 +97,7 @@ export function applyDynamicSeo({
   view,
   ecosystemSubpage,
   legalSection,
+  selectedCategorySlug,
   activePage,
   isBootError,
 }: DynamicSeoParams): void {
@@ -348,10 +351,31 @@ export function applyDynamicSeo({
     canonicalUrl = `${baseUrl}#/pages`;
     nextTitle = `All Wiki Pages — ${siteTitle}`;
     nextDesc = `Browse every collaborative Markdown page published on ${siteTitle}.`;
+  } else if (view === 'categories') {
+    if (selectedCategorySlug) {
+      const catName = formatCategoryDisplayName(selectedCategorySlug);
+      canonicalUrl = `${baseUrl}#/category/${selectedCategorySlug}`;
+      nextTitle = `Category:${catName} — ${siteTitle}`;
+      nextDesc = `Browse all collaborative wiki articles and subcategories filed under Category:${catName} on ${siteTitle}.`;
+      graphNodes.push({
+        '@type': 'CollectionPage',
+        name: `Category:${catName}`,
+        description: nextDesc,
+        url: canonicalUrl,
+      });
+    } else {
+      canonicalUrl = `${baseUrl}#/categories`;
+      nextTitle = `Categories — ${siteTitle}`;
+      nextDesc = `Directory of all Wikipedia-style categories and article collections on ${siteTitle}.`;
+    }
   } else if (view === 'recent') {
     canonicalUrl = `${baseUrl}#/recent`;
     nextTitle = `Recent Wiki Changes — ${siteTitle}`;
     nextDesc = `Inspect recent collaborative edits and page updates on ${siteTitle}.`;
+  } else if (view === 'tags') {
+    canonicalUrl = `${baseUrl}#/tags`;
+    nextTitle = `Tag Management — ${siteTitle}`;
+    nextDesc = `View, filter, and bulk-manage wiki pages by their associated tags on ${siteTitle}.`;
   } else if (view === 'page' && activePage) {
     canonicalUrl = activePage.slug === 'start' ? baseUrl : `${baseUrl}#/page/${activePage.slug}`;
     nextTitle = `${activePage.title} — ${siteTitle}`;

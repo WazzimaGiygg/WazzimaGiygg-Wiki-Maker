@@ -17,6 +17,7 @@ import remarkParse from 'remark-parse';
 import { unified } from 'unified';
 import type { WikiPage } from '../types/wiki';
 import {
+  extractArticleCategories,
   extractArticleReferences,
   formatRelativeTime,
   parseMarkdownWithInfoboxes,
@@ -1640,9 +1641,11 @@ export async function exportArticleToPdf(
     currentSlug: page.slug,
   });
 
+  const { processedMarkdown: contentWithoutCategories } = extractArticleCategories(expandedContent);
+
   const { processedMarkdown, references } = enableReferences
-    ? extractArticleReferences(expandedContent)
-    : { processedMarkdown: expandedContent, references: [] };
+    ? extractArticleReferences(contentWithoutCategories)
+    : { processedMarkdown: contentWithoutCategories, references: [] };
 
   const segments = enableInfoboxes
     ? parseMarkdownWithInfoboxes(processedMarkdown)

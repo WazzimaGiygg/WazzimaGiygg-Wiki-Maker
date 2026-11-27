@@ -1,32 +1,48 @@
 import React from 'react';
+import type { User } from 'firebase/auth';
 import type { Timestamp } from 'firebase/firestore';
 import {
   Archive,
   Calendar,
   Check,
+  FolderTree,
   History,
+  List,
   Loader2,
   Lock,
   Plus,
   Search,
   SlidersHorizontal,
+  Tag,
   User as UserIcon,
   X,
 } from 'lucide-react';
 import { WIKI_CATEGORIES, type WikiPage } from '../types/wiki';
 import { exportPublicWikiArchiveZip } from '../lib/archiveExportService';
-import { formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
+import { extractArticleCategories, formatAbsoluteTime, formatRelativeTime } from '../lib/markdownUtils';
+import { buildTagDirectory } from '../lib/tagUtils';
+import { TagManagementPanel } from './TagManagementPanel';
 
 type DateFilterMode = 'exact' | 'from' | 'to' | 'range';
 
 interface PageIndexViewProps {
-  mode: 'index' | 'recent';
+  mode: 'index' | 'recent' | 'tags';
   siteTitle?: string;
   pages: WikiPage[];
   isSignedIn: boolean;
+  user?: User | null;
+  isAdmin?: boolean;
+  isBlocked?: boolean;
   enableZipExport?: boolean;
   onSelectPage: (slug: string) => void;
+  onOpenCategories?: (categorySlug?: string) => void;
   onNewPage: () => void;
+  onSignIn?: () => void;
+  onNotify?: (notice: {
+    tone: 'success' | 'info' | 'warning';
+    title: string;
+    description: string;
+  }) => void;
 }
 
 function toLocalDateInputValue(timestamp: Timestamp | null | undefined): string | null {
@@ -43,10 +59,23 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
   siteTitle,
   pages,
   isSignedIn,
+  user = null,
+  isAdmin = false,
+  isBlocked = false,
   enableZipExport = true,
   onSelectPage,
+  onOpenCategories,
   onNewPage,
+  onSignIn,
+  onNotify,
 }) => {
+  const [dashboardTab, setDashboardTab] = React.useState<'pages' | 'tags'>(
+    mode === 'tags' ? 'tags' : 'pages'
+  );
+  React.useEffect(() => {
+    setDashboardTab(mode === 'tags' ? 'tags' : 'pages');
+  }, [mode]);
+
   const [search, setSearch] = React.useState('');
   const [categoryFilter, setCategoryFilter] = React.useState<string>('all');
   const [onlyLastFiveEdits, setOnlyLastFiveEdits] = React.useState(false);
@@ -61,6 +90,11 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
   const [exportError, setExportError] = React.useState<string | null>(null);
 
   const editorDatalistId = React.useId();
+
+  const totalUniqueTags = React.useMemo(
+    () => buildTagDirectory(pages, user, isAdmin, isBlocked).tags.length,
+    [pages, user, isAdmin, isBlocked]
+  );
 
   const publicPagesCount = React.useMemo(
     () => pages.filter((p) => p.visibility === 'public').length,
@@ -213,19 +247,78 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
       <div className="flex flex-wrap items-end justify-between gap-4 pb-5 border-b border-slate-200 dark:border-slate-800">
         <div>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            wiki / {mode === 'recent' ? 'recent-changes' : 'page-index'}
+            wiki /{' '}
+            {dashboardTab === 'tags'
+              ? 'tag-management'
+              : mode === 'recent'
+              ? 'recent-changes'
+              : 'page-index'}
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-100 mt-1">
-            {mode === 'recent' ? 'Recent Changes' : 'Page Index'}
+            {dashboardTab === 'tags'
+              ? 'Tag Management'
+              : mode === 'recent'
+              ? 'Recent Changes'
+              : 'Page Index'}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-            {mode === 'recent'
+            {dashboardTab === 'tags'
+              ? 'Inspect wiki tags, filter articles by tag combinations, and bulk-manage tags across editable pages.'
+              : mode === 'recent'
               ? 'Latest collaborative edits and page creations stored in Firestore.'
               : 'Complete catalog of wiki pages available in this workspace.'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          {/* Dashboard Switcher: Pages Directory vs Tag Management */}
+          <div
+            role="tablist"
+            aria-label="Dashboard view mode"
+            className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={dashboardTab === 'pages'}
+              onClick={() => setDashboardTab('pages')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                dashboardTab === 'pages'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <List className="w-3.5 h-3.5 shrink-0" />
+              <span>{mode === 'recent' ? 'Recent Pages' : 'Page Directory'}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={dashboardTab === 'tags'}
+              onClick={() => setDashboardTab('tags')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                dashboardTab === 'tags'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              <Tag className="w-3.5 h-3.5 shrink-0 text-blue-700 dark:text-blue-400" />
+              <span className="tabular-nums">Tag Management ({totalUniqueTags})</span>
+            </button>
+          </div>
+
+          {onOpenCategories && (
+            <button
+              type="button"
+              onClick={() => onOpenCategories()}
+              title="Browse Wikipedia-style category pages and tags"
+              className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <FolderTree className="w-4 h-4 shrink-0 text-blue-700 dark:text-blue-400" />
+              <span>Categories</span>
+            </button>
+          )}
+
           {enableZipExport && (
             <button
               type="button"
@@ -277,6 +370,18 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
         </div>
       )}
 
+      {dashboardTab === 'tags' ? (
+        <TagManagementPanel
+          pages={pages}
+          user={user}
+          isAdmin={isAdmin}
+          isBlocked={isBlocked}
+          onSelectPage={onSelectPage}
+          onSignIn={onSignIn}
+          onNotify={onNotify}
+        />
+      ) : (
+        <>
       {/* Filters Row */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -575,7 +680,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
-              <span>Limpar filtros</span>
+              <span>Clear filters</span>
             </button>
           )}
         </div>
@@ -586,7 +691,7 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0b0f17] text-xs font-semibold text-slate-600 dark:text-slate-400">
                   <th className="py-2.5 px-4">Page</th>
-                  <th className="py-2.5 px-4">Category</th>
+                  <th className="py-2.5 px-4">Categories</th>
                   <th className="py-2.5 px-4">Last editor</th>
                   <th className="py-2.5 px-4 text-right">Version</th>
                   <th className="py-2.5 px-4 text-right">Updated</th>
@@ -596,6 +701,9 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                 {displayedPages.map((page) => {
                   const catLabel =
                     WIKI_CATEGORIES.find((c) => c.id === page.category)?.label ?? page.category;
+                  const extraCats = extractArticleCategories(page.content).categories.filter(
+                    (c) => c.slug !== page.category
+                  );
                   return (
                     <tr
                       key={page.slug}
@@ -617,7 +725,48 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
                         </div>
                       </td>
                       <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-300">
-                        {catLabel}
+                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                          {onOpenCategories ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenCategories(page.category);
+                              }}
+                              className="text-blue-700 dark:text-blue-400 hover:underline font-medium cursor-pointer"
+                            >
+                              {catLabel}
+                            </button>
+                          ) : (
+                            <span>{catLabel}</span>
+                          )}
+                          {extraCats.slice(0, 3).map((extra) => (
+                            <React.Fragment key={extra.slug}>
+                              <span aria-hidden="true" className="text-slate-300 dark:text-slate-700">
+                                |
+                              </span>
+                              {onOpenCategories ? (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onOpenCategories(extra.slug);
+                                  }}
+                                  className="text-blue-700 dark:text-blue-400 hover:underline cursor-pointer"
+                                >
+                                  {extra.name}
+                                </button>
+                              ) : (
+                                <span>{extra.name}</span>
+                              )}
+                            </React.Fragment>
+                          ))}
+                          {extraCats.length > 3 && (
+                            <span className="text-[11px] text-slate-400">
+                              +{extraCats.length - 3}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-300">
                         {page.lastEditorName}
@@ -643,6 +792,8 @@ export const PageIndexView: React.FC<PageIndexViewProps> = ({
             </table>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

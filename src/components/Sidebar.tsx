@@ -5,6 +5,7 @@ import {
   ChevronDown,
   FileText,
   FolderOpen,
+  FolderTree,
   Keyboard,
   Layers,
   Lock,
@@ -42,6 +43,8 @@ interface SidebarProps {
   governanceRole?: GovernanceRole;
   isAdminViewActive?: boolean;
   isEcosystemViewActive?: boolean;
+  isCategoriesViewActive?: boolean;
+  isTagsViewActive?: boolean;
   isDark: boolean;
   canToggleTheme?: boolean;
   forcedColorMode?: 'light' | 'dark';
@@ -65,6 +68,8 @@ interface SidebarProps {
   onQuickCreateSlug: (slug: string) => void;
   onOpenAdmin?: () => void;
   onOpenEcosystem?: () => void;
+  onOpenCategories?: (categorySlug?: string) => void;
+  onOpenTags?: () => void;
   onOpenShortcuts?: () => void;
   onSignOut: () => void;
   onSignIn: () => void;
@@ -122,6 +127,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   governanceRole = 'member',
   isAdminViewActive = false,
   isEcosystemViewActive = false,
+  isCategoriesViewActive = false,
+  isTagsViewActive = false,
   isDark,
   canToggleTheme = true,
   forcedColorMode,
@@ -145,6 +152,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onQuickCreateSlug,
   onOpenAdmin,
   onOpenEcosystem,
+  onOpenCategories,
+  onOpenTags,
   onOpenShortcuts,
   onSignOut,
   onSignIn,
@@ -813,6 +822,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           )}
 
+          {onOpenCategories && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenCategories();
+                onCloseMobile();
+              }}
+              data-wiki-surface={isCategoriesViewActive ? 'nav-active' : 'inset'}
+              className={`w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                isCategoriesViewActive
+                  ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
+                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-blue-700/60 dark:hover:border-blue-500/60'
+              }`}
+            >
+              <FolderTree className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" data-wiki-surface="link" />
+              <span>Categories</span>
+            </button>
+          )}
+
+          {onOpenTags && (
+            <button
+              type="button"
+              onClick={() => {
+                onOpenTags();
+                onCloseMobile();
+              }}
+              data-wiki-surface={isTagsViewActive ? 'nav-active' : 'inset'}
+              className={`w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                isTagsViewActive
+                  ? 'border-blue-700 bg-blue-50 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-semibold'
+                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-blue-700/60 dark:hover:border-blue-500/60'
+              }`}
+            >
+              <Tag className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400 shrink-0" data-wiki-surface="link" />
+              <span>Tag Management</span>
+            </button>
+          )}
+
           {onOpenEcosystem && (
             <button
               type="button"
@@ -1051,10 +1098,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <div key={cat.id} className="space-y-1">
                 <div className="flex items-center justify-between px-2 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  <span className="inline-flex items-center gap-1.5">
-                    <FolderOpen className="w-3.5 h-3.5" />
-                    <span>{cat.label}</span>
-                  </span>
+                  {onOpenCategories ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenCategories(cat.id);
+                        onCloseMobile();
+                      }}
+                      title={`Open Category:${cat.label}`}
+                      className="inline-flex items-center gap-1.5 hover:text-blue-700 dark:hover:text-blue-400 hover:underline transition-colors cursor-pointer"
+                    >
+                      <FolderOpen className="w-3.5 h-3.5" />
+                      <span>{cat.label}</span>
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <FolderOpen className="w-3.5 h-3.5" />
+                      <span>{cat.label}</span>
+                    </span>
+                  )}
                   <span className="font-mono tabular-nums text-[11px]">{items.length}</span>
                 </div>
 

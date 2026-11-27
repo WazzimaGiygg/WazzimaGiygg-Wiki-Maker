@@ -44,11 +44,13 @@ import type { GovernanceRole, LgpdErasureMode, WikiPage } from '../types/wiki';
 import { AdminTemplatesPanel } from './AdminTemplatesPanel';
 import { ExtensionsManagerPanel } from './ExtensionsManagerPanel';
 import { RepoUpdatesPanel } from './RepoUpdatesPanel';
+import { TagManagementPanel } from './TagManagementPanel';
 
 type AdminTab =
   | 'users'
   | 'edits'
   | 'pages'
+  | 'tags'
   | 'templates'
   | 'lgpd'
   | 'extensions'
@@ -609,6 +611,17 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
             }`}
           >
             All Pages ({snapshot?.pages.length ?? 0})
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('tags')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 ${
+              tab === 'tags'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Tags
           </button>
           <button
             type="button"
@@ -1287,6 +1300,26 @@ export const AdminConsoleView: React.FC<AdminConsoleViewProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {/* TAB 3A: TAG MANAGEMENT */}
+          {tab === 'tags' && (
+            <TagManagementPanel
+              pages={snapshot?.pages ?? []}
+              user={currentUser}
+              isAdmin={true}
+              isBlocked={false}
+              onSelectPage={onSelectPage}
+              onAfterBulkUpdate={loadData}
+              onNotify={(notice) => {
+                setFeedbackDiscussionSlug(null);
+                if (notice.tone === 'warning') {
+                  setErrorMsg(notice.description);
+                } else {
+                  setFeedbackMsg(notice.description);
+                }
+              }}
+            />
           )}
 
           {/* TAB 3B: COMMUNITY TEMPLATES MANAGEMENT */}

@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Eye,
   FileText,
+  FolderTree,
   Heading2,
   Heading3,
   Image as ImageIcon,
@@ -25,6 +26,7 @@ import {
   Loader2,
   Lock,
   PanelRight,
+  Plus,
   Quote,
   Redo2,
   Replace,
@@ -49,7 +51,12 @@ import {
   sanitizeHeaderImageUrl,
   uploadPageHeaderImage,
 } from '../lib/headerImageService';
-import { toWikiSlug } from '../lib/markdownUtils';
+import {
+  buildWikiCategoryDirectory,
+  removeCategoryTagFromMarkdown,
+  upsertCategoryTagInMarkdown,
+} from '../lib/categoryUtils';
+import { extractArticleCategories, toWikiSlug } from '../lib/markdownUtils';
 import { checkArticleProfanity } from '../lib/profanityFilter';
 import { ArticleViewer } from './ArticleViewer';
 import {
@@ -114,6 +121,8 @@ interface MarkdownEditorProps {
   }) => Promise<void>;
   onCancel: () => void;
   onNavigateSlug: (slug: string) => void;
+  onSelectCategory?: (slug: string) => void;
+  onOpenAllCategories?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
@@ -155,6 +164,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onSave,
   onCancel,
   onNavigateSlug,
+  onSelectCategory,
+  onOpenAllCategories,
   onDirtyChange,
 }) => {
   const [slug, setSlug] = React.useState(initialSlug);
@@ -163,6 +174,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [content, setContent] = React.useState(initialContent);
   const [category, setCategory] = React.useState(initialCategory || 'general');
   const [tagsText, setTagsText] = React.useState(initialTags.join(', '));
+  const [newWikiCategoryInput, setNewWikiCategoryInput] = React.useState('');
+  const categoryDatalistId = React.useId();
   const [visibility, setVisibility] = React.useState<PageVisibility>(initialVisibility);
   const [isLocked, setIsLocked] = React.useState(initialIsLocked);
   const [headerImageUrl, setHeaderImageUrl] = React.useState(initialHeaderImageUrl);
@@ -192,6 +205,21 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     () => WIKI_TEMPLATE_CATALOG.length + listCommunityTemplates(wikiPages).length,
     [wikiPages]
   );
+
+  const extractedWikiCategories = React.useMemo(
+    () => extractArticleCategories(content).categories,
+    [content]
+  );
+
+  const suggestedWikiCategories = React.useMemo(() => {
+    const directory = buildWikiCategoryDirectory(wikiPages ?? [], {
+      enableTemplates: enableTemplatesPreview,
+    });
+    const usedSlugs = new Set(extractedWikiCategories.map((c) => c.slug));
+    return directory
+      .filter((c) => !usedSlugs.has(c.slug))
+      .map((c) => c.name);
+  }, [wikiPages, enableTemplatesPreview, extractedWikiCategories]);
 
   // Unified Undo (Ctrl+Z) / Redo (Ctrl+R) content history
   const historyStackRef = React.useRef<{
@@ -1049,6 +1077,110 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           )}
         </div>
 
+        {/* Wikipedia Categories ([[Category:...]]) Manager */}
+        <div className="md:col-span-12 pt-2 border-t border-slate-200/80 dark:border-slate-800/80 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label
+              htmlFor="wiki-wikipedia-category-input"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400"
+            >
+              <FolderTree className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+              <span>Wikipedia Categories (<code className="font-mono">[[Category:...]]</code>)</span>
+            </label>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              Stripped from body prose and shown in the bottom Wikipedia category bar
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <input
+              id="wiki-wikipedia-category-input"
+              type="text"
+              list={categoryDatalistId}
+              value={newWikiCategoryInput}
+              onChange={(e) => setNewWikiCategoryInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const trimmed = newWikiCategoryInput.trim();
+                  if (!trimmed) return;
+                  const [rawName, rawSortKey] = trimmed.split('|');
+                  const nextContent = upsertCategoryTagInMarkdown(
+                    content,
+                    rawName,
+                    rawSortKey
+                  );
+                  if (nextContent !== content) {
+                    commitContentChange(nextContent, true);
+                  }
+                  setNewWikiCategoryInput('');
+                }
+              }}
+              placeholder="Add category (e.g. Science, Governance, Guides|01)..."
+              className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700"
+            />
+            <datalist id={categoryDatalistId}>
+              {suggestedWikiCategories.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+            <button
+              type="button"
+              disabled={!newWikiCategoryInput.trim()}
+              onClick={() => {
+                const trimmed = newWikiCategoryInput.trim();
+                if (!trimmed) return;
+                const [rawName, rawSortKey] = trimmed.split('|');
+                const nextContent = upsertCategoryTagInMarkdown(
+                  content,
+                  rawName,
+                  rawSortKey
+                );
+                if (nextContent !== content) {
+                  commitContentChange(nextContent, true);
+                }
+                setNewWikiCategoryInput('');
+              }}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-45 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+              <span>Add category</span>
+            </button>
+          </div>
+
+          {extractedWikiCategories.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              {extractedWikiCategories.map((cat) => (
+                <span
+                  key={cat.slug}
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-md border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200"
+                >
+                  <span className="font-medium">{cat.name}</span>
+                  {cat.sortKey && (
+                    <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                      |{cat.sortKey}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextContent = removeCategoryTagFromMarkdown(content, cat.slug);
+                      if (nextContent !== content) {
+                        commitContentChange(nextContent, true);
+                      }
+                    }}
+                    title={`Remove [[Category:${cat.name}]]`}
+                    aria-label={`Remove category ${cat.name}`}
+                    className="text-slate-400 hover:text-red-700 dark:hover:text-red-400 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         {enableHeaderBanner && (
           <div className="md:col-span-12 pt-2 border-t border-slate-200/80 dark:border-slate-800/80 space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1241,6 +1373,18 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               </button>
             </>
           )}
+          <button
+            type="button"
+            title="Insert Wikipedia category declaration ([[Category:Name]])"
+            onMouseDown={(e) => {
+              if (targetIsFormatted) e.preventDefault();
+            }}
+            onClick={() => insertSnippet('\n[[Category:', ']]', 'Category Name')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <FolderTree className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+            <span>Category</span>
+          </button>
         </div>
 
         <div
@@ -1847,6 +1991,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             wikiPages={wikiPages}
             currentSlug={currentSlug}
             onNavigateSlug={onNavigateSlug}
+            onSelectCategory={onSelectCategory}
+            onOpenAllCategories={onOpenAllCategories}
             showToc={showTocPreview}
             tocDefaultExpanded={tocDefaultExpanded}
             tocMinHeadings={tocMinHeadings}
@@ -1854,6 +2000,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             referencesTitle={referencesTitle}
             enableInfoboxes={enableInfoboxPreview}
             enableTemplates={enableTemplatesPreview}
+            showCategoriesFooter={true}
+            primaryCategory={category}
             externalLinkPrefix={externalLinkPrefix}
             encodeExternalLinkTarget={encodeExternalLinkTarget}
           />

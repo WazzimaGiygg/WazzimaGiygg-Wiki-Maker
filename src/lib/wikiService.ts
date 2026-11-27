@@ -49,6 +49,14 @@ import {
 import { db, handleFirestoreError, OperationType } from './firebase';
 import { sanitizeHeaderImageUrl } from './headerImageService';
 import { isValidWikiSlug, serializeInfoboxBlock, toWikiSlug } from './markdownUtils';
+import { checkArticleProfanity } from './profanityFilter';
+import {
+  type BulkTagOperation,
+  canUserEditPageTags,
+  canUserManagePageMeta,
+  computeNextTagsForPage,
+  describeBulkTagOperation,
+} from './tagUtils';
 import {
   ENGLISH_COMMUNITY_TEMPLATES,
   STARTER_TEMPLATE_CATEGORY,
@@ -1677,6 +1685,127 @@ export async function ensureDossierArticlePublished(user: User): Promise<void> {
   } catch (error) {
     console.warn('Could not auto-publish or translate built-in reference articles:', error);
   }
+}
+
+export interface BulkTagUpdateProgress {
+  processed: number;
+  total: number;
+  currentTitle: string;
+}
+
+export interface BulkTagUpdateResult {
+  updatedSlugs: string[];
+  skippedSlugs: string[];
+  failed: Array<{ slug: string; title: string; reason: string }>;
+}
+
+export async function bulkUpdatePagesTags(params: {
+  pages: WikiPage[];
+  operation: BulkTagOperation;
+  user: User;
+  isAdmin: boolean;
+  isBlocked: boolean;
+  onProgress?: (progress: BulkTagUpdateProgress) => void;
+}): Promise<BulkTagUpdateResult> {
+  const { pages, operation, user, isAdmin, isBlocked, onProgress } = params;
+
+  const tagsToValidate =
+    operation.type === 'add' || operation.type === 'replace'
+      ? operation.tags.join(', ')
+      : operation.type === 'rename'
+      ? operation.toTag
+      : '';
+
+  if (tagsToValidate.trim()) {
+    const profanity = checkArticleProfanity({ tags: tagsToValidate });
+    if (profanity.hasProfanity) {
+      throw new Error(
+        `Tag update blocked by content policy (${profanity.uniqueMaskedTerms.join(', ')}).`
+      );
+    }
+  }
+
+  const summary = describeBulkTagOperation(operation);
+  const updatedSlugs: string[] = [];
+  const skippedSlugs: string[] = [];
+  const failed: Array<{ slug: string; title: string; reason: string }> = [];
+
+  const total = pages.length;
+  let processed = 0;
+
+  const CONCURRENCY = 4;
+  for (let i = 0; i < pages.length; i += CONCURRENCY) {
+    const chunk = pages.slice(i, i + CONCURRENCY);
+    await Promise.all(
+      chunk.map(async (page) => {
+        try {
+          if (!canUserEditPageTags(page, user, isAdmin, isBlocked)) {
+            failed.push({
+              slug: page.slug,
+              title: page.title,
+              reason: 'You do not have permission to edit tags on this page.',
+            });
+            return;
+          }
+
+          const computed = computeNextTagsForPage(page, operation, isAdmin);
+          if (computed.error) {
+            failed.push({
+              slug: page.slug,
+              title: page.title,
+              reason: computed.error,
+            });
+            return;
+          }
+
+          if (!computed.changed) {
+            skippedSlugs.push(page.slug);
+            return;
+          }
+
+          const payload: SavePageInput = {
+            slug: page.slug,
+            title: page.title,
+            content: page.content,
+            category: page.category,
+            tags: computed.nextTags,
+            visibility: page.visibility,
+            isLocked: page.isLocked,
+            headerImageUrl: page.headerImageUrl ?? '',
+            summary,
+          };
+
+          if (page.authorId === 'builtin-editorial') {
+            await createWikiPage(payload, user);
+          } else {
+            const canManageMeta = canUserManagePageMeta(page, user, isAdmin, isBlocked);
+            await updateWikiPage(page, payload, user, canManageMeta);
+          }
+
+          updatedSlugs.push(page.slug);
+        } catch (err) {
+          failed.push({
+            slug: page.slug,
+            title: page.title,
+            reason: err instanceof Error ? err.message : 'Failed to update page tags.',
+          });
+        } finally {
+          processed += 1;
+          onProgress?.({
+            processed,
+            total,
+            currentTitle: page.title,
+          });
+        }
+      })
+    );
+  }
+
+  return {
+    updatedSlugs,
+    skippedSlugs,
+    failed,
+  };
 }
 
 export type { PageComment, PageRating, WatchlistItem };
