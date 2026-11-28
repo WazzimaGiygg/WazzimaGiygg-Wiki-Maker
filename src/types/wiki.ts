@@ -52,6 +52,14 @@ export const VALIDATION_LIMITS = {
   LGPD_REQUEST_RESOLUTION_MAX_LENGTH: 500,
   ADMIN_THREAD_BODY_MAX_LENGTH: 4000,
   ADMIN_POST_BODY_MAX_LENGTH: 2000,
+  EXTENSION_MAX_UPLOAD_MB_MIN: 1,
+  EXTENSION_MAX_UPLOAD_MB_MAX: 25,
+  EXTENSION_STORAGE_FOLDER_MAX_LENGTH: 64,
+  EXTENSION_STORAGE_FOLDER_PATTERN: /^[a-z0-9][a-z0-9/_-]{0,62}$/,
+  MEDIA_FILE_NAME_MAX_LENGTH: 160,
+  MEDIA_ALT_TEXT_MAX_LENGTH: 200,
+  MEDIA_STORAGE_PATH_MAX_LENGTH: 300,
+  MEDIA_DOWNLOAD_URL_MAX_LENGTH: 1000,
 } as const;
 
 export type GovernanceRole = 'member' | 'admin' | 'bureaucrat';
@@ -91,7 +99,8 @@ export type WikiExtensionId =
   | 'privacy-banner'
   | 'page-header-banner'
   | 'watchlist'
-  | 'anti-chatbot-shield';
+  | 'anti-chatbot-shield'
+  | 'image-upload';
 
 export type WikiExtensionCategory =
   | 'appearance'
@@ -122,6 +131,9 @@ export interface WikiExtensionSettings {
   autoExitOnNavigate?: boolean;
   externalLinkPrefix?: string;
   encodeTargetUrl?: boolean;
+  blazePlanConfirmed?: boolean;
+  maxUploadSizeMb?: number;
+  storageFolder?: string;
 }
 
 export interface WikiExtensionRecord {
@@ -328,6 +340,30 @@ export interface WatchlistItem {
   pageTitle: string;
   pageCategory: string;
   pageVisibility: PageVisibility;
+  createdAt: Timestamp | null;
+}
+
+export type WikiMediaContentType =
+  | 'image/png'
+  | 'image/jpeg'
+  | 'image/webp'
+  | 'image/gif'
+  | 'image/avif';
+
+export interface WikiMediaAsset {
+  id: string;
+  scope: 'site';
+  fileName: string;
+  altText: string;
+  downloadUrl: string;
+  storagePath: string;
+  contentType: WikiMediaContentType;
+  sizeBytes: number;
+  width: number;
+  height: number;
+  pageSlug: string;
+  uploadedBy: string;
+  uploadedByName: string;
   createdAt: Timestamp | null;
 }
 

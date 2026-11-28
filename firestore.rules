@@ -319,7 +319,8 @@ service cloud.firestore {
           'footerTitle', 'showOutlineLink', 'allowEditorToolbar', 'allowAutoProfileCard',
           'showInNavbar', 'showInSidebar', 'excludeDiscussions', 'showInHeader',
           'showToastFeedback', 'notifyWhileEditing', 'allowAnonymousRead',
-          'autoExitOnNavigate', 'externalLinkPrefix', 'encodeTargetUrl'
+          'autoExitOnNavigate', 'externalLinkPrefix', 'encodeTargetUrl',
+          'blazePlanConfirmed', 'maxUploadSizeMb', 'storageFolder'
         ])
         && (!('siteTitle' in settings) || (settings.siteTitle is string && settings.siteTitle.size() >= 1 && settings.siteTitle.size() <= 80))
         && (!('themeId' in settings) || (settings.themeId is string && settings.themeId.size() >= 1 && settings.themeId.size() <= 40 && settings.themeId.matches('^[a-z0-9\\-]+$')))
@@ -347,7 +348,16 @@ service cloud.firestore {
             (settings.externalLinkPrefix.matches('^/.*') && !settings.externalLinkPrefix.matches('^//.*'))
           )
         ))
-        && (!('encodeTargetUrl' in settings) || settings.encodeTargetUrl is bool);
+        && (!('encodeTargetUrl' in settings) || settings.encodeTargetUrl is bool)
+        && (!('blazePlanConfirmed' in settings) || settings.blazePlanConfirmed is bool)
+        && (!('maxUploadSizeMb' in settings) || (settings.maxUploadSizeMb is int && settings.maxUploadSizeMb >= 1 && settings.maxUploadSizeMb <= 25))
+        && (!('storageFolder' in settings) || (
+          settings.storageFolder is string
+          && settings.storageFolder.size() >= 1
+          && settings.storageFolder.size() <= 64
+          && settings.storageFolder.matches('^[a-z0-9][a-z0-9/_\\-]{0,62}$')
+          && !settings.storageFolder.matches('.*//.*')
+        ));
     }
 
     function isValidWikiExtension(data, extensionId) {
@@ -475,6 +485,40 @@ service cloud.firestore {
         && data.authorName is string && data.authorName.size() >= 1 && data.authorName.size() <= 80
         && data.authorRole in ['admin', 'bureaucrat']
         && data.body is string && data.body.size() >= 1 && data.body.size() <= 2000
+        && data.createdAt is timestamp;
+    }
+
+    function isImageUploadReady() {
+      return exists(/databases/$(database)/documents/extensions/image-upload)
+        && get(/databases/$(database)/documents/extensions/image-upload).data.enabled == true
+        && 'blazePlanConfirmed' in get(/databases/$(database)/documents/extensions/image-upload).data.settings
+        && get(/databases/$(database)/documents/extensions/image-upload).data.settings.blazePlanConfirmed == true;
+    }
+
+    function isValidWikiMediaAsset(data, mediaId) {
+      return data.keys().hasAll([
+          'id', 'scope', 'fileName', 'altText', 'downloadUrl', 'storagePath',
+          'contentType', 'sizeBytes', 'width', 'height', 'pageSlug',
+          'uploadedBy', 'uploadedByName', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'scope', 'fileName', 'altText', 'downloadUrl', 'storagePath',
+          'contentType', 'sizeBytes', 'width', 'height', 'pageSlug',
+          'uploadedBy', 'uploadedByName', 'createdAt'
+        ])
+        && data.id is string && data.id == mediaId && isValidId(data.id)
+        && data.scope == 'site'
+        && data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 160
+        && data.altText is string && data.altText.size() <= 200
+        && data.downloadUrl is string && data.downloadUrl.size() >= 1 && data.downloadUrl.size() <= 1000 && data.downloadUrl.matches('^https://.*$')
+        && data.storagePath is string && data.storagePath.size() >= 1 && data.storagePath.size() <= 300
+        && data.contentType in ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif']
+        && data.sizeBytes is int && data.sizeBytes >= 1 && data.sizeBytes <= 26214400
+        && data.width is int && data.width >= 0 && data.width <= 16384
+        && data.height is int && data.height >= 0 && data.height <= 16384
+        && data.pageSlug is string && (data.pageSlug == '' || isValidId(data.pageSlug))
+        && data.uploadedBy is string && isValidId(data.uploadedBy)
+        && data.uploadedByName is string && data.uploadedByName.size() >= 1 && data.uploadedByName.size() <= 80
         && data.createdAt is timestamp;
     }
 
@@ -1165,6 +1209,47 @@ service cloud.firestore {
 
         allow delete: if isValidId(threadId) && isValidId(postId) && isAdmin() && (existing().authorId == request.auth.uid || isBureaucrat());
       }
+    }
+
+    // Collection: /wiki_media/{mediaId} (Uploaded Wiki image metadata; requires image-upload extension & Blaze confirmation)
+    match /wiki_media/{mediaId} {
+      allow get: if isValidId(mediaId);
+      allow list: if resource.data.scope == 'site' || isAdmin();
+
+      allow create: if isVerified()
+        && isValidId(mediaId)
+        && isValidWikiMediaAsset(incoming(), mediaId)
+        && incoming().uploadedBy == request.auth.uid
+        && incoming().createdAt == request.time
+        && isNotBlocked()
+        && isImageUploadReady();
+
+      allow update: if isVerified()
+        && isValidId(mediaId)
+        && isValidWikiMediaAsset(incoming(), mediaId)
+        && isAdmin()
+        && incoming().id == existing().id
+        && incoming().scope == existing().scope
+        && incoming().fileName == existing().fileName
+        && incoming().altText == existing().altText
+        && incoming().downloadUrl == existing().downloadUrl
+        && incoming().storagePath == existing().storagePath
+        && incoming().contentType == existing().contentType
+        && incoming().sizeBytes == existing().sizeBytes
+        && incoming().width == existing().width
+        && incoming().height == existing().height
+        && incoming().pageSlug == existing().pageSlug
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['uploadedBy', 'uploadedByName'])
+        && (
+          (incoming().uploadedBy == existing().uploadedBy && incoming().uploadedByName == existing().uploadedByName) ||
+          (incoming().uploadedBy == 'lgpd-anonymized' && incoming().uploadedByName == 'Removed User (LGPD)')
+        );
+
+      allow delete: if isVerified()
+        && isValidId(mediaId)
+        && isNotBlocked()
+        && (existing().uploadedBy == request.auth.uid || isAdmin());
     }
   }
 }

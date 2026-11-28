@@ -379,6 +379,18 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                       </a>
                     );
                   },
+                  img: ({ src, alt, title }) => {
+                    if (!src) return null;
+                    return (
+                      <img
+                        src={src}
+                        alt={alt ?? ''}
+                        title={title}
+                        loading="lazy"
+                        className="max-w-full h-auto rounded-lg border border-slate-200 dark:border-slate-800 my-3 block"
+                      />
+                    );
+                  },
                 }}
               >
                 {processed}

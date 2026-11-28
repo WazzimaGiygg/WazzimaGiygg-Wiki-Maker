@@ -938,6 +938,92 @@
         "body",
         "createdAt"
       ]
+    },
+    "WikiMediaAsset": {
+      "title": "WikiMediaAsset",
+      "description": "Uploaded image metadata stored alongside Firebase Storage files when the image-upload extension and Firebase Blaze plan are both enabled.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["site"]
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "altText": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "downloadUrl": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "storagePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "contentType": {
+          "type": "string",
+          "enum": ["image/png", "image/jpeg", "image/webp", "image/gif", "image/avif"]
+        },
+        "sizeBytes": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "pageSlug": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "uploadedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "uploadedByName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "scope",
+        "fileName",
+        "altText",
+        "downloadUrl",
+        "storagePath",
+        "contentType",
+        "sizeBytes",
+        "width",
+        "height",
+        "pageSlug",
+        "uploadedBy",
+        "uploadedByName",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -1004,6 +1090,10 @@
     "/admin_discussions/{threadId}/posts/{postId}": {
       "schema": { "$ref": "#/entities/AdminDiscussionPost" },
       "description": "Replies inside private administrator/bureaucrat discussion threads."
+    },
+    "/wiki_media/{mediaId}": {
+      "schema": { "$ref": "#/entities/WikiMediaAsset" },
+      "description": "Metadata registry of uploaded Wiki images stored in Firebase Storage (requires image-upload extension enabled and Blaze plan confirmed)."
     }
   }
 }

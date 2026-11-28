@@ -270,6 +270,29 @@ export const EXTENSION_SETTING_DESCRIPTORS: Record<
   'page-header-banner': [],
   watchlist: [],
   'anti-chatbot-shield': [],
+  'image-upload': [
+    {
+      key: 'blazePlanConfirmed',
+      label: 'Confirm Firebase Blaze paid plan & Storage active',
+      hint: 'Required by Firebase to upload and serve image files via Cloud Storage. Leave unchecked if your Firebase project is still on the free Spark plan.',
+      type: 'boolean',
+    },
+    {
+      key: 'maxUploadSizeMb',
+      label: 'Maximum upload file size (MB)',
+      hint: 'Upper file size limit per uploaded image (1 to 25 MB).',
+      type: 'number',
+      min: VALIDATION_LIMITS.EXTENSION_MAX_UPLOAD_MB_MIN,
+      max: VALIDATION_LIMITS.EXTENSION_MAX_UPLOAD_MB_MAX,
+    },
+    {
+      key: 'storageFolder',
+      label: 'Firebase Storage folder prefix',
+      hint: 'Bucket folder prefix where Wiki images are stored (e.g., wiki-images).',
+      type: 'text',
+      maxLength: VALIDATION_LIMITS.EXTENSION_STORAGE_FOLDER_MAX_LENGTH,
+    },
+  ],
 };
 
 export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
@@ -849,6 +872,26 @@ export const DEFAULT_WIKI_EXTENSIONS: ResolvedWikiExtension[] = [
     updatedAt: null,
     persisted: false,
   },
+  {
+    id: 'image-upload',
+    scope: 'site',
+    name: 'Wiki Image Upload (Firebase Storage + Blaze)',
+    description:
+      'Allows verified collaborators to upload image files directly into articles and banners via Firebase Storage. Disabled by default; requires both activation here and Firebase Blaze paid plan confirmation.',
+    category: 'authoring',
+    enabled: false,
+    sortOrder: 34,
+    settings: {
+      blazePlanConfirmed: false,
+      maxUploadSizeMb: 5,
+      storageFolder: 'wiki-images',
+    },
+    updatedBy: 'system-default',
+    updatedByName: 'Built-in Default',
+    createdAt: null,
+    updatedAt: null,
+    persisted: false,
+  },
 ];
 
 export type SiteExtensionsMap = Record<WikiExtensionId, ResolvedWikiExtension>;
@@ -1019,6 +1062,28 @@ export function sanitizeExtensionSettings(
     case 'watchlist':
     case 'anti-chatbot-shield':
       return {};
+    case 'image-upload': {
+      const rawMaxMb =
+        typeof src.maxUploadSizeMb === 'number' && Number.isFinite(src.maxUploadSizeMb)
+          ? Math.round(src.maxUploadSizeMb)
+          : base.maxUploadSizeMb ?? 5;
+      const maxUploadSizeMb = Math.max(
+        VALIDATION_LIMITS.EXTENSION_MAX_UPLOAD_MB_MIN,
+        Math.min(VALIDATION_LIMITS.EXTENSION_MAX_UPLOAD_MB_MAX, rawMaxMb)
+      );
+      const storageFolder = normalizeStorageFolder(
+        src.storageFolder,
+        base.storageFolder ?? 'wiki-images'
+      );
+      return {
+        blazePlanConfirmed:
+          typeof src.blazePlanConfirmed === 'boolean'
+            ? src.blazePlanConfirmed
+            : base.blazePlanConfirmed ?? false,
+        maxUploadSizeMb,
+        storageFolder,
+      };
+    }
   }
 }
 
@@ -1167,6 +1232,60 @@ export function resolveExternalLinkConfig(state: SiteExtensionsState): {
   return {
     prefix,
     encodeTargetUrl: ext.settings.encodeTargetUrl === true,
+  };
+}
+
+export function normalizeStorageFolder(
+  raw: unknown,
+  fallback = 'wiki-images'
+): string {
+  if (typeof raw !== 'string') {
+    return fallback;
+  }
+  const cleaned = raw
+    .trim()
+    .toLowerCase()
+    .replace(/^\/+|\/+$/g, '')
+    .replace(/\/{2,}/g, '/')
+    .slice(0, VALIDATION_LIMITS.EXTENSION_STORAGE_FOLDER_MAX_LENGTH);
+  if (!cleaned) {
+    return fallback;
+  }
+  return VALIDATION_LIMITS.EXTENSION_STORAGE_FOLDER_PATTERN.test(cleaned)
+    ? cleaned
+    : fallback;
+}
+
+export interface ImageUploadExtensionConfig {
+  extensionEnabled: boolean;
+  blazePlanConfirmed: boolean;
+  canUpload: boolean;
+  maxUploadSizeMb: number;
+  storageFolder: string;
+}
+
+export function resolveImageUploadConfig(
+  state: SiteExtensionsState
+): ImageUploadExtensionConfig {
+  const ext = state.byId['image-upload'];
+  const extensionEnabled = Boolean(ext && ext.enabled);
+  const blazePlanConfirmed = Boolean(ext && ext.settings.blazePlanConfirmed === true);
+  const rawMaxMb =
+    typeof ext?.settings.maxUploadSizeMb === 'number' &&
+    Number.isFinite(ext.settings.maxUploadSizeMb)
+      ? Math.round(ext.settings.maxUploadSizeMb)
+      : 5;
+  const maxUploadSizeMb = Math.max(
+    VALIDATION_LIMITS.EXTENSION_MAX_UPLOAD_MB_MIN,
+    Math.min(VALIDATION_LIMITS.EXTENSION_MAX_UPLOAD_MB_MAX, rawMaxMb)
+  );
+  const storageFolder = normalizeStorageFolder(ext?.settings.storageFolder, 'wiki-images');
+  return {
+    extensionEnabled,
+    blazePlanConfirmed,
+    canUpload: extensionEnabled && blazePlanConfirmed,
+    maxUploadSizeMb,
+    storageFolder,
   };
 }
 

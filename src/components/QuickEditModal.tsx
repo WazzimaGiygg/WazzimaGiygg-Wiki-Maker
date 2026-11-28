@@ -1,4 +1,5 @@
 import React from 'react';
+import type { User } from 'firebase/auth';
 import {
   AlertTriangle,
   Bold,
@@ -6,6 +7,7 @@ import {
   Edit3,
   Eye,
   Heading2,
+  Image as ImageIcon,
   Italic,
   Link2,
   Loader2,
@@ -14,17 +16,30 @@ import {
   SplitSquareHorizontal,
   X,
 } from 'lucide-react';
+import type { ImageUploadExtensionConfig } from '../lib/extensionsService';
 import { checkArticleProfanity } from '../lib/profanityFilter';
 import { VALIDATION_LIMITS, type WikiPage } from '../types/wiki';
 import { ArticleViewer } from './ArticleViewer';
+import { ImageUploadModal } from './ImageUploadModal';
 
 type QuickEditPaneMode = 'write' | 'split' | 'preview';
+
+const DEFAULT_IMAGE_UPLOAD_CONFIG: ImageUploadExtensionConfig = {
+  extensionEnabled: false,
+  blazePlanConfirmed: false,
+  canUpload: false,
+  maxUploadSizeMb: 5,
+  storageFolder: 'wiki-images',
+};
 
 interface QuickEditModalProps {
   isOpen: boolean;
   page: WikiPage;
   existingSlugs: Set<string>;
   wikiPages: WikiPage[];
+  currentUser?: User | null;
+  isAdmin?: boolean;
+  imageUploadConfig?: ImageUploadExtensionConfig;
   isSaving: boolean;
   errorMessage: string | null;
   enableInfoboxPreview?: boolean;
@@ -43,6 +58,9 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
   page,
   existingSlugs,
   wikiPages,
+  currentUser = null,
+  isAdmin = false,
+  imageUploadConfig = DEFAULT_IMAGE_UPLOAD_CONFIG,
   isSaving,
   errorMessage,
   enableInfoboxPreview = true,
@@ -61,6 +79,7 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
   const [paneMode, setPaneMode] = React.useState<QuickEditPaneMode>('write');
   const [localError, setLocalError] = React.useState<string | null>(null);
   const [confirmDiscardOpen, setConfirmDiscardOpen] = React.useState(false);
+  const [imageModalOpen, setImageModalOpen] = React.useState(false);
 
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const titleInputId = React.useId();
@@ -161,7 +180,7 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
 
   // Handle Esc to close and Ctrl/Cmd+S or Ctrl/Cmd+Enter to save inside modal
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || imageModalOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.isComposing) return;
       if (e.key === 'Escape') {
@@ -185,7 +204,7 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [isOpen, confirmDiscardOpen, requestClose, isSaving, handleSubmit]);
+  }, [isOpen, imageModalOpen, confirmDiscardOpen, requestClose, isSaving, handleSubmit]);
 
   if (!isOpen) return null;
 
@@ -393,6 +412,19 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
               >
                 &lt;ref&gt;
               </button>
+              <button
+                type="button"
+                onClick={() => setImageModalOpen(true)}
+                title={
+                  imageUploadConfig.canUpload
+                    ? 'Upload or insert image'
+                    : 'Insert image (file upload requires Image Upload extension + Blaze plan)'
+                }
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                <span>Image</span>
+              </button>
             </div>
           )}
 
@@ -504,6 +536,18 @@ export const QuickEditModal: React.FC<QuickEditModalProps> = ({
           )}
         </div>
       </div>
+
+      <ImageUploadModal
+        isOpen={imageModalOpen}
+        currentUser={currentUser}
+        isAdmin={isAdmin}
+        pageSlug={page.slug}
+        imageUploadConfig={imageUploadConfig}
+        onInsertImage={(markdownSnippet) => {
+          insertSnippet(`\n${markdownSnippet}\n`, '', '');
+        }}
+        onClose={() => setImageModalOpen(false)}
+      />
     </div>
   );
 };

@@ -49,8 +49,12 @@ import {
 import {
   isValidHeaderImageUrl,
   sanitizeHeaderImageUrl,
-  uploadPageHeaderImage,
 } from '../lib/headerImageService';
+import type { ImageUploadExtensionConfig } from '../lib/extensionsService';
+import {
+  getImageUploadBlockedReason,
+  uploadWikiImage,
+} from '../lib/imageUploadService';
 import {
   buildWikiCategoryDirectory,
   removeCategoryTagFromMarkdown,
@@ -66,10 +70,19 @@ import {
   type RichFormatCommand,
 } from './FormattedMarkdownPane';
 import { CitationBuilderModal } from './CitationBuilderModal';
+import { ImageUploadModal } from './ImageUploadModal';
 import { InfoboxBuilderModal } from './InfoboxBuilderModal';
 import { TemplateManagementPanel } from './TemplateManagementPanel';
 import { TemplatePickerModal } from './TemplatePickerModal';
 import { listCommunityTemplates, WIKI_TEMPLATE_CATALOG } from '../services/templateService';
+
+const DEFAULT_IMAGE_UPLOAD_CONFIG: ImageUploadExtensionConfig = {
+  extensionEnabled: false,
+  blazePlanConfirmed: false,
+  canUpload: false,
+  maxUploadSizeMb: 5,
+  storageFolder: 'wiki-images',
+};
 
 interface MarkdownEditorProps {
   mode: 'create' | 'edit';
@@ -86,6 +99,8 @@ interface MarkdownEditorProps {
   wikiPages?: WikiPage[];
   currentSlug?: string;
   currentUser?: User | null;
+  isAdmin?: boolean;
+  imageUploadConfig?: ImageUploadExtensionConfig;
   isSaving: boolean;
   errorMessage: string | null;
   enableHeaderBanner?: boolean;
@@ -143,6 +158,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   wikiPages,
   currentSlug,
   currentUser = null,
+  isAdmin = false,
+  imageUploadConfig = DEFAULT_IMAGE_UPLOAD_CONFIG,
   isSaving,
   errorMessage,
   enableHeaderBanner = true,
@@ -243,6 +260,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [findCaseSensitive, setFindCaseSensitive] = React.useState(false);
   const [activeMatchIndex, setActiveMatchIndex] = React.useState(0);
   const [replaceStatus, setReplaceStatus] = React.useState<string | null>(null);
+  const [imageModalOpen, setImageModalOpen] = React.useState(false);
 
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
   const formattedPaneRef = React.useRef<FormattedEditorHandle | null>(null);
@@ -657,6 +675,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const handleBannerFileSelected = async (file: File | null) => {
     if (!file) return;
+    const blockedReason = getImageUploadBlockedReason(imageUploadConfig);
+    if (blockedReason) {
+      setBannerUploadError(blockedReason.detail);
+      if (bannerFileInputRef.current) {
+        bannerFileInputRef.current.value = '';
+      }
+      return;
+    }
     if (!currentUser) {
       setBannerUploadError('Sign in with Google to upload a header image.');
       return;
@@ -665,16 +691,18 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setBannerUploadError(null);
     setIsUploadingBanner(true);
     try {
-      const result = await uploadPageHeaderImage(
+      const asset = await uploadWikiImage({
         file,
-        slug || initialSlug || title || 'page',
-        currentUser
-      );
-      setHeaderImageUrl(result.url);
+        user: currentUser,
+        config: imageUploadConfig,
+        pageSlug: slug || initialSlug || title || 'page',
+        altText: `${title || 'Page'} header banner`,
+      });
+      setHeaderImageUrl(asset.downloadUrl);
       setBannerPreviewFailed(false);
     } catch (err) {
       setBannerUploadError(
-        err instanceof Error ? err.message : 'Failed to process header image.'
+        err instanceof Error ? err.message : 'Failed to upload header image.'
       );
     } finally {
       setIsUploadingBanner(false);
@@ -1216,16 +1244,29 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               />
               <button
                 type="button"
-                disabled={isUploadingBanner || isSaving}
+                disabled={isUploadingBanner || isSaving || !imageUploadConfig.canUpload}
+                title={
+                  imageUploadConfig.canUpload
+                    ? 'Upload banner image to Firebase Storage'
+                    : getImageUploadBlockedReason(imageUploadConfig)?.detail
+                }
                 onClick={() => bannerFileInputRef.current?.click()}
                 className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap shrink-0 cursor-pointer disabled:opacity-55 disabled:cursor-not-allowed"
               >
                 {isUploadingBanner ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-700 dark:text-blue-400" />
+                ) : !imageUploadConfig.canUpload ? (
+                  <Lock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                 ) : (
                   <Upload className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
                 )}
-                <span>{isUploadingBanner ? 'Uploading image...' : 'Upload image'}</span>
+                <span>
+                  {isUploadingBanner
+                    ? 'Uploading image...'
+                    : imageUploadConfig.canUpload
+                    ? 'Upload image'
+                    : 'Upload locked (Blaze + Extension)'}
+                </span>
               </button>
 
               <input
@@ -1656,6 +1697,22 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">URL</span>
+                </button>
+                <button
+                  type="button"
+                  title={
+                    imageUploadConfig.canUpload
+                      ? 'Upload or insert image into article'
+                      : 'Insert image URL (file upload requires Image Upload extension + Firebase Blaze plan)'
+                  }
+                  onMouseDown={(e) => {
+                    if (targetIsFormatted) e.preventDefault();
+                  }}
+                  onClick={() => setImageModalOpen(true)}
+                  className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <ImageIcon className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
+                  <span>Image</span>
                 </button>
 
                 <span
@@ -2139,6 +2196,18 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           onInsertBlock={handleInsertWikiStructure}
         />
       )}
+
+      <ImageUploadModal
+        isOpen={imageModalOpen}
+        currentUser={currentUser}
+        isAdmin={isAdmin}
+        pageSlug={slug || initialSlug || currentSlug}
+        imageUploadConfig={imageUploadConfig}
+        onInsertImage={(markdownSnippet) => {
+          handleInsertWikiStructure(markdownSnippet);
+        }}
+        onClose={() => setImageModalOpen(false)}
+      />
     </div>
   );
 };

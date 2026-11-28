@@ -79,6 +79,7 @@ import {
   bootAndSubscribeSiteExtensions,
   getInitialSiteExtensionsState,
   resolveExternalLinkConfig,
+  resolveImageUploadConfig,
   resolveSiteTheme,
   resolveSiteTitle,
   type SiteExtensionsState,
@@ -593,6 +594,10 @@ function WikiWorkspace() {
   const watchlistExt = extensionsState.byId.watchlist;
   const externalLinkConfig = React.useMemo(
     () => resolveExternalLinkConfig(extensionsState),
+    [extensionsState]
+  );
+  const imageUploadConfig = React.useMemo(
+    () => resolveImageUploadConfig(extensionsState),
     [extensionsState]
   );
 
@@ -2912,6 +2917,8 @@ function WikiWorkspace() {
                   wikiPages={allPages}
                   currentSlug={createPresetSlug || undefined}
                   currentUser={user}
+                  isAdmin={isAdmin}
+                  imageUploadConfig={imageUploadConfig}
                   isSaving={isSaving}
                   errorMessage={saveError}
                   enableHeaderBanner={headerBannerExt.enabled}
@@ -4014,6 +4021,8 @@ function WikiWorkspace() {
                   wikiPages={allPages}
                   currentSlug={activePage.slug}
                   currentUser={user}
+                  isAdmin={isAdmin}
+                  imageUploadConfig={imageUploadConfig}
                   isSaving={isSaving}
                   errorMessage={saveError}
                   enableHeaderBanner={headerBannerExt.enabled}
@@ -4319,6 +4328,9 @@ function WikiWorkspace() {
           page={activePage}
           existingSlugs={existingSlugs}
           wikiPages={allPages}
+          currentUser={user}
+          isAdmin={isAdmin}
+          imageUploadConfig={imageUploadConfig}
           isSaving={quickEditSaving}
           errorMessage={quickEditError}
           enableInfoboxPreview={infoboxExt.enabled}
